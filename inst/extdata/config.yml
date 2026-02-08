@@ -1,0 +1,43 @@
+# ETLDelphi configuration
+# Schemas: source (varchar), staging (typed/clean), CDM (OMOP)
+schemas:
+  src: src
+  stg: stg
+  cdm: cdm
+
+# Sentinel for unmapped concepts (use 0, not null, per OMOP)
+concept_id_unknown: 0
+
+# Date parsing: try in order (DuckDB strptime formats)
+date_formats:
+  - "%Y-%m-%d %H:%M:%S"
+  - "%Y-%m-%dT%H:%M:%SZ"
+  - "%Y-%m-%dT%H:%M:%S"
+  - "%Y-%m-%d"
+  - "%m/%d/%Y"
+  - "%m-%d-%Y"
+  - "%d-%b-%Y"
+  - "%Y/%m/%d"
+
+# Type concept IDs (OMOP CDM v5.4 conventions)
+# 44818517 = EHR encounter record; 44813942 = Outpatient visit
+type_concept_ids:
+  visit_type_concept_id: 44818517
+  default_visit_concept_id: 44813942
+  condition_type_concept_id: 32818
+  drug_type_orders: 38000177
+  drug_type_dispensed: 38000230
+  drug_type_immunization: 38000280
+  measurement_type_vitals: 32817
+  measurement_type_labs: 32827
+  observation_type_allergy: 32859
+  note_type_concept_id: 44813942
+  note_class_concept_id: 44814639
+  language_concept_id: 4180186
+  encoding_concept_id: 44815386
+  procedure_type_concept_id: 38000268
+  period_type_concept_id: 32821
+  death_type_concept_id: 32817
+
+# Drug exposure: when true, exclude medication_orders rows that have matching fulfillment
+prefer_fulfillment: false

@@ -1,0 +1,4 @@
+delphi100k/./w_.csv$
+ filter=lfs diff=lfs merge=lfs -text
+delphi100k/./w_.csv$ filter=lfs diff=lfs merge=lfs -text
+delphi100k/* filter=lfs diff=lfs merge=lfs -text

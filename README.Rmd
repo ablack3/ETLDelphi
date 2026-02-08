@@ -1,0 +1,134 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# ETL-Delphi
+
+<!-- badges: start -->
+<!-- badges: end -->
+
+The goal of ETL-Delphi is to implement and document the process of mapping the synthetic Delphi dataset to the OMOP CDM format and make it available to the OHDSI community. This document with both describe and implment the ETL.
+
+When I use ETL I will simply mean the process of transforming the raw data to the OMOP CDM format. If you are not familiar with the OMOP Common Data Model you should spend some time familiarizing yourself with it before reading this ETL.
+
+For the purposes of standardization we need to map the raw data into a predefined set of "standard concepts". Standard concepts are simply codes that have been designated by the OHDSI community as the standard representation for a particular clinical concept. While a discussion of the standardized vocabulary is outside the scope of this exercise, the intent behind the standardized vocabulary is to have one single unique representation of each clinical concept. Now deciding when two medical codes represent "the same" clinical concept requires medical and informatics expertise. Assuming this work has been done to a standard we are ok adopting we can use the mappings in the vocabulary to transform out raw electronic health record data into the OMOP Common Data Model. 
+
+In addition to standardizing the representation of the medical data we are also standardizing the format of the data. It is stored as a relational database (several related tables). Table and field names are standardized.
+
+Once we have the data in a standard format we can then use OHDSI tools on the data.
+
+
+# Investigate the Source Data
+
+The first thing we should do is some investigation of the source data. We should look for the various code systems used in the source data and evaluate how much custom mapping we will need to do. Custom code mapping is one of the hardest parts of doing ETL because it requires someone with clinical knowledge to decide which standard concept is "the same" as the new code.
+
+
+The data is saved in the `delphi100k` folder.
+```{r}
+list.files("delphi100k/")
+
+cat(readr::read_file("delphi100k/delphi.ddl"))
+
+```
+
+
+```{r}
+library(dplyr)
+
+filenames <- list.files("delphi100k/", pattern = ".csv$")
+filenames
+tablenames <- stringr::str_remove_all(filenames, ".csv$")
+tablenames
+
+src <- purrr::map(filenames, ~readr::read_csv(glue::glue("delphi100k/{.}"), show_col_types = FALSE)) %>% 
+  purrr::set_names(tablenames)
+
+
+names(src)
+```
+
+
+```{r}
+src <- purrr::map(src, ~dplyr::rename_all(., tolower))
+src
+names(src)
+
+# purrr::walk(src, skimr::skim)
+
+skimr::skim(src$allergy)
+```
+
+
+
+To ETL to the cdm it is helpful to take a look at an example cdm.
+
+```{r}
+library(CDMConnector)
+
+library(CDMConnector)
+example_datasets()
+con <- DBI::dbConnect(duckdb::duckdb(), eunomia_dir())
+cdm <- cdmFromCon(con, cdm_schema = "main", write_schema = "main")
+
+
+cdm
+```
+
+```{r}
+cdm$person
+```
+
+We need to empty all the person data out of the example cdm but leave the vocabulary in tact.
+
+
+```{r}
+tbl_group("clinical")
+
+for (tbl in tbl_group("clinical")) {
+  DBI::dbExecute(con, glue::glue("delete from {tbl};"))
+}
+
+cdm$person
+
+```
+
+
+The patient data has been removed from the example cdm. We will populate it with the delphi data.
+
+
+
+
+Upload the delphi source data to the cdm database. But before we do that let's do some date fixing in R.
+
+```{r}
+
+src$allergy$onset_date <- ifelse(is.character(src$allergy$onset_date), 
+                                 lubridate::mdy(src$allergy$onset_date), 
+                                 src$allergy$onset_date)
+
+
+src$allergy
+```
+
+
+
+
+# Person and obervation period tables
+
+```{r}
+src$enrollment
+```
+
+
+
+
+

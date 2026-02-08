@@ -1,0 +1,66 @@
+-- Truncate/drop all stg.* tables so ETL can be re-run. Does NOT touch cdm.* or src.*
+-- Order: drop dependent tables first (reject, maps, staged), then log last if desired.
+-- We drop tables so that DDL in 10_stage/20_keys/30_vocab is idempotent (CREATE OR REPLACE not used for all).
+
+DROP TABLE IF EXISTS stg.qc_required_fields;
+DROP TABLE IF EXISTS stg.qc_orphans;
+DROP TABLE IF EXISTS stg.qc_mapping_coverage;
+DROP TABLE IF EXISTS stg.qc_row_counts;
+DROP TABLE IF EXISTS stg.qc_parse_failures;
+DROP TABLE IF EXISTS stg.reject_therapy_actions;
+DROP TABLE IF EXISTS stg.reject_therapy_orders;
+DROP TABLE IF EXISTS stg.reject_allergy;
+DROP TABLE IF EXISTS stg.reject_vital_sign;
+DROP TABLE IF EXISTS stg.reject_lab_results;
+DROP TABLE IF EXISTS stg.reject_lab_orders;
+DROP TABLE IF EXISTS stg.reject_immunization;
+DROP TABLE IF EXISTS stg.reject_current_meds;
+DROP TABLE IF EXISTS stg.reject_med_fulfillment;
+DROP TABLE IF EXISTS stg.reject_med_orders;
+DROP TABLE IF EXISTS stg.reject_problem;
+DROP TABLE IF EXISTS stg.reject_death;
+DROP TABLE IF EXISTS stg.reject_visit_missing_person;
+DROP TABLE IF EXISTS stg.reject_note_missing_link;
+DROP TABLE IF EXISTS stg.reject_encounter;
+DROP TABLE IF EXISTS stg.reject_provider;
+DROP TABLE IF EXISTS stg.reject_enrollment_dates;
+DROP TABLE IF EXISTS stg.reject_fulfillment_no_order;
+DROP TABLE IF EXISTS stg.reject_condition_missing_person;
+DROP TABLE IF EXISTS stg.reject_drug_orders_missing_person;
+DROP TABLE IF EXISTS stg.reject_measurement_labs_missing;
+DROP TABLE IF EXISTS stg.reject_observation_allergy_missing;
+DROP TABLE IF EXISTS stg.reject_procedure_missing;
+DROP TABLE IF EXISTS stg.reject_death_load;
+DROP TABLE IF EXISTS stg.reject_person_missing_dob;
+
+DROP TABLE IF EXISTS stg.map_therapy;
+DROP TABLE IF EXISTS stg.map_allergy;
+DROP TABLE IF EXISTS stg.map_vitals;
+DROP TABLE IF EXISTS stg.map_condition;
+DROP TABLE IF EXISTS stg.map_units;
+DROP TABLE IF EXISTS stg.map_loinc_measurement;
+DROP TABLE IF EXISTS stg.map_drug_order;
+DROP TABLE IF EXISTS stg.map_visit_concept;
+DROP TABLE IF EXISTS stg.map_race;
+DROP TABLE IF EXISTS stg.map_gender;
+DROP TABLE IF EXISTS stg.map_location;
+DROP TABLE IF EXISTS stg.map_visit;
+DROP TABLE IF EXISTS stg.map_provider;
+DROP TABLE IF EXISTS stg.map_person;
+DROP TABLE IF EXISTS stg.map_care_site;
+
+DROP TABLE IF EXISTS stg.therapy_actions;
+DROP TABLE IF EXISTS stg.therapy_orders;
+DROP TABLE IF EXISTS stg.allergy;
+DROP TABLE IF EXISTS stg.vital_sign;
+DROP TABLE IF EXISTS stg.lab_results;
+DROP TABLE IF EXISTS stg.lab_orders;
+DROP TABLE IF EXISTS stg.immunization;
+DROP TABLE IF EXISTS stg.current_medications;
+DROP TABLE IF EXISTS stg.medication_fulfillment;
+DROP TABLE IF EXISTS stg.medication_orders;
+DROP TABLE IF EXISTS stg.problem;
+DROP TABLE IF EXISTS stg.death;
+DROP TABLE IF EXISTS stg.encounter;
+DROP TABLE IF EXISTS stg.provider;
+DROP TABLE IF EXISTS stg.enrollment;

@@ -1,0 +1,30 @@
+Package: ETLDelphi
+Title: Delphi/Delfi to OMOP CDM v5.4 ETL for DuckDB
+Version: 0.1.0
+Authors@R: c(
+    person("Adam", "Black", , "black@ohdsi.org", role = c("aut", "cre"), comment = c(ORCID = "0000-0001-5576-8701"))
+  )
+Maintainer: Adam Black <black@ohdsi.org>
+Description: End-to-end ETL that transforms Delphi/Delfi source schema into
+    OMOP Common Data Model v5.4 tables in DuckDB. Uses a 3-layer pattern
+    (src -> stg -> cdm) with deterministic integer IDs and configurable
+    concept mapping.
+License: Apache License (>= 2)
+Encoding: UTF-8
+Imports:
+    DBI,
+    duckdb,
+    fs,
+    glue,
+    yaml,
+    cli,
+    digest,
+    withr
+Suggests:
+    testthat (>= 3.0.0),
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
+Config/testthat/edition: 3
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.3

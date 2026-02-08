@@ -1,0 +1,178 @@
+---
+title: "How to Run the ETL"
+author: "ETLDelphi"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{How to Run the ETL}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Overview
+
+**ETLDelphi** runs a sequenced set of SQL scripts that transform the Delphi/Delfi source schema into OMOP CDM v5.4 tables in DuckDB. This vignette explains how to prepare your database and run the ETL from R.
+
+## Prerequisites
+
+### 1. DuckDB database with two schemas
+
+- **`src`** — Source tables (Delphi schema): enrollment, encounter, provider, death, problem, medication_orders, medication_fulfillment, current_medications, immunization, lab_orders, lab_results, vital_sign, allergy, therapy_orders, therapy_actions. Create them using the Delphi DDL (e.g. `delphi_ddl.sql`) under schema `src`.
+- **`cdm`** — OMOP CDM v5.4 tables and vocabulary tables. Create from the official OMOP DuckDB DDL (e.g. `OMOPCDM_duckdb_5.4_ddl.sql`) with schema name `cdm`, and load vocabulary (concept, concept_relationship, source_to_concept_map, etc.) as needed for mapping.
+
+### 2. Source data loaded into `src`
+
+Load your CSV (or other) data into `src.*` using DuckDB’s `read_csv_auto` or R’s `DBI::dbWriteTable()`. The ETL reads only from `src` and writes to `stg` and `cdm`.
+
+### 3. R packages
+
+Install and load:
+
+- **DBI**, **duckdb** — database connection and DuckDB driver  
+- **ETLDelphi** — provides `run_etl()` and `run_sql_scripts()`
+
+The package also uses **fs**, **glue**, **yaml**, **cli**, **digest**, **withr** (installed with ETLDelphi).
+
+## Install and load the package
+
+From the package root (e.g. after cloning the repo):
+
+```r
+# Install the package
+devtools::install("ETLDelphi")
+
+# Or for development: load without installing
+devtools::load_all("ETLDelphi")
+```
+
+Then in your session:
+
+```r
+library(DBI)
+library(duckdb)
+library(ETLDelphi)
+```
+
+## Connect to DuckDB
+
+Open a DBI connection to your DuckDB file (or in-memory database). The same connection is used for the entire ETL.
+
+```r
+# Path to your DuckDB file (or ":memory:" for in-memory)
+db_path <- "path/to/your.duckdb"
+con <- DBI::dbConnect(duckdb::duckdb(), db_path)
+```
+
+Ensure `src` and `cdm` schemas and data are present before running the ETL.
+
+## Run the ETL
+
+### Full run
+
+Execute all ETL steps in order (admin → stage → keys → vocab → cdm_core → cdm_clinical → cdm_derived → qc):
+
+```r
+run_etl(con)
+```
+
+The function uses the default config at `inst/extdata/config.yml` and the SQL scripts under `inst/sql/`. Each script is run in lexicographic order; the first failure stops the run and reports the step.
+
+### Dry run (list steps only)
+
+To see which SQL files would run without executing them:
+
+```r
+run_etl(con, dry_run = TRUE)
+```
+
+### Run a subset of steps
+
+Use `from_step` and `to_step` to start from or stop at a given step. Steps are identified by folder or file name prefix (e.g. `"40_cdm_core"`, `"54_load_visit"`).
+
+```r
+# From staging through CDM core, then stop after visit_occurrence
+run_etl(con, from_step = "40_cdm_core", to_step = "54_load_visit")
+
+# Only QC scripts
+run_etl(con, from_step = "90_qc")
+```
+
+### Custom config or SQL directory
+
+- **Config**: Pass a path to your own YAML or a list override.
+
+```r
+run_etl(con, config_path = "/path/to/my_config.yml")
+# Or pass a list (config_path is ignored)
+run_etl(con, config = list(schemas = list(src = "src", stg = "stg", cdm = "cdm")))
+```
+
+- **SQL directory**: By default the package uses `system.file("sql", package = "ETLDelphi")`. To use a different directory:
+
+```r
+run_etl(con, sql_dir = "/path/to/sql")
+```
+
+## Execution order
+
+The runner executes `.sql` files under `inst/sql/` in lexicographic order:
+
+| Order | Folder           | Purpose |
+|-------|------------------|---------|
+| 1     | `00_admin`       | Create `stg` schema, ETL log tables, clear staging tables |
+| 2     | `10_stage`       | Stage all source tables and reject tables |
+| 3     | `20_keys`        | Build key maps: person, provider, visit, location, care_site |
+| 4     | `30_vocab`       | Build concept maps: gender, race, visit type, drug, LOINC, units, condition, vitals, allergy, therapy |
+| 5     | `40_cdm_core`    | Load location, care_site, provider, person, visit_occurrence, note, death |
+| 6     | `50_cdm_clinical`| Load condition, drug_exposure, measurement, observation (allergy), procedure (therapy) |
+| 7     | `60_cdm_derived` | Load observation_period |
+| 8     | `90_qc`          | Row counts, mapping coverage, referential integrity, parse failures, required fields |
+
+Scripts use placeholders `@cdmDatabaseSchema`, `{cdm}`, `{stg}`, `{src}` which are replaced with the schema names from config (default: `cdm`, `stg`, `src`).
+
+## Configuration
+
+The default config is `inst/extdata/config.yml`. Important options:
+
+- **schemas**: `src`, `stg`, `cdm` — must match your database.
+- **concept_id_unknown**: Sentinel for unmapped concepts (default `0`).
+- **date_formats**: Used for parsing dates in staging (DuckDB formats).
+- **type_concept_ids**: OMOP type concept IDs for visits, conditions, drugs, measurements, etc.
+- **prefer_fulfillment**: If true, medication orders with matching fulfillment can be excluded (logic can be extended in the drug scripts).
+
+Edit this file or pass `config_path` / `config` to `run_etl()` to override.
+
+## After the run
+
+### ETL logs (if admin step ran)
+
+- **`stg.etl_run_log`** — One row per ETL run (run_id, started_at, ended_at, status).
+- **`stg.etl_step_log`** — One row per script (run_id, step_name, file_name, started_at, ended_at, status, rows_affected, notes).
+
+### QC tables (after `90_qc`)
+
+- **`stg.qc_row_counts`** — Row counts per staging and CDM table.
+- **`stg.qc_mapping_coverage`** — Proportion of unmapped concepts (e.g. concept_id = 0) per clinical table.
+- **`stg.qc_orphans`** — Referential integrity (e.g. visit_occurrence.person_id not in person).
+- **`stg.qc_parse_failures`** — Counts per `stg.reject_*` table.
+- **`stg.qc_required_fields`** — NOT NULL / required-field violations.
+
+Query these after each run to validate data quality and mapping coverage.
+
+## Disconnect
+
+When finished:
+
+```r
+DBI::dbDisconnect(con, shutdown = TRUE)
+```
+
+## Summary
+
+1. Prepare DuckDB with `src` (Delphi data) and `cdm` (OMOP DDL + vocabulary).
+2. Load the package and connect with `DBI::dbConnect(duckdb::duckdb(), ...)`.
+3. Run the ETL with `run_etl(con)`; use `dry_run = TRUE` or `from_step`/`to_step` as needed.
+4. Optionally override config or SQL directory via `config_path`, `config`, or `sql_dir`.
+5. After the run, check `stg.etl_*_log` and `stg.qc_*` tables for status and data quality.
+
+For mapping tables, vocabulary setup, and known limitations, see the package README and function help (`?run_etl`, `?run_sql_scripts`).
