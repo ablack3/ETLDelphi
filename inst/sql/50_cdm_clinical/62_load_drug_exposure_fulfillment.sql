@@ -1,5 +1,10 @@
 -- Load drug_exposure from stg.medication_fulfillment. Join to medication_orders for Member_ID and drug. drug_type_concept_id 38000230.
 -- Reject fulfillment rows with Order_ID not in medication_orders.
+INSERT INTO cdm.drug_exposure (
+    drug_exposure_id, person_id, drug_concept_id, drug_exposure_start_date, drug_exposure_end_date,
+    drug_type_concept_id, quantity, days_supply, provider_id, visit_occurrence_id,
+    drug_source_value, drug_source_concept_id
+)
 WITH f AS (
     SELECT
         mf.*,
@@ -14,11 +19,6 @@ mapped AS (
     SELECT f.*, d.drug_concept_id, d.drug_source_concept_id
     FROM f
     LEFT JOIN stg.map_drug_order d ON (d.drug_ndc_normalized = f.drug_ndc_normalized OR (d.drug_ndc_normalized IS NULL AND f.drug_ndc_normalized IS NULL)) AND d.drug_name = f.drug_name
-)
-INSERT INTO cdm.drug_exposure (
-    drug_exposure_id, person_id, drug_concept_id, drug_exposure_start_date, drug_exposure_end_date,
-    drug_type_concept_id, quantity, days_supply, provider_id, visit_occurrence_id,
-    drug_source_value, drug_source_concept_id
 )
 SELECT
     m.drug_exposure_id,
@@ -37,6 +37,7 @@ FROM mapped m
 JOIN stg.map_person mp ON mp.member_id = m.member_id
 LEFT JOIN stg.map_visit mv ON mv.encounter_id_source = m.encounter_id
 WHERE m.member_id IS NOT NULL
+  AND m.dispense_date IS NOT NULL
   AND NOT EXISTS (SELECT 1 FROM cdm.drug_exposure x WHERE x.drug_exposure_id = m.drug_exposure_id);
 
 CREATE OR REPLACE TABLE stg.reject_fulfillment_no_order AS

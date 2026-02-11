@@ -2,5 +2,8 @@
 
 export(analyze_mapping_quality)
 export(exportToParquet)
+export(export_unmapped_units)
+export(init_source_data)
+export(init_vocabulary_db)
 export(run_etl)
 export(run_sql_scripts)

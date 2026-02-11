@@ -1,5 +1,6 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
-vocabulary
+vocabulary_download_v5/
 delphi100k
 ^LICENSE\.md$
+delphi.duckdb

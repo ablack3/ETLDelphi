@@ -1,15 +1,15 @@
 -- Load drug_exposure from stg.medication_orders. drug_type_concept_id 38000177 (EHR order).
+INSERT INTO cdm.drug_exposure (
+    drug_exposure_id, person_id, drug_concept_id, drug_exposure_start_date, drug_exposure_end_date,
+    drug_type_concept_id, refills, quantity, sig, provider_id, visit_occurrence_id,
+    drug_source_value, drug_source_concept_id, route_source_value, dose_unit_source_value
+)
 WITH ord AS (
     SELECT
         mo.*,
         700000000 + ROW_NUMBER() OVER (ORDER BY mo.order_id, mo.member_id, mo.order_date) AS drug_exposure_id
     FROM stg.medication_orders mo
     WHERE mo.order_date IS NOT NULL
-)
-INSERT INTO cdm.drug_exposure (
-    drug_exposure_id, person_id, drug_concept_id, drug_exposure_start_date, drug_exposure_end_date,
-    drug_type_concept_id, refills, quantity, sig, provider_id, visit_occurrence_id,
-    drug_source_value, drug_source_concept_id, route_source_value, dose_unit_source_value
 )
 SELECT
     o.drug_exposure_id,

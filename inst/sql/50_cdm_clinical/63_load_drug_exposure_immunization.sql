@@ -1,15 +1,15 @@
 -- Load drug_exposure from stg.immunization. drug_type_concept_id 38000280 (immunization).
+INSERT INTO cdm.drug_exposure (
+    drug_exposure_id, person_id, drug_concept_id, drug_exposure_start_date, drug_exposure_end_date,
+    drug_type_concept_id, lot_number, provider_id, visit_occurrence_id,
+    drug_source_value, route_source_value, dose_unit_source_value
+)
 WITH imm AS (
     SELECT
         i.*,
         500000000 + ROW_NUMBER() OVER (ORDER BY i.member_id, i.vaccination_date, i.vaccine_cvx, i.vaccine_name) AS drug_exposure_id
     FROM stg.immunization i
     WHERE i.vaccination_date IS NOT NULL
-)
-INSERT INTO cdm.drug_exposure (
-    drug_exposure_id, person_id, drug_concept_id, drug_exposure_start_date, drug_exposure_end_date,
-    drug_type_concept_id, lot_number, provider_id, visit_occurrence_id,
-    drug_source_value, route_source_value, dose_unit_source_value
 )
 SELECT
     i.drug_exposure_id,

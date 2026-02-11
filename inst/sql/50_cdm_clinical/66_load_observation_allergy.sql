@@ -1,13 +1,13 @@
 -- Load observation from stg.allergy. observation_concept_id from map_allergy (0 in v1). observation_type_concept_id 32859.
+INSERT INTO cdm.observation (
+    observation_id, person_id, observation_concept_id, observation_date, observation_type_concept_id,
+    value_as_string, qualifier_source_value, observation_source_value, visit_occurrence_id
+)
 WITH a AS (
     SELECT
         al.*,
         200000000 + ROW_NUMBER() OVER (ORDER BY al.member_id, al.allergen, al.drug_code, al.onset_date) AS observation_id
     FROM stg.allergy al
-)
-INSERT INTO cdm.observation (
-    observation_id, person_id, observation_concept_id, observation_date, observation_type_concept_id,
-    value_as_string, qualifier_source_value, observation_source_value, visit_occurrence_id
 )
 SELECT
     a.observation_id,

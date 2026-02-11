@@ -1,0 +1,6 @@
+"cdm_table","concept_column","total_rows","unmapped_count","unmapped_pct"
+"cdm.condition_occurrence","condition_concept_id",39306,0,0
+"cdm.drug_exposure","drug_concept_id",940216,905338,96.2904268806317
+"cdm.measurement","measurement_concept_id",13360601,16437,0.123025902801828
+"cdm.procedure_occurrence","procedure_concept_id",1434911,1434911,100
+"cdm.observation","observation_concept_id",47217,47217,100

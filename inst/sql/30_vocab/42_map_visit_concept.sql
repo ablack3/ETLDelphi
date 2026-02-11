@@ -1,4 +1,5 @@
 -- Visit concept: (appt_type, clinic_type) -> visit_concept_id. Default 44813942 (Outpatient).
+CREATE OR REPLACE TABLE stg.map_visit_concept AS
 WITH known AS (
     SELECT * FROM (VALUES
         ('inpatient', NULL, 9201),
@@ -12,7 +13,6 @@ distinct_enc AS (
         LOWER(TRIM(clinic_type)) AS clinic_type
     FROM stg.encounter
 )
-CREATE OR REPLACE TABLE stg.map_visit_concept AS
 SELECT
     e.appt_type,
     e.clinic_type,

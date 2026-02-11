@@ -22,7 +22,8 @@ JOIN stg.map_person mp ON mp.member_id = e.member_id
 LEFT JOIN stg.map_visit_concept vc ON (vc.appt_type = LOWER(TRIM(e.appt_type)) OR (vc.appt_type IS NULL AND e.appt_type IS NULL)) AND (vc.clinic_type = LOWER(TRIM(e.clinic_type)) OR (vc.clinic_type IS NULL AND e.clinic_type IS NULL))
 LEFT JOIN stg.map_provider mpr ON mpr.provider_id_source = e.provider_id
 LEFT JOIN stg.map_care_site cs ON cs.care_site_key = TRIM(e.clinic_id)
-WHERE NOT EXISTS (SELECT 1 FROM cdm.visit_occurrence c WHERE c.visit_occurrence_id = mv.visit_occurrence_id);
+WHERE e.encounter_date IS NOT NULL
+  AND NOT EXISTS (SELECT 1 FROM cdm.visit_occurrence c WHERE c.visit_occurrence_id = mv.visit_occurrence_id);
 
 CREATE OR REPLACE TABLE stg.reject_visit_missing_person AS
 SELECT e.encounter_id, e.member_id

@@ -1,25 +1,25 @@
 -- Stage allergy: parse Onset_Date; normalize Drug_Code, Drug_Vocab, Allergen, Allergy_Type, Severity_Description.
 CREATE OR REPLACE TABLE stg.allergy AS
 SELECT
-    TRIM("Member_ID") AS member_id,
-    TRIM("Allergen") AS allergen,
-    TRIM("Drug_Code") AS drug_code,
-    TRIM("Drug_Vocab") AS drug_vocab,
-    TRIM("Allergy_Type") AS allergy_type,
-    TRIM("Onset_Date") AS onset_date_raw,
+    TRIM(CAST("Member_ID" AS VARCHAR)) AS member_id,
+    TRIM(CAST("Allergen" AS VARCHAR)) AS allergen,
+    TRIM(CAST("Drug_Code" AS VARCHAR)) AS drug_code,
+    TRIM(CAST("Drug_Vocab" AS VARCHAR)) AS drug_vocab,
+    TRIM(CAST("Allergy_Type" AS VARCHAR)) AS allergy_type,
+    TRIM(CAST("Onset_Date" AS VARCHAR)) AS onset_date_raw,
     COALESCE(
-        try_strptime(TRIM("Onset_Date"), '%Y-%m-%d'),
-        try_strptime(TRIM("Onset_Date"), '%m/%d/%Y')
+        try_strptime(TRIM(CAST("Onset_Date" AS VARCHAR)), '%Y-%m-%d'),
+        try_strptime(TRIM(CAST("Onset_Date" AS VARCHAR)), '%m/%d/%Y')
     )::DATE AS onset_date,
-    TRIM("Reaction") AS reaction,
-    TRIM("Severity_Description") AS severity_description
+    TRIM(CAST("Reaction" AS VARCHAR)) AS reaction,
+    TRIM(CAST("Severity_Description" AS VARCHAR)) AS severity_description
 FROM src.allergy;
 
 CREATE OR REPLACE TABLE stg.reject_allergy AS
 SELECT *
 FROM src.allergy
-WHERE TRIM("Onset_Date") IS NOT NULL AND TRIM("Onset_Date") <> ''
+WHERE TRIM(CAST("Onset_Date" AS VARCHAR)) IS NOT NULL AND TRIM(CAST("Onset_Date" AS VARCHAR)) <> ''
   AND COALESCE(
-        try_strptime(TRIM("Onset_Date"), '%Y-%m-%d'),
-        try_strptime(TRIM("Onset_Date"), '%m/%d/%Y')
+        try_strptime(TRIM(CAST("Onset_Date" AS VARCHAR)), '%Y-%m-%d'),
+        try_strptime(TRIM(CAST("Onset_Date" AS VARCHAR)), '%m/%d/%Y')
     ) IS NULL;

@@ -1,3 +1,11 @@
+# Check if table exists in schema (avoids DBI::Id which can trigger cli progress bar bugs on some setups)
+table_exists <- function(con, schema, table) {
+  q <- glue::glue(
+    "SELECT 1 FROM information_schema.tables WHERE table_schema = '{gsub(\"'\", \"''\", schema)}' AND table_name = '{gsub(\"'\", \"''\", table)}'"
+  )
+  nrow(DBI::dbGetQuery(con, q)) > 0
+}
+
 #' Execute SQL scripts in order with logging
 #'
 #' Runs SQL files from a directory in lexicographic order (by folder then file name).
@@ -56,7 +64,7 @@ run_sql_scripts <- function(con,
 
   # Optionally insert run log (if 01_etl_log has been run)
   try_insert_run <- function() {
-    if (DBI::dbExistsTable(con, DBI::Id(schema = stg, table = "etl_run_log"))) {
+    if (table_exists(con, stg, "etl_run_log")) {
       DBI::dbExecute(con, glue::glue("INSERT INTO \"{stg}\".etl_run_log (run_id, started_at, status) VALUES ({run_id}, '{format(started_at, '%Y-%m-%d %H:%M:%S')}', 'running')"))
     }
   }
@@ -75,6 +83,23 @@ run_sql_scripts <- function(con,
     sql <- gsub("\\{cdm\\}", cdm, sql)
     sql <- gsub("\\{stg\\}", stg, sql)
     sql <- gsub("\\{src\\}", src, sql)
+    # Drug name mapping path (Hecate-built CSV for fallback drug mapping)
+    drug_path <- config[["drug_name_mapping_path"]]
+    if (is.null(drug_path) || !nzchar(trimws(drug_path))) {
+      drug_path <- system.file("extdata", "drug_name_to_concept.csv", package = "ETLDelphi")
+    }
+    if (nzchar(drug_path) && file.exists(drug_path)) {
+      drug_path_final <- normalizePath(drug_path, mustWork = TRUE)
+    } else {
+      # No mapping file: use temp file with header only (empty mapping)
+      tmp <- tempfile(fileext = ".csv")
+      writeLines("drug_name,concept_id", tmp)
+      on.exit(unlink(tmp), add = TRUE)
+      drug_path_final <- normalizePath(tmp, mustWork = TRUE)
+    }
+    sql <- gsub("@drugNameMappingPath", drug_path_final, sql, fixed = TRUE)
+    # Strip single-line comments so semicolons in comments don't break statement split
+    sql <- gsub("--[^\n]*", "\n", sql)
 
     cli::cli_alert_info("Running {step_name}")
     step_start <- Sys.time()
@@ -95,11 +120,14 @@ run_sql_scripts <- function(con,
     }, error = function(e) {
       status <<- "error"
       notes <<- conditionMessage(e)
-      cli::cli_abort("ETL failed at {step_name}: {conditionMessage(e)}", call = NULL)
+      msg <- conditionMessage(e)
+      # Escape braces in error message so cli does not re-evaluate (avoids pb_cur etc. in nested messages)
+      msg_safe <- gsub("\\{", "{{", gsub("\\}", "}}", msg, fixed = TRUE), fixed = TRUE)
+      cli::cli_abort("ETL failed at {step_name}: {msg_safe}", call = NULL)
     })
 
     step_end <- Sys.time()
-    if (DBI::dbExistsTable(con, DBI::Id(schema = stg, table = "etl_step_log"))) {
+    if (table_exists(con, stg, "etl_step_log")) {
       tryCatch({
         notes_s <- if (is.na(notes)) "NULL" else paste0("'", gsub("'", "''", notes), "'")
         rows_s <- if (is.na(rows_affected)) "NULL" else as.character(rows_affected)
@@ -110,7 +138,7 @@ run_sql_scripts <- function(con,
 
   # Mark run complete
   try_update_run <- function() {
-    if (DBI::dbExistsTable(con, DBI::Id(schema = stg, table = "etl_run_log"))) {
+    if (table_exists(con, stg, "etl_run_log")) {
       DBI::dbExecute(con, glue::glue("UPDATE \"{stg}\".etl_run_log SET ended_at = '{format(Sys.time(), '%Y-%m-%d %H:%M:%S')}', status = 'completed' WHERE run_id = {run_id}"))
     }
   }

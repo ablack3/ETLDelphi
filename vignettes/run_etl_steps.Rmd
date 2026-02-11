@@ -1,0 +1,289 @@
+---
+title: "run_etl: Detailed Steps and Mechanics"
+author: "ETLDelphi"
+date: "`r Sys.Date()`"
+output:
+  rmarkdown::html_vignette:
+    toc: true
+    toc_depth: 3
+vignette: >
+  %\VignetteIndexEntry{run_etl: Detailed Steps and Mechanics}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteKeyword{run_etl}
+  %\VignetteKeyword{ETL}
+  %\VignetteKeyword{OMOP}
+  %\VignetteKeyword{DuckDB}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE
+)
+```
+
+## Introduction
+
+`run_etl()` is the main entry point for the ETLDelphi package. It orchestrates the entire transformation from Delphi/Delfi source data into OMOP CDM v5.4 tables in DuckDB. This vignette describes **in detail** how `run_etl` works, what happens at each step, and the mechanics of the SQL execution pipeline.
+
+---
+
+## What run_etl Does
+
+When you call `run_etl(con)`:
+
+1. **Loads configuration** — Reads YAML from `inst/extdata/config.yml` (or a path you provide) to get schema names (`src`, `stg`, `cdm`) and type concept IDs.
+2. **Locates SQL scripts** — Uses `inst/sql/` (or your custom `sql_dir`) as the script directory.
+3. **Delegates to `run_sql_scripts()`** — Executes all `.sql` files in lexicographic order, substituting schema placeholders and logging each step.
+
+The R package does **not** perform any data transformation itself. All business logic lives in SQL; the package only orchestrates execution.
+
+---
+
+## Internal Flow
+
+### run_etl() Implementation
+
+```r
+run_etl <- function(con,
+                    config_path = NULL,
+                    config = NULL,
+                    sql_dir = NULL,
+                    dry_run = FALSE,
+                    from_step = NULL,
+                    to_step = NULL)
+```
+
+1. **Config resolution**: If `config` is `NULL`, load from `config_path` or default `system.file("extdata", "config.yml", package = "ETLDelphi")`. If `config` is provided, it overrides `config_path`.
+2. **SQL directory resolution**: If `sql_dir` is `NULL`, use `system.file("sql", package = "ETLDelphi")`. Otherwise use the provided path.
+3. **Call `run_sql_scripts()`** with `con`, `sql_dir`, `config`, `dry_run`, `from_step`, `to_step`.
+
+### run_sql_scripts() Mechanics
+
+`run_sql_scripts()` in `R/sql_runner.R` performs the actual work:
+
+| Step | Action |
+|------|--------|
+| **1. Discover files** | `fs::dir_ls(sql_dir, recurse = TRUE, glob = "*.sql")` then `sort()` for lexicographic order. |
+| **2. Filter by from_step / to_step** | If `from_step` is set, drop files before the first match; if `to_step` is set, drop files after the last match. Matching is by folder or file name prefix (e.g. `"40_cdm_core"`). |
+| **3. Dry run** | If `dry_run = TRUE`, list files and return; do not execute. |
+| **4. Assign run_id** | Use `as.integer(as.numeric(Sys.time()))` if not provided. |
+| **5. Insert run log** | If `stg.etl_run_log` exists, insert a row with `run_id`, `started_at`, `status = 'running'`. |
+| **6. Loop over files** | For each `.sql` file: |
+| 6a | Read file contents with `readLines()`. |
+| 6b | **Schema substitution**: Replace `@cdmDatabaseSchema`, `{cdm}`, `{stg}`, `{src}` with values from `config$schemas`. |
+| 6c | Strip single-line SQL comments (`-- ...`) so semicolons in comments do not break statement splitting. |
+| 6d | Split into statements via `split_sql_statements()` (semicolon-terminated, respecting quoted strings). |
+| 6e | Execute each non-empty statement with `DBI::dbExecute(con, stmt)`. |
+| 6f | On error, abort with `cli::cli_abort()` and report the step name. |
+| 6g | If `stg.etl_step_log` exists, insert a row with `run_id`, `step_name`, `file_name`, `started_at`, `ended_at`, `status`, `rows_affected`, `notes`. |
+| **7. Mark run complete** | Update `stg.etl_run_log` with `ended_at` and `status = 'completed'`. |
+
+---
+
+## Execution Order: The Seven Phases
+
+Scripts are run in strict order. The numbered folders and files ensure correct dependencies (e.g. staging before keys, keys before vocab, vocab before CDM core, etc.).
+
+### Phase 0 — Admin
+
+| File | Purpose |
+|------|---------|
+| `00_admin/00_create_stg_schema.sql` | `CREATE SCHEMA IF NOT EXISTS stg`. Creates the staging schema; the ETL writes all intermediate tables here. |
+| `00_admin/01_create_etl_log_tables.sql` | Creates `stg.etl_run_log` and `stg.etl_step_log` for run and step metadata. These tables are used by `run_sql_scripts` to log progress. |
+| `00_admin/02_clear_stg_tables.sql` | Drops all `stg.*` tables (reject, map, staged, QC) in dependency order. Does **not** touch `src.*` or `cdm.*`. Allows the ETL to be re-run from a clean state. |
+
+### Phase 1 — Staging (10_stage)
+
+Source tables in `src` have varchar columns. Each staging script:
+
+1. Parses dates with `try_strptime()` (multiple formats)
+2. Casts numerics with `try_cast()`
+3. Trims and normalizes strings (e.g. `LOWER(TRIM(...))`)
+4. Writes rows that **fail** parsing to a corresponding `stg.reject_*` table
+
+| Script | Output table | Reject table |
+|--------|--------------|--------------|
+| `10_stage_enrollment.sql` | `stg.enrollment` | `stg.reject_enrollment_dates` |
+| `11_stage_provider.sql` | `stg.provider` | `stg.reject_provider` |
+| `12_stage_encounter.sql` | `stg.encounter` | `stg.reject_encounter` |
+| `13_stage_death.sql` | `stg.death` | `stg.reject_death` |
+| `14_stage_problem.sql` | `stg.problem` | `stg.reject_problem` |
+| `15_stage_med_orders.sql` | `stg.medication_orders` | `stg.reject_med_orders` |
+| `16_stage_med_fulfillment.sql` | `stg.medication_fulfillment` | `stg.reject_med_fulfillment` |
+| `17_stage_current_meds.sql` | `stg.current_medications` | `stg.reject_current_meds` |
+| `18_stage_immunization.sql` | `stg.immunization` | `stg.reject_immunization` |
+| `19_stage_lab_orders.sql` | `stg.lab_orders` | `stg.reject_lab_orders` |
+| `20_stage_lab_results.sql` | `stg.lab_results` | `stg.reject_lab_results` |
+| `21_stage_vital_sign.sql` | `stg.vital_sign` | `stg.reject_vital_sign` |
+| `22_stage_allergy.sql` | `stg.allergy` | `stg.reject_allergy` |
+| `23_stage_therapy_orders.sql` | `stg.therapy_orders` | — |
+| `24_stage_therapy_actions.sql` | `stg.therapy_actions` | — |
+
+Example: `10_stage_enrollment.sql` parses `DOB` with `COALESCE(try_strptime(...), ...)`; rows where DOB is non-null but unparseable go to `stg.reject_enrollment_dates`.
+
+### Phase 2 — Keys (20_keys)
+
+Deterministic integer IDs for OMOP entities. Each map uses `ROW_NUMBER() OVER (ORDER BY <stable_key>)` so the same source data yields the same IDs on every run.
+
+| Script | Map table | Source of keys |
+|--------|-----------|----------------|
+| `30_map_person.sql` | `stg.map_person(member_id, person_id)` | Distinct `member_id` from union of enrollment, encounter, death, problem, medication_orders, immunization, lab_results, vital_sign, allergy, therapy_orders, therapy_actions, current_medications |
+| `31_map_provider.sql` | `stg.map_provider(provider_id_source, provider_id)` | Distinct Provider_ID from provider, encounter, medication_orders, immunization, lab_results, problem |
+| `32_map_visit.sql` | `stg.map_visit(encounter_id_source, visit_occurrence_id)` | Distinct Encounter_ID from `stg.encounter` |
+| `33_map_location.sql` | `stg.map_location(location_key, location_id)` | Distinct concatenation of address_1, address_2, city, state, zip from `stg.enrollment` |
+| `34_map_care_site.sql` | `stg.map_care_site(care_site_key, care_site_id)` | Distinct Clinic_ID from `stg.encounter` |
+
+### Phase 3 — Vocabulary mapping (30_vocab)
+
+Concept maps resolve source values to OMOP concept IDs. Unmapped values → `0` (per `concept_id_unknown` in config).
+
+| Script | Map table | Strategy |
+|--------|-----------|----------|
+| `40_map_gender.sql` | `stg.map_gender` | Hardcoded: female/f→8532, male/m→8507, unknown/other→8551; enrollment-specific values inserted with 0 |
+| `41_map_race.sql` | `stg.map_race` | Lookup: white, black, asian, etc. to standard race concept_ids |
+| `42_map_visit_concept.sql` | `stg.map_visit_concept` | (appt_type, clinic_type) → visit_concept_id; default 44813942 (Outpatient) |
+| `43_map_drug.sql` | `stg.map_drug_order` | NDC → `cdm.concept` (vocabulary_id='NDC') → concept_relationship 'Maps to' → RxNorm |
+| `44_map_loinc_measurement.sql` | `stg.map_loinc_measurement` | Test_LOINC → `cdm.concept` (vocabulary_id='LOINC') |
+| `45_map_units.sql` | `stg.map_units` | Unit strings (mg, cm, kg, etc.) → unit_concept_id |
+| `46_map_condition.sql` | `stg.map_condition` | Problem_Code → concept (ICD10/ICD9/SNOMED/Medcin) → Maps to standard |
+| `47_map_vitals.sql` | `stg.map_vitals` | Hardcoded: vital name → measurement_concept_id and default unit |
+| `48_map_allergy.sql` | `stg.map_allergy` | v1: observation_concept_id = 0; source_value preserved |
+| `49_map_therapy.sql` | `stg.map_therapy` | Code + Vocabulary → concept (CPT4, HCPCS, SNOMED, ICD10PCS) → Maps to standard |
+
+### Phase 4 — CDM core (40_cdm_core)
+
+Load order respects foreign keys: location and care_site first, then provider, person, visit, note, death.
+
+| Script | CDM table | Source |
+|--------|-----------|--------|
+| `50_load_location.sql` | `cdm.location` | `stg.map_location` + enrollment address fields |
+| `51_load_care_site.sql` | `cdm.care_site` | `stg.map_care_site` |
+| `52_load_provider.sql` | `cdm.provider` | `stg.map_provider` + `stg.provider` |
+| `53_load_person.sql` | `cdm.person` | `stg.map_person` + `stg.enrollment` (only rows with parseable DOB) |
+| `54_load_visit_occurrence.sql` | `cdm.visit_occurrence` | `stg.encounter` + maps |
+| `55_load_note.sql` | `cdm.note` | SOAP_Note from encounter |
+| `56_load_death.sql` | `cdm.death` | `stg.death` + `stg.map_person` |
+
+Person load: only inserts when `year_of_birth` can be derived from `stg.enrollment.dob_date`. Members without enrollment or parseable DOB are logged in `stg.reject_person_missing_dob`.
+
+### Phase 5 — CDM clinical (50_cdm_clinical)
+
+| Script | CDM table | Source |
+|--------|-----------|--------|
+| `60_load_condition_occurrence.sql` | `cdm.condition_occurrence` | `stg.problem` + `stg.map_condition` |
+| `61_load_drug_exposure_orders.sql` | `cdm.drug_exposure` | `stg.medication_orders` (drug_type 38000177) |
+| `62_load_drug_exposure_fulfillment.sql` | `cdm.drug_exposure` | `stg.medication_fulfillment` (drug_type 38000230) |
+| `63_load_drug_exposure_immunization.sql` | `cdm.drug_exposure` | `stg.immunization` (drug_type 38000280) |
+| `64_load_measurement_vitals.sql` | `cdm.measurement` | `stg.vital_sign` unpivoted |
+| `65_load_measurement_labs.sql` | `cdm.measurement` | `stg.lab_results` |
+| `66_load_observation_allergy.sql` | `cdm.observation` | `stg.allergy` |
+| `67_load_procedure_therapy.sql` | `cdm.procedure_occurrence` | `stg.therapy_orders` + `stg.therapy_actions` |
+
+### Phase 6 — CDM derived (60_cdm_derived)
+
+| Script | CDM table | Logic |
+|--------|-----------|--------|
+| `80_load_observation_period.sql` | `cdm.observation_period` | Per person: min/max of all event dates from visit, condition, drug, measurement, observation, procedure, death |
+
+### Phase 7 — QC (90_qc)
+
+| Script | QC table | Content |
+|--------|----------|---------|
+| `90_row_counts.sql` | `stg.qc_row_counts` | Row counts for key stg.* and cdm.* tables |
+| `91_mapping_coverage.sql` | `stg.qc_mapping_coverage` | Per clinical table: total rows, unmapped count, unmapped % |
+| `92_referential_integrity.sql` | `stg.qc_orphans` | Orphan checks (person_id, visit_occurrence_id) |
+| `93_parse_failures.sql` | `stg.qc_parse_failures` | Counts per reject table |
+| `94_required_fields.sql` | `stg.qc_required_fields` | NOT NULL violations |
+
+---
+
+## Schema Substitution
+
+SQL scripts use placeholders that are replaced at runtime:
+
+| Placeholder | Replaced with |
+|-------------|----------------|
+| `@cdmDatabaseSchema` | `config$schemas$cdm` (default: `cdm`) |
+| `{cdm}` | `config$schemas$cdm` |
+| `{stg}` | `config$schemas$stg` |
+| `{src}` | `config$schemas$src` |
+
+This allows the same scripts to run against different schema names without editing SQL.
+
+---
+
+## Using run_etl
+
+### Full run
+
+```{r full-run}
+library(DBI)
+library(duckdb)
+library(ETLDelphi)
+
+con <- dbConnect(duckdb::duckdb(), "path/to/your.duckdb")
+run_etl(con)
+dbDisconnect(con, shutdown = TRUE)
+```
+
+### Dry run (list scripts only)
+
+```{r dry-run}
+run_etl(con, dry_run = TRUE)
+```
+
+### Subset of steps
+
+```{r from-to}
+# From admin through clear (does not run staging)
+run_etl(con, from_step = "00_admin", to_step = "02_clear")
+
+# From CDM core through end (assumes stg already populated)
+run_etl(con, from_step = "40_cdm_core")
+
+# Only QC
+run_etl(con, from_step = "90_qc", to_step = "94_required_fields")
+```
+
+### Custom config or SQL directory
+
+```{r custom}
+run_etl(con, config_path = "/path/to/config.yml")
+run_etl(con, config = list(schemas = list(src = "src", stg = "stg", cdm = "cdm")))
+run_etl(con, sql_dir = "/path/to/sql")
+```
+
+---
+
+## Error Handling
+
+- **First failure stops the run**: If any SQL statement throws an error, `run_sql_scripts` calls `cli::cli_abort()` and reports the step name (e.g. `10_stage/10_stage_enrollment.sql`).
+- **Logging**: Before aborting, the step is logged to `stg.etl_step_log` with `status = 'error'` and `notes` containing the error message.
+- **Run status**: The run remains `status = 'running'` in `stg.etl_run_log` when aborted (no automatic rollback to `completed`).
+
+---
+
+## Logging Tables
+
+| Table | Purpose |
+|-------|---------|
+| `stg.etl_run_log` | One row per run: `run_id`, `started_at`, `ended_at`, `status`, `git_sha` |
+| `stg.etl_step_log` | One row per script: `run_id`, `step_name`, `file_name`, `started_at`, `ended_at`, `status`, `rows_affected`, `notes` |
+
+These tables are created by `01_create_etl_log_tables.sql` and populated by `run_sql_scripts` during execution.
+
+---
+
+## Summary
+
+`run_etl` is a thin orchestration layer that:
+
+1. Loads config and resolves paths
+2. Calls `run_sql_scripts`, which discovers `.sql` files in lexicographic order
+3. Substitutes schema placeholders and executes each script
+4. Logs each step and the overall run
+5. Aborts on the first error
+
+All transformation logic lives in 54 SQL scripts across 7 phases: admin → staging → keys → vocab → cdm_core → cdm_clinical → cdm_derived → qc. The pipeline is deterministic, idempotent (with `02_clear_stg_tables`), and observable via reject tables and QC tables.

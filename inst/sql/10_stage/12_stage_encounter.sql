@@ -1,35 +1,39 @@
 -- Stage encounter: parse Encounter_DateTime, normalize appt_type/clinic_type. Reject datetime parse failures.
+-- Normalize: strip timezone suffix (e.g. +00) that DuckDB adds when CAST(timestamp AS VARCHAR)
 CREATE OR REPLACE TABLE stg.encounter AS
 SELECT
-    TRIM("Encounter_ID") AS encounter_id,
-    TRIM("Member_ID") AS member_id,
-    TRIM("Appt_Type") AS appt_type,
-    TRIM("Provider_ID") AS provider_id,
-    TRIM("Clinic_ID") AS clinic_id,
-    TRIM("Encounter_DateTime") AS encounter_datetime_raw,
+    TRIM(CAST("Encounter_ID" AS VARCHAR)) AS encounter_id,
+    TRIM(CAST("Member_ID" AS VARCHAR)) AS member_id,
+    TRIM(CAST("Appt_Type" AS VARCHAR)) AS appt_type,
+    TRIM(CAST("Provider_ID" AS VARCHAR)) AS provider_id,
+    TRIM(CAST("Clinic_ID" AS VARCHAR)) AS clinic_id,
+    TRIM(CAST("Encounter_DateTime" AS VARCHAR)) AS encounter_datetime_raw,
     COALESCE(
-        try_strptime(TRIM("Encounter_DateTime"), '%Y-%m-%d %H:%M:%S'),
-        try_strptime(TRIM("Encounter_DateTime"), '%Y-%m-%dT%H:%M:%SZ'),
-        try_strptime(TRIM("Encounter_DateTime"), '%Y-%m-%d'),
-        try_strptime(TRIM("Encounter_DateTime"), '%m/%d/%Y')
+        try_strptime(SUBSTR(TRIM(CAST("Encounter_DateTime" AS VARCHAR)), 1, 19), '%Y-%m-%d %H:%M:%S'),
+        try_strptime(TRIM(CAST("Encounter_DateTime" AS VARCHAR)), '%Y-%m-%dT%H:%M:%SZ'),
+        try_strptime(TRIM(CAST("Encounter_DateTime" AS VARCHAR)), '%Y-%m-%d'),
+        try_strptime(TRIM(CAST("Encounter_DateTime" AS VARCHAR)), '%m/%d/%Y'),
+        try_strptime(TRIM(CAST("Encounter_DateTime" AS VARCHAR)), '%m/%d/%Y %H:%M:%S')
     ) AS encounter_datetime,
     COALESCE(
-        try_strptime(TRIM("Encounter_DateTime"), '%Y-%m-%d %H:%M:%S'),
-        try_strptime(TRIM("Encounter_DateTime"), '%Y-%m-%dT%H:%M:%SZ'),
-        try_strptime(TRIM("Encounter_DateTime"), '%Y-%m-%d'),
-        try_strptime(TRIM("Encounter_DateTime"), '%m/%d/%Y')
+        try_strptime(SUBSTR(TRIM(CAST("Encounter_DateTime" AS VARCHAR)), 1, 19), '%Y-%m-%d %H:%M:%S'),
+        try_strptime(TRIM(CAST("Encounter_DateTime" AS VARCHAR)), '%Y-%m-%dT%H:%M:%SZ'),
+        try_strptime(TRIM(CAST("Encounter_DateTime" AS VARCHAR)), '%Y-%m-%d'),
+        try_strptime(TRIM(CAST("Encounter_DateTime" AS VARCHAR)), '%m/%d/%Y'),
+        try_strptime(TRIM(CAST("Encounter_DateTime" AS VARCHAR)), '%m/%d/%Y %H:%M:%S')
     )::DATE AS encounter_date,
-    TRIM("Clinic_Type") AS clinic_type,
-    TRIM("SOAP_Note") AS soap_note
+    TRIM(CAST("Clinic_Type" AS VARCHAR)) AS clinic_type,
+    TRIM(CAST("SOAP_Note" AS VARCHAR)) AS soap_note
 FROM src.encounter;
 
 CREATE OR REPLACE TABLE stg.reject_encounter AS
 SELECT *
 FROM src.encounter
-WHERE TRIM("Encounter_DateTime") IS NOT NULL AND TRIM("Encounter_DateTime") <> ''
+WHERE TRIM(CAST("Encounter_DateTime" AS VARCHAR)) IS NOT NULL AND TRIM(CAST("Encounter_DateTime" AS VARCHAR)) <> ''
   AND COALESCE(
-        try_strptime(TRIM("Encounter_DateTime"), '%Y-%m-%d %H:%M:%S'),
-        try_strptime(TRIM("Encounter_DateTime"), '%Y-%m-%dT%H:%M:%SZ'),
-        try_strptime(TRIM("Encounter_DateTime"), '%Y-%m-%d'),
-        try_strptime(TRIM("Encounter_DateTime"), '%m/%d/%Y')
+        try_strptime(SUBSTR(TRIM(CAST("Encounter_DateTime" AS VARCHAR)), 1, 19), '%Y-%m-%d %H:%M:%S'),
+        try_strptime(TRIM(CAST("Encounter_DateTime" AS VARCHAR)), '%Y-%m-%dT%H:%M:%SZ'),
+        try_strptime(TRIM(CAST("Encounter_DateTime" AS VARCHAR)), '%Y-%m-%d'),
+        try_strptime(TRIM(CAST("Encounter_DateTime" AS VARCHAR)), '%m/%d/%Y'),
+        try_strptime(TRIM(CAST("Encounter_DateTime" AS VARCHAR)), '%m/%d/%Y %H:%M:%S')
     ) IS NULL;

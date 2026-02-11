@@ -58,3 +58,66 @@ test_that("run_etl passes from_step and to_step to run_sql_scripts in dry_run", 
   expect_true(out$dry_run)
   expect_true(any(grepl("00_admin", out$files)))
 })
+
+test_that("run_etl runs to completion on a minimal DuckDB (DDL + empty src tables)", {
+  skip_if_not_installed("duckdb")
+  db_path <- tempfile(fileext = ".duckdb")
+  on.exit({
+    if (file.exists(db_path)) unlink(db_path)
+  }, add = TRUE)
+
+  con <- DBI::dbConnect(duckdb::duckdb(), db_path)
+
+  # Run CDM DDL so cdm.* tables exist (no vocabulary data)
+  DBI::dbExecute(con, "CREATE SCHEMA IF NOT EXISTS cdm")
+  ddl_path <- system.file("omop_cdm_specification", "OMOPCDM_duckdb_5.4_ddl.sql", package = "ETLDelphi", mustWork = TRUE)
+  sql <- readLines(ddl_path, warn = FALSE)
+  sql <- paste(sql, collapse = "\n")
+  sql <- gsub("@cdmDatabaseSchema", "cdm", sql, fixed = TRUE)
+  sql <- gsub("--[^\n]*", "\n", sql)
+  statements <- ETLDelphi:::split_sql_statements(sql)
+  for (stmt in statements) {
+    stmt <- trimws(stmt)
+    if (nchar(stmt) == 0L) next
+    DBI::dbExecute(con, stmt)
+  }
+
+  # Create src schema and minimal empty tables (columns expected by stage scripts)
+  DBI::dbExecute(con, "CREATE SCHEMA IF NOT EXISTS src")
+  empty_select <- function(cols) {
+    parts <- paste0('CAST(NULL AS VARCHAR) AS "', cols, '"', collapse = ", ")
+    paste0("SELECT ", parts, " WHERE 1=0")
+  }
+  src_tables <- list(
+    enrollment = c("Member_ID", "Member_SSN", "Name_First", "MI", "Name_Last", "Title", "DOB", "Gender", "Race", "Address_Line_1", "Address_Line_2", "City", "State", "Zip_Code"),
+    provider = c("Provider_ID", "NPI", "Name", "Specialty", "DOB", "Sex", "Facility_Name", "Location"),
+    encounter = c("Encounter_ID", "Member_ID", "Appt_Type", "Provider_ID", "Clinic_ID", "Encounter_DateTime", "Clinic_Type", "SOAP_Note"),
+    death = c("Member_ID", "DOD"),
+    problem = c("Member_ID", "Problem_Code", "Problem_Description", "Problem_Type", "Onset_Date", "Resolution_Date", "Provider_ID", "Encounter_ID"),
+    medication_orders = c("Member_ID", "Order_ID", "Drug_Name", "Drug_NDC", "Order_Date", "Last_Filled_Date", "Dose", "Qty_Ordered", "Refills", "Sig", "Route", "Units", "Order_Provider_ID", "Encounter_ID"),
+    medication_fulfillment = c("Order_ID", "Dispense_Date", "Dispense_Qty", "Days_Of_Supply", "Fill_No", "Encounter_ID"),
+    current_medications = c("Member_ID", "Last_Filled_Date", "Drug_Name", "Sig", "Refills", "Days_Of_Supply", "Order_ID", "Encounter_ID"),
+    immunization = c("Member_ID", "Vaccine_CVX", "Vaccine_Name", "Vaccination_Date", "Dose", "Units", "Route", "Lot_Number", "Provider_ID", "Encounter_ID"),
+    lab_orders = c("Order_ID", "Order_Date", "Patient_ID", "Test_LOINC", "Test_Name", "Encounter_ID"),
+    lab_results = c("Member_ID", "Order_ID", "Test_LOINC", "Test_Name", "Date_Collected", "Date_Resulted", "Numeric_Result", "Units", "Result_Description", "Reference_Range", "Provider_ID", "Encounter_ID"),
+    vital_sign = c("Member_ID", "Encounter_ID", "Encounter_Date", "Height", "Height_Units", "Weight", "Weight_Units", "SystolicBP", "DiastolicBP", "Pulse", "Respiration", "Temperature", "Temperature_Units"),
+    allergy = c("Member_ID", "Allergen", "Drug_Code", "Drug_Vocab", "Allergy_Type", "Onset_Date", "Reaction", "Severity_Description"),
+    therapy_orders = c("Member_ID", "Order_ID", "Code", "Name", "Target_Area", "Vocabulary", "Encounter_ID"),
+    therapy_actions = c("Member_ID", "Order_ID", "Code", "Name", "Result", "Target_Area", "Vocabulary", "Encounter_ID")
+  )
+  for (tbl in names(src_tables)) {
+    DBI::dbExecute(con, paste0('CREATE TABLE src.', tbl, ' AS ', empty_select(src_tables[[tbl]])))
+  }
+
+  # Same pattern as extras/codeToRun.R: use default config when path is NA or empty
+  config_path <- NULL
+  out <- run_etl(
+    con = con,
+    config_path = if (!is.null(config_path) && !is.na(config_path) && nzchar(config_path)) config_path else NULL
+  )
+  expect_true(is.list(out))
+  expect_true(length(out$steps) >= 1L)
+
+  DBI::dbDisconnect(con, shutdown = TRUE)
+})
+

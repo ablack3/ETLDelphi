@@ -121,7 +121,7 @@ analyze_mapping_quality <- function(con, output_dir = "mapping_quality_results",
 
   get_count <- function(schema, table) {
     full <- paste0('"', schema, '"."', table, '"')
-    if (!DBI::dbExistsTable(con, DBI::Id(schema = schema, table = table))) return(NA_integer_)
+    if (!table_exists(con, schema, table)) return(NA_integer_)
     tryCatch({
       as.integer(DBI::dbGetQuery(con, paste("SELECT COUNT(*) AS n FROM", full))$n)
     }, error = function(e) NA_integer_)
@@ -161,7 +161,7 @@ analyze_mapping_quality <- function(con, output_dir = "mapping_quality_results",
 
   # ----- 5. One-to-many: one source key maps to multiple concept_ids -----
   one_to_many <- list()
-  if (DBI::dbExistsTable(con, DBI::Id(schema = stg, table = "map_condition"))) {
+  if (table_exists(con, stg, "map_condition")) {
     q <- glue::glue(
       "SELECT problem_code AS source_key, COUNT(DISTINCT condition_concept_id) AS target_count ",
       "FROM \"{stg}\".map_condition GROUP BY problem_code HAVING COUNT(DISTINCT condition_concept_id) > 1"
@@ -170,7 +170,7 @@ analyze_mapping_quality <- function(con, output_dir = "mapping_quality_results",
       one_to_many[["condition"]] <- cbind(mapping = "map_condition", DBI::dbGetQuery(con, q))
     }, error = function(e) NULL)
   }
-  if (DBI::dbExistsTable(con, DBI::Id(schema = stg, table = "map_drug_order"))) {
+  if (table_exists(con, stg, "map_drug_order")) {
     q <- glue::glue(
       "SELECT COALESCE(CAST(drug_ndc_normalized AS VARCHAR), '') || '|' || COALESCE(drug_name, '') AS source_key, ",
       "COUNT(DISTINCT drug_concept_id) AS target_count ",
@@ -180,7 +180,7 @@ analyze_mapping_quality <- function(con, output_dir = "mapping_quality_results",
       one_to_many[["drug_order"]] <- cbind(mapping = "map_drug_order", DBI::dbGetQuery(con, q))
     }, error = function(e) NULL)
   }
-  if (DBI::dbExistsTable(con, DBI::Id(schema = stg, table = "map_loinc_measurement"))) {
+  if (table_exists(con, stg, "map_loinc_measurement")) {
     q <- glue::glue(
       "SELECT loinc_code AS source_key, COUNT(DISTINCT measurement_concept_id) AS target_count ",
       "FROM \"{stg}\".map_loinc_measurement GROUP BY loinc_code HAVING COUNT(DISTINCT measurement_concept_id) > 1"
@@ -189,7 +189,7 @@ analyze_mapping_quality <- function(con, output_dir = "mapping_quality_results",
       one_to_many[["loinc_measurement"]] <- cbind(mapping = "map_loinc_measurement", DBI::dbGetQuery(con, q))
     }, error = function(e) NULL)
   }
-  if (DBI::dbExistsTable(con, DBI::Id(schema = stg, table = "map_therapy"))) {
+  if (table_exists(con, stg, "map_therapy")) {
     q <- glue::glue(
       "SELECT code AS source_key, COUNT(DISTINCT procedure_concept_id) AS target_count ",
       "FROM \"{stg}\".map_therapy GROUP BY code, vocabulary HAVING COUNT(DISTINCT procedure_concept_id) > 1"
@@ -211,7 +211,7 @@ analyze_mapping_quality <- function(con, output_dir = "mapping_quality_results",
 
   # ----- 6. Many-to-one: multiple source keys map to same concept_id -----
   many_to_one <- list()
-  if (DBI::dbExistsTable(con, DBI::Id(schema = stg, table = "map_condition"))) {
+  if (table_exists(con, stg, "map_condition")) {
     q <- glue::glue(
       "SELECT condition_concept_id AS concept_id, COUNT(DISTINCT problem_code) AS source_key_count ",
       "FROM \"{stg}\".map_condition WHERE condition_concept_id <> 0 ",
@@ -221,7 +221,7 @@ analyze_mapping_quality <- function(con, output_dir = "mapping_quality_results",
       many_to_one[["condition"]] <- cbind(mapping = "map_condition", DBI::dbGetQuery(con, q))
     }, error = function(e) NULL)
   }
-  if (DBI::dbExistsTable(con, DBI::Id(schema = stg, table = "map_drug_order"))) {
+  if (table_exists(con, stg, "map_drug_order")) {
     q <- glue::glue(
       "SELECT drug_concept_id AS concept_id, COUNT(*) AS source_key_count ",
       "FROM \"{stg}\".map_drug_order WHERE drug_concept_id <> 0 GROUP BY drug_concept_id HAVING COUNT(*) > 1"
@@ -230,7 +230,7 @@ analyze_mapping_quality <- function(con, output_dir = "mapping_quality_results",
       many_to_one[["drug_order"]] <- cbind(mapping = "map_drug_order", DBI::dbGetQuery(con, q))
     }, error = function(e) NULL)
   }
-  if (DBI::dbExistsTable(con, DBI::Id(schema = stg, table = "map_loinc_measurement"))) {
+  if (table_exists(con, stg, "map_loinc_measurement")) {
     q <- glue::glue(
       "SELECT measurement_concept_id AS concept_id, COUNT(DISTINCT loinc_code) AS source_key_count ",
       "FROM \"{stg}\".map_loinc_measurement WHERE measurement_concept_id <> 0 ",
@@ -240,7 +240,7 @@ analyze_mapping_quality <- function(con, output_dir = "mapping_quality_results",
       many_to_one[["loinc_measurement"]] <- cbind(mapping = "map_loinc_measurement", DBI::dbGetQuery(con, q))
     }, error = function(e) NULL)
   }
-  if (DBI::dbExistsTable(con, DBI::Id(schema = stg, table = "map_therapy"))) {
+  if (table_exists(con, stg, "map_therapy")) {
     q <- glue::glue(
       "SELECT procedure_concept_id AS concept_id, COUNT(DISTINCT code) AS source_key_count ",
       "FROM \"{stg}\".map_therapy WHERE procedure_concept_id <> 0 GROUP BY procedure_concept_id HAVING COUNT(DISTINCT code) > 1"
@@ -275,7 +275,7 @@ analyze_mapping_quality <- function(con, output_dir = "mapping_quality_results",
     stringsAsFactors = FALSE
   )
   for (tbl in reject_tables) {
-    if (DBI::dbExistsTable(con, DBI::Id(schema = stg, table = tbl))) {
+    if (table_exists(con, stg, tbl)) {
       n <- tryCatch({
         as.integer(DBI::dbGetQuery(con, glue::glue('SELECT COUNT(*) AS n FROM "{stg}"."{tbl}"'))$n)
       }, error = function(e) NA_integer_)

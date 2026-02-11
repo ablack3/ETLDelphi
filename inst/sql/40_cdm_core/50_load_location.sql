@@ -1,5 +1,6 @@
 -- Load cdm.location from stg.map_location. Parse location_key (a1|a2|city|state|zip) for address fields.
 -- One row per location_id; address from first matching enrollment.
+INSERT INTO cdm.location (location_id, address_1, address_2, city, state, zip, location_source_value)
 WITH enr_loc AS (
     SELECT
         TRIM(address_line_1) || '|' || COALESCE(TRIM(address_line_2), '') || '|' || COALESCE(TRIM(city), '') || '|' || COALESCE(TRIM(state), '') || '|' || COALESCE(TRIM(zip_code), '') AS location_key,
@@ -12,7 +13,6 @@ WITH enr_loc AS (
     FROM stg.enrollment
     WHERE (address_line_1 IS NOT NULL AND TRIM(address_line_1) <> '') OR (city IS NOT NULL AND TRIM(city) <> '') OR (state IS NOT NULL AND TRIM(state) <> '') OR (zip_code IS NOT NULL AND TRIM(zip_code) <> '')
 )
-INSERT INTO cdm.location (location_id, address_1, address_2, city, state, zip, location_source_value)
 SELECT
     m.location_id,
     SUBSTR(e.address_1, 1, 50),

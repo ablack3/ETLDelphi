@@ -41,3 +41,7 @@ type_concept_ids:
 
 # Drug exposure: when true, exclude medication_orders rows that have matching fulfillment
 prefer_fulfillment: false
+
+# Drug name -> concept_id mapping (Hecate-built fallback when NDC missing). Path to CSV.
+# Run extras/build_drug_name_mapping.R to populate. Empty = use package default.
+drug_name_mapping_path: null

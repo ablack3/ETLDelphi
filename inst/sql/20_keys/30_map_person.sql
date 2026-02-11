@@ -1,5 +1,6 @@
 -- Deterministic person_id from distinct member_id across all source tables.
 -- Enrollment may not contain all members; union Member_ID from every table that has it.
+CREATE OR REPLACE TABLE stg.map_person AS
 WITH all_members AS (
     SELECT DISTINCT member_id FROM stg.enrollment WHERE member_id IS NOT NULL AND TRIM(member_id) <> ''
     UNION
@@ -25,7 +26,6 @@ WITH all_members AS (
     UNION
     SELECT DISTINCT member_id FROM stg.current_medications WHERE member_id IS NOT NULL AND TRIM(member_id) <> ''
 )
-CREATE OR REPLACE TABLE stg.map_person AS
 SELECT
     member_id,
     ROW_NUMBER() OVER (ORDER BY member_id) AS person_id

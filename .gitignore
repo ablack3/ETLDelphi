@@ -2,5 +2,7 @@
 .Rhistory
 .RData
 .Ruserdata
-*vocabulary*
 *delphi100k*
+vocabulary_download_v5/
+delphi.duckdb
+delphi.duckdb.wal

@@ -15,13 +15,15 @@ vocabulary_dir <- Sys.getenv("VOCABULARY_DIR", "vocabulary_download_v5")
 delphi_source_dir <- Sys.getenv("DELPHI_SOURCE_DIR", "delphi100k")
 
 # Path to the output DuckDB database file (created or overwritten)
-duckdb_path <- Sys.getenv("DUCKDB_PATH", "delphi_omop.duckdb")
+duckdb_path <- Sys.getenv("DUCKDB_PATH", "~/Desktop/delphi.duckdb")
 
 # Optional: vocabulary file delimiter ("," for CSV, "\t" for TSV)
-vocab_delimiter <- Sys.getenv("VOCAB_DELIMITER", ",")
+vocab_delimiter <- Sys.getenv("VOCAB_DELIMITER", "\t")
 
 # Optional: path to config YAML; if unset, package default is used
 config_path <- Sys.getenv("ETL_CONFIG_PATH", NA_character_)
+
+if (file.exists(duckdb_path)) file.remove(duckdb_path)
 
 # --- Load package and connect -------------------------------------------------
 
@@ -42,49 +44,40 @@ delphi_source_dir <- normalizePath(delphi_source_dir, winslash = "/")
 duckdb_path <- normalizePath(duckdb_path, mustWork = FALSE, winslash = "/")
 
 # Connect to DuckDB (file created on first use)
-con <- DBI::dbConnect(duckdb::duckdb(), duckdb_path)
-on.exit(DBI::dbDisconnect(con, shutdown = TRUE), add = TRUE)
-
+# con <- DBI::dbConnect(duckdb::duckdb(), duckdb_path)
+# DBI::dbDisconnect(con)
 # --- 1. Initialize CDM DDL and load vocabulary -------------------------------
 
-init_vocabulary_db(
-  con = con,
-  vocabulary_dir = vocabulary_dir,
-  delimiter = vocab_delimiter
+# debugonce(init_vocabulary_db)
+
+con <- ETLDelphi::init_vocabulary_db(
+  duckdb_path,
+  vocabulary_dir = vocabulary_dir
 )
+
+# cdm <- CDMConnector::cdmFromCon(con, "cdm", "main")
+# cdm$concept
+#
+# cdm$vocabulary
+
 
 # --- 2. Create src schema and load Delphi CSVs -------------------------------
 
-DBI::dbExecute(con, 'CREATE SCHEMA IF NOT EXISTS src')
-
-# Expected Delphi CSV base names (filename without extension -> src table name)
-delphi_tables <- c(
-  "allergy", "current_medications", "death", "encounter", "enrollment",
-  "immunization", "lab_orders", "lab_results", "medication_fulfillment",
-  "medication_orders", "problem", "provider", "therapy_actions",
-  "therapy_orders", "vital_sign"
-)
-
-for (tbl in delphi_tables) {
-  csv_file <- file.path(delphi_source_dir, paste0(tbl, ".csv"))
-  if (!file.exists(csv_file)) {
-    warning("Delphi CSV not found, skipping: ", csv_file)
-    next
-  }
-  path_sql <- gsub("'", "''", normalizePath(csv_file, winslash = "/"))
-  sql <- paste0(
-    "CREATE OR REPLACE TABLE src.", tbl, " AS SELECT * FROM read_csv_auto('",
-    path_sql, "', header = true)"
-  )
-  DBI::dbExecute(con, sql)
-  message("Loaded src.", tbl)
-}
+ETLDelphi::init_source_data(con, delphi_source_dir)
 
 # --- 3. Run the ETL ----------------------------------------------------------
+
+DBI::dbDisconnect(con, shutdown = T)
+
+con <- DBI::dbConnect(duckdb::duckdb(), "delphi.duckdb")
 
 run_etl(
   con = con,
   config_path = if (is.na(config_path) || !nzchar(config_path)) NULL else config_path
 )
 
+ETLDelphi::export_unmapped_units(con, output_path = "unmapped_units.csv")
+ETLDelphi::analyze_mapping_quality(con, output_dir = "mapping_quality_results")
+
+DBI::dbDisconnect(con, shutdown = TRUE)
 message("ETL complete. DuckDB output: ", duckdb_path)

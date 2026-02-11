@@ -34,11 +34,13 @@ DROP TABLE IF EXISTS stg.reject_death_load;
 DROP TABLE IF EXISTS stg.reject_person_missing_dob;
 
 DROP TABLE IF EXISTS stg.map_therapy;
+DROP TABLE IF EXISTS stg.map_measurement_value;
 DROP TABLE IF EXISTS stg.map_allergy;
 DROP TABLE IF EXISTS stg.map_vitals;
 DROP TABLE IF EXISTS stg.map_condition;
 DROP TABLE IF EXISTS stg.map_units;
 DROP TABLE IF EXISTS stg.map_loinc_measurement;
+DROP TABLE IF EXISTS stg.drug_name_to_concept;
 DROP TABLE IF EXISTS stg.map_drug_order;
 DROP TABLE IF EXISTS stg.map_visit_concept;
 DROP TABLE IF EXISTS stg.map_race;

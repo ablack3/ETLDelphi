@@ -19,7 +19,8 @@ SELECT
 FROM stg.encounter e
 JOIN stg.map_person mp ON mp.member_id = e.member_id
 JOIN stg.map_visit mv ON mv.encounter_id_source = e.encounter_id
-WHERE e.soap_note IS NOT NULL AND TRIM(e.soap_note) <> ''
+WHERE e.encounter_date IS NOT NULL
+  AND e.soap_note IS NOT NULL AND TRIM(e.soap_note) <> ''
   AND NOT EXISTS (SELECT 1 FROM cdm.note n WHERE n.note_source_value = 'SOAP_Note' AND n.visit_occurrence_id = mv.visit_occurrence_id);
 
 -- Reject: notes missing person or visit (already excluded by JOINs; table for audit)

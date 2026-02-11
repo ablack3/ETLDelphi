@@ -2,31 +2,32 @@
 -- Drug_NDC: strip dashes for mapping. Drug_Name trimmed.
 CREATE OR REPLACE TABLE stg.medication_orders AS
 SELECT
-    TRIM("Member_ID") AS member_id,
-    TRIM("Order_ID") AS order_id,
-    TRIM("Drug_Name") AS drug_name,
-    REPLACE(REPLACE(TRIM("Drug_NDC"), '-', ''), ' ', '') AS drug_ndc_normalized,
-    TRIM("Drug_NDC") AS drug_ndc_raw,
-    TRIM("Order_Date") AS order_date_raw,
+    TRIM(CAST("Member_ID" AS VARCHAR)) AS member_id,
+    TRIM(CAST("Order_ID" AS VARCHAR)) AS order_id,
+    TRIM(CAST("Drug_Name" AS VARCHAR)) AS drug_name,
+    REPLACE(REPLACE(TRIM(CAST("Drug_NDC" AS VARCHAR)), '-', ''), ' ', '') AS drug_ndc_normalized,
+    TRIM(CAST("Drug_NDC" AS VARCHAR)) AS drug_ndc_raw,
+    TRIM(CAST("Order_Date" AS VARCHAR)) AS order_date_raw,
     COALESCE(
-        try_strptime(TRIM("Order_Date"), '%Y-%m-%dT%H:%M:%SZ'),
-        try_strptime(TRIM("Order_Date"), '%Y-%m-%d %H:%M:%S'),
-        try_strptime(TRIM("Order_Date"), '%Y-%m-%d'),
-        try_strptime(TRIM("Order_Date"), '%m/%d/%Y')
+        try_strptime(SUBSTR(TRIM(CAST("Order_Date" AS VARCHAR)), 1, 19), '%Y-%m-%d %H:%M:%S'),
+        try_strptime(TRIM(CAST("Order_Date" AS VARCHAR)), '%Y-%m-%dT%H:%M:%SZ'),
+        try_strptime(TRIM(CAST("Order_Date" AS VARCHAR)), '%Y-%m-%d'),
+        try_strptime(TRIM(CAST("Order_Date" AS VARCHAR)), '%m/%d/%Y'),
+        try_strptime(TRIM(CAST("Order_Date" AS VARCHAR)), '%m/%d/%Y %H:%M:%S')
     )::DATE AS order_date,
-    TRIM("Last_Filled_Date") AS last_filled_date_raw,
+    TRIM(CAST("Last_Filled_Date" AS VARCHAR)) AS last_filled_date_raw,
     COALESCE(
-        try_strptime(TRIM("Last_Filled_Date"), '%Y-%m-%d'),
-        try_strptime(TRIM("Last_Filled_Date"), '%m/%d/%Y')
+        try_strptime(TRIM(CAST("Last_Filled_Date" AS VARCHAR)), '%Y-%m-%d'),
+        try_strptime(TRIM(CAST("Last_Filled_Date" AS VARCHAR)), '%m/%d/%Y')
     )::DATE AS last_filled_date,
-    try_cast(TRIM("Dose") AS DOUBLE) AS dose,
-    try_cast(TRIM("Qty_Ordered") AS DOUBLE) AS qty_ordered,
-    try_cast(TRIM("Refills") AS INTEGER) AS refills,
-    TRIM("Sig") AS sig,
-    TRIM("Route") AS route,
-    TRIM("Units") AS dose_units,
-    TRIM("Order_Provider_ID") AS order_provider_id,
-    TRIM("Encounter_ID") AS encounter_id
+    try_cast(TRIM(CAST("Dose" AS VARCHAR)) AS DOUBLE) AS dose,
+    try_cast(TRIM(CAST("Qty_Ordered" AS VARCHAR)) AS DOUBLE) AS qty_ordered,
+    try_cast(TRIM(CAST("Refills" AS VARCHAR)) AS INTEGER) AS refills,
+    TRIM(CAST("Sig" AS VARCHAR)) AS sig,
+    TRIM(CAST("Route" AS VARCHAR)) AS route,
+    TRIM(CAST("Units" AS VARCHAR)) AS dose_units,
+    TRIM(CAST("Order_Provider_ID" AS VARCHAR)) AS order_provider_id,
+    TRIM(CAST("Encounter_ID" AS VARCHAR)) AS encounter_id
 FROM src.medication_orders;
 
 -- Days_Of_Supply not in medication_orders DDL; add if present in your source
@@ -34,9 +35,11 @@ FROM src.medication_orders;
 CREATE OR REPLACE TABLE stg.reject_med_orders AS
 SELECT *
 FROM src.medication_orders
-WHERE (TRIM("Order_Date") IS NOT NULL AND TRIM("Order_Date") <> ''
+WHERE (TRIM(CAST("Order_Date" AS VARCHAR)) IS NOT NULL AND TRIM(CAST("Order_Date" AS VARCHAR)) <> ''
   AND COALESCE(
-        try_strptime(TRIM("Order_Date"), '%Y-%m-%dT%H:%M:%SZ'),
-        try_strptime(TRIM("Order_Date"), '%Y-%m-%d'),
-        try_strptime(TRIM("Order_Date"), '%m/%d/%Y')
+        try_strptime(SUBSTR(TRIM(CAST("Order_Date" AS VARCHAR)), 1, 19), '%Y-%m-%d %H:%M:%S'),
+        try_strptime(TRIM(CAST("Order_Date" AS VARCHAR)), '%Y-%m-%dT%H:%M:%SZ'),
+        try_strptime(TRIM(CAST("Order_Date" AS VARCHAR)), '%Y-%m-%d'),
+        try_strptime(TRIM(CAST("Order_Date" AS VARCHAR)), '%m/%d/%Y'),
+        try_strptime(TRIM(CAST("Order_Date" AS VARCHAR)), '%m/%d/%Y %H:%M:%S')
     ) IS NULL);
