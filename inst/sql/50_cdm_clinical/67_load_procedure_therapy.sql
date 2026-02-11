@@ -21,7 +21,7 @@ with_id AS (
 SELECT
     w.procedure_occurrence_id,
     mp.person_id,
-    COALESCE(mt.procedure_concept_id, 0),
+    COALESCE(mt.procedure_concept_id, cust.concept_id, 0),
     w.encounter_date,
     38000268,
     mv.visit_occurrence_id,
@@ -30,6 +30,7 @@ SELECT
 FROM with_id w
 JOIN stg.map_person mp ON mp.member_id = w.member_id
 LEFT JOIN stg.map_therapy mt ON mt.code = w.code AND (mt.vocabulary = w.vocabulary OR (mt.vocabulary IS NULL AND w.vocabulary IS NULL))
+LEFT JOIN stg.custom_concept_mapping cust ON cust.source_value = TRIM(SUBSTR(COALESCE(w.code, w.name), 1, 50)) AND cust.domain = 'procedure'
 LEFT JOIN stg.map_visit mv ON mv.encounter_id_source = w.encounter_id
 WHERE NOT EXISTS (SELECT 1 FROM cdm.procedure_occurrence p WHERE p.procedure_occurrence_id = w.procedure_occurrence_id);
 

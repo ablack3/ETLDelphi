@@ -98,6 +98,20 @@ run_sql_scripts <- function(con,
       drug_path_final <- normalizePath(tmp, mustWork = TRUE)
     }
     sql <- gsub("@drugNameMappingPath", drug_path_final, sql, fixed = TRUE)
+    # Custom concept mapping path (source_value, domain, concept_id)
+    custom_path <- config[["custom_mapping_path"]]
+    if (is.null(custom_path) || !nzchar(trimws(custom_path))) {
+      custom_path <- system.file("extdata", "custom_concept_mapping.csv", package = "ETLDelphi")
+    }
+    if (nzchar(custom_path) && file.exists(custom_path)) {
+      custom_path_final <- normalizePath(custom_path, mustWork = TRUE)
+    } else {
+      tmp <- tempfile(fileext = ".csv")
+      writeLines("source_value,domain,concept_id", tmp)
+      on.exit(unlink(tmp), add = TRUE)
+      custom_path_final <- normalizePath(tmp, mustWork = TRUE)
+    }
+    sql <- gsub("@customMappingPath", custom_path_final, sql, fixed = TRUE)
     # Strip single-line comments so semicolons in comments don't break statement split
     sql <- gsub("--[^\n]*", "\n", sql)
 

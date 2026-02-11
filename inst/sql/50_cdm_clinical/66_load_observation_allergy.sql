@@ -1,4 +1,4 @@
--- Load observation from stg.allergy. observation_concept_id from map_allergy (0 in v1). observation_type_concept_id 32859.
+-- Load observation from stg.allergy. observation_concept_id from map_allergy_code (CVX/NDC via concept_code) or map_allergy (text).
 INSERT INTO cdm.observation (
     observation_id, person_id, observation_concept_id, observation_date, observation_type_concept_id,
     value_as_string, qualifier_source_value, observation_source_value, visit_occurrence_id
@@ -12,7 +12,7 @@ WITH a AS (
 SELECT
     a.observation_id,
     mp.person_id,
-    0,
+    COALESCE(ma_code.observation_concept_id, ma.observation_concept_id, cust.concept_id, 0),
     a.onset_date,
     32859,
     SUBSTR(a.reaction, 1, 60),
@@ -21,6 +21,13 @@ SELECT
     NULL
 FROM a
 JOIN stg.map_person mp ON mp.member_id = a.member_id
+LEFT JOIN stg.map_allergy_code ma_code
+    ON ma_code.drug_code = TRIM(a.drug_code)
+   AND ma_code.drug_vocab = TRIM(UPPER(a.drug_vocab))
+   AND a.drug_code IS NOT NULL AND TRIM(a.drug_code) <> ''
+   AND a.drug_vocab IS NOT NULL AND TRIM(UPPER(a.drug_vocab)) IN ('CVX', 'NDC')
+LEFT JOIN stg.map_allergy ma ON ma.source_value = TRIM(COALESCE(a.allergen, a.drug_code))
+LEFT JOIN stg.custom_concept_mapping cust ON cust.source_value = TRIM(SUBSTR(COALESCE(a.allergen, a.drug_code), 1, 50)) AND cust.domain = 'observation'
 WHERE a.onset_date IS NOT NULL
   AND NOT EXISTS (SELECT 1 FROM cdm.observation o WHERE o.observation_id = a.observation_id);
 

@@ -2,6 +2,7 @@
 
 export(analyze_mapping_quality)
 export(exportToParquet)
+export(export_top_unmapped_source_values)
 export(export_unmapped_units)
 export(init_source_data)
 export(init_vocabulary_db)

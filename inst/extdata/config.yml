@@ -45,3 +45,7 @@ prefer_fulfillment: false
 # Drug name -> concept_id mapping (Hecate-built fallback when NDC missing). Path to CSV.
 # Run extras/build_drug_name_mapping.R to populate. Empty = use package default.
 drug_name_mapping_path: null
+
+# Custom concept mapping (source_value, domain, concept_id) for unmapped values.
+# Run export_top_unmapped_source_values, add concept_id column, save as CSV. Empty = no custom mappings.
+custom_mapping_path: null

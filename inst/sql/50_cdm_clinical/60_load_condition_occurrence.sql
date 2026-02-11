@@ -43,7 +43,7 @@ FROM (
     SELECT
         r.condition_occurrence_id,
         mp.person_id,
-        COALESCE(mc.condition_concept_id, 0) AS condition_concept_id,
+        COALESCE(mc.condition_concept_id, cust.concept_id, 0) AS condition_concept_id,
         COALESCE(r.onset_date, r.fallback_start_date) AS condition_start_date,
         NULL AS condition_start_datetime,
         r.resolution_date AS condition_end_date,
@@ -56,6 +56,7 @@ FROM (
     FROM ranked r
     JOIN stg.map_person mp ON mp.member_id = r.member_id
     LEFT JOIN stg.map_condition mc ON mc.problem_code = r.problem_code
+    LEFT JOIN stg.custom_concept_mapping cust ON cust.source_value = TRIM(SUBSTR(COALESCE(r.problem_code, r.problem_description), 1, 50)) AND cust.domain = 'condition'
     LEFT JOIN stg.map_provider mpr ON mpr.provider_id_source = r.provider_id
     LEFT JOIN stg.map_visit mv ON mv.encounter_id_source = r.encounter_id
     WHERE COALESCE(r.onset_date, r.fallback_start_date) IS NOT NULL

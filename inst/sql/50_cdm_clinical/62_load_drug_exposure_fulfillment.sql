@@ -16,14 +16,15 @@ WITH f AS (
     LEFT JOIN stg.medication_orders mo ON mo.order_id = mf.order_id
 ),
 mapped AS (
-    SELECT f.*, d.drug_concept_id, d.drug_source_concept_id
+    SELECT f.*, d.drug_concept_id, d.drug_source_concept_id, cust.concept_id AS cust_concept_id
     FROM f
     LEFT JOIN stg.map_drug_order d ON (d.drug_ndc_normalized = f.drug_ndc_normalized OR (d.drug_ndc_normalized IS NULL AND f.drug_ndc_normalized IS NULL)) AND d.drug_name = f.drug_name
+    LEFT JOIN stg.custom_concept_mapping cust ON cust.source_value = TRIM(SUBSTR(f.drug_name, 1, 50)) AND cust.domain = 'drug'
 )
 SELECT
     m.drug_exposure_id,
     mp.person_id,
-    COALESCE(m.drug_concept_id, 0),
+    COALESCE(m.drug_concept_id, m.cust_concept_id, 0),
     m.dispense_date,
     CASE WHEN m.days_of_supply IS NOT NULL AND m.days_of_supply > 0 THEN m.dispense_date + (m.days_of_supply - 1) ELSE m.dispense_date END,
     38000230,

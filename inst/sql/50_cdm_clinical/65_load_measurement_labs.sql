@@ -16,7 +16,7 @@ WITH lab AS (
 SELECT
     l.measurement_id,
     mp.person_id,
-    COALESCE(lm.measurement_concept_id, 0),
+    COALESCE(lm.measurement_concept_id, cust.concept_id, 0),
     COALESCE(l.date_resulted, l.date_collected),
     COALESCE(l.date_resulted_datetime, l.date_collected_datetime),
     32827,
@@ -34,6 +34,7 @@ SELECT
 FROM lab l
 JOIN stg.map_person mp ON mp.member_id = l.member_id
 LEFT JOIN stg.map_loinc_measurement lm ON lm.loinc_code = l.test_loinc
+LEFT JOIN stg.custom_concept_mapping cust ON cust.source_value = TRIM(SUBSTR(COALESCE(l.test_loinc, l.test_name), 1, 50)) AND cust.domain = 'measurement'
 LEFT JOIN stg.map_units u ON u.unit_source_value = LOWER(TRIM(REPLACE(REPLACE(COALESCE(l.units, ''), '[', ''), ']', '')))
 LEFT JOIN stg.map_visit mv ON mv.encounter_id_source = l.encounter_id
 LEFT JOIN stg.map_provider mpr ON mpr.provider_id_source = l.provider_id

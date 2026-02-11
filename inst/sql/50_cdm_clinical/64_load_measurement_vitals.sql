@@ -25,7 +25,7 @@ with_id AS (
 SELECT
     w.measurement_id,
     mp.person_id,
-    COALESCE(mv.measurement_concept_id, 0),
+    COALESCE(mv.measurement_concept_id, cust.concept_id, 0),
     w.encounter_date,
     w.encounter_datetime,
     32817,
@@ -38,6 +38,7 @@ SELECT
 FROM with_id w
 JOIN stg.map_person mp ON mp.member_id = w.member_id
 LEFT JOIN stg.map_vitals mv ON mv.vital_name = w.vital_name
+LEFT JOIN stg.custom_concept_mapping cust ON cust.source_value = w.vital_name AND cust.domain = 'measurement'
 LEFT JOIN stg.map_units u ON u.unit_source_value = LOWER(TRIM(w.unit_src))
 LEFT JOIN stg.map_visit mapv ON mapv.encounter_id_source = w.encounter_id
 WHERE w.encounter_date IS NOT NULL

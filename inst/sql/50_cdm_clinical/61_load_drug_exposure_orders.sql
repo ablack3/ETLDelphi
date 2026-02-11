@@ -14,7 +14,7 @@ WITH ord AS (
 SELECT
     o.drug_exposure_id,
     mp.person_id,
-    COALESCE(d.drug_concept_id, 0),
+    COALESCE(d.drug_concept_id, cust.concept_id, 0),
     o.order_date,
     o.order_date,
     38000177,
@@ -30,6 +30,7 @@ SELECT
 FROM ord o
 JOIN stg.map_person mp ON mp.member_id = o.member_id
 LEFT JOIN stg.map_drug_order d ON (d.drug_ndc_normalized = o.drug_ndc_normalized OR (d.drug_ndc_normalized IS NULL AND o.drug_ndc_normalized IS NULL)) AND d.drug_name = o.drug_name
+LEFT JOIN stg.custom_concept_mapping cust ON cust.source_value = TRIM(SUBSTR(o.drug_name, 1, 50)) AND cust.domain = 'drug'
 LEFT JOIN stg.map_provider mpr ON mpr.provider_id_source = o.order_provider_id
 LEFT JOIN stg.map_visit mv ON mv.encounter_id_source = o.encounter_id
 WHERE NOT EXISTS (SELECT 1 FROM cdm.drug_exposure x WHERE x.drug_exposure_id = o.drug_exposure_id);

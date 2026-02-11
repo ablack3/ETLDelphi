@@ -69,9 +69,9 @@ ETLDelphi::init_source_data(con, delphi_source_dir)
 
 DBI::dbDisconnect(con, shutdown = T)
 
-con <- DBI::dbConnect(duckdb::duckdb(), "delphi.duckdb")
+con <- DBI::dbConnect(duckdb::duckdb(), "~/Desktop/delphi.duckdb")
 
-run_etl(
+ETLDelphi::run_etl(
   con = con,
   config_path = if (is.na(config_path) || !nzchar(config_path)) NULL else config_path
 )

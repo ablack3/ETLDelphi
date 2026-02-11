@@ -1,0 +1,20 @@
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>/404.html</loc></url>
+<url><loc>/LICENSE.html</loc></url>
+<url><loc>/articles/delphi100k.html</loc></url>
+<url><loc>/articles/etl.html</loc></url>
+<url><loc>/articles/how_to_run.html</loc></url>
+<url><loc>/articles/index.html</loc></url>
+<url><loc>/articles/run_etl_steps.html</loc></url>
+<url><loc>/authors.html</loc></url>
+<url><loc>/index.html</loc></url>
+<url><loc>/reference/analyze_mapping_quality.html</loc></url>
+<url><loc>/reference/exportToParquet.html</loc></url>
+<url><loc>/reference/index.html</loc></url>
+<url><loc>/reference/init_source_data.html</loc></url>
+<url><loc>/reference/init_vocabulary_db.html</loc></url>
+<url><loc>/reference/run_etl.html</loc></url>
+<url><loc>/reference/run_sql_scripts.html</loc></url>
+<url><loc>/reference/split_sql_statements.html</loc></url>
+</urlset>
+
