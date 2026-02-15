@@ -2,7 +2,7 @@
 -- value_as_concept_id for categorical results (Positive, Negative, etc.) from map_measurement_value.
 -- range_low, range_high from parsed reference_range.
 INSERT INTO cdm.measurement (
-    measurement_id, person_id, measurement_concept_id, measurement_date, measurement_datetime, measurement_type_concept_id,
+    measurement_id, person_id, measurement_concept_id, measurement_source_concept_id, measurement_date, measurement_datetime, measurement_type_concept_id,
     value_as_number, value_as_concept_id, unit_concept_id, unit_source_value, range_low, range_high,
     visit_occurrence_id, provider_id, measurement_source_value, value_source_value
 )
@@ -17,6 +17,7 @@ SELECT
     l.measurement_id,
     mp.person_id,
     COALESCE(lm.measurement_concept_id, cust.concept_id, 0),
+    CASE WHEN lm.loinc_code IS NOT NULL THEN COALESCE(lm.measurement_source_concept_id, 0) ELSE NULL END,
     COALESCE(l.date_resulted, l.date_collected),
     COALESCE(l.date_resulted_datetime, l.date_collected_datetime),
     32827,

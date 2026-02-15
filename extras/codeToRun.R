@@ -9,18 +9,18 @@
 # --- Path parameters (edit these or set via Sys.setenv / command line) -------
 
 # Directory containing vocabulary CSV/TSV files (e.g. CONCEPT.csv, VOCABULARY.csv)
-vocabulary_dir <- Sys.getenv("VOCABULARY_DIR", "vocabulary_download_v5")
+vocabulary_dir <- "vocabulary_download_v5"
 
 # Directory containing Delphi source CSV files (e.g. enrollment.csv, encounter.csv)
-delphi_source_dir <- Sys.getenv("DELPHI_SOURCE_DIR", "delphi100k")
+delphi_source_dir <- "delphi100k"
 
 # Path to the output DuckDB database file (created or overwritten)
-duckdb_path <- Sys.getenv("DUCKDB_PATH", "~/Desktop/delphi.duckdb")
+duckdb_path <- "~/Desktop/delphi.duckdb"
 
 file.remove(duckdb_path)
 
 # Optional: vocabulary file delimiter ("," for CSV, "\t" for TSV)
-vocab_delimiter <- Sys.getenv("VOCAB_DELIMITER", "\t")
+vocab_delimiter <- "\t"
 
 # --- ETL config (schemas, type concept IDs, optional mapping paths) ----------
 # Edit this list to override defaults. NULL paths use package defaults.
@@ -50,8 +50,9 @@ config <- list(
     death_type_concept_id = 32817L
   ),
   prefer_fulfillment = FALSE,
-  drug_name_mapping_path = NULL,  # NULL = use package default drug_name_to_concept.csv
-  custom_mapping_path = NULL      # NULL = use package default custom_concept_mapping.csv
+  drug_name_mapping_path = NULL,   # NULL = use package default drug_name_to_concept.csv
+  custom_mapping_path = NULL,     # NULL = use package default custom_concept_mapping.csv
+  custom_ndc_mapping_path = NULL  # NULL = use package default custom_ndc_mapping.csv
 )
 
 if (file.exists(duckdb_path)) file.remove(duckdb_path)
@@ -74,19 +75,18 @@ vocabulary_dir <- normalizePath(vocabulary_dir, winslash = "/")
 delphi_source_dir <- normalizePath(delphi_source_dir, winslash = "/")
 duckdb_path <- normalizePath(duckdb_path, mustWork = FALSE, winslash = "/")
 
-# Connect to DuckDB (file created on first use)
-# con <- DBI::dbConnect(duckdb::duckdb(), duckdb_path)
-# DBI::dbDisconnect(con)
-# --- 1. Initialize CDM DDL and load vocabulary -------------------------------
-
-# debugonce(init_vocabulary_db)
+# --- 1. Initialize Database, CDM DDL, and load vocabulary -------------------------------
 
 con <- ETLDelphi::init_vocabulary_db(
   duckdb_path,
-  vocabulary_dir = vocabulary_dir
+  vocabulary_dir = vocabulary_dir,
+  cdm_schema = config$schemas$cdm
 )
 
-# cdm <- CDMConnector::cdmFromCon(con, "cdm", "main")
+DBI::dbGetQuery(con, "select * from main.concept_relationship limit 10")
+DBI::dbGetQuery(con, "select * from main.concept limit 10")
+
+# cdm <- CDMConnector::cdmFromCon(con, "main")
 # cdm$concept
 #
 # cdm$vocabulary
@@ -102,29 +102,44 @@ DBI::dbDisconnect(con, shutdown = T)
 
 con <- DBI::dbConnect(duckdb::duckdb(), "~/Desktop/delphi.duckdb")
 
-system.time({
-  cdm <- CDMConnector::cdmFromCon(con, "cdm", "main")
-})
+ETLDelphi::run_etl(con = con, config = config)
+
+
+
+cdm <- CDMConnector::cdmFromCon(con, "main")
 
 cdm$person
 
-ETLDelphi::run_etl(con = con, config = config)
 
 DBI::dbListTables(con)
 
-CDMConnector::listTables(con, "cdm")
+CDMConnector::listTables(con, "main")
 
+# Export unmapped units, measurement values, and drugs for manual mapping (see extras/UNMAPPED_UNITS.md)
 ETLDelphi::export_unmapped_units(con, output_path = "unmapped_units.csv")
-unlink(here::here("inst/shiny/mapping_quality"), recursive = T)
+ETLDelphi::export_unmapped_measurement_values(con, output_path = "unmapped_measurement_values.csv")
+ETLDelphi::export_unmapped_drugs(con, output_path = "unmapped_drugs.csv")
+
+unlink(here::here("inst/shiny/mapping_quality/mapping_quality_results"), recursive = T)
 ETLDelphi::analyze_mapping_quality(con, output_dir = "inst/shiny/mapping_quality/mapping_quality_results")
+
+# Launch the mapping quality Shiny app (optional; close the app to continue)
+list.files("inst/shiny/mapping_quality/mapping_quality_results")
+run_mapping_quality_app(results_dir = here::here("inst/shiny/mapping_quality/mapping_quality_results"))
 
 library(CDMConnector)
 library(dplyr)
 
-cdm <- CDMConnector::cdmFromCon(con, "main", "main")
+cdm <- CDMConnector::cdmFromCon(con, "main")
 
+cdm$concept %>%
+  filter(vocabulary_id == "NDC")
 
+cdm$condition_occurrence %>%
+  select(condition_source_value, condition_source_concept_id, condition_concept_id)
 
+cdm$drug_exposure %>%
+  select(drug_source_value, drug_source_concept_id, drug_concept_id )
 
 
 DBI::dbDisconnect(con, shutdown = TRUE)

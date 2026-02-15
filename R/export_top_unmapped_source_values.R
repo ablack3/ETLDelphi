@@ -17,7 +17,7 @@ export_top_unmapped_source_values <- function(con,
                                               limit = 500L,
                                               config = NULL,
                                               template_for_custom_mapping = FALSE) {
-  cdm <- if (is.null(config) || is.null(config[["schemas"]]) || is.null(config[["schemas"]][["cdm"]])) "cdm" else config[["schemas"]][["cdm"]]
+  cdm <- if (is.null(config) || is.null(config[["schemas"]]) || is.null(config[["schemas"]][["cdm"]])) "main" else config[["schemas"]][["cdm"]]
 
   queries <- list(
     condition_occurrence = list(

@@ -21,6 +21,13 @@ if (!file.exists(csv_path)) {
 # Read first 100 rows (no need to load full file)
 drug_sample <- utils::read.csv(csv_path, nrows = 100, check.names = FALSE)
 
+# Remove provider identifiers and unique IDs from output (privacy)
+cols_to_drop <- c("Member_ID", "Order_ID", "Order_Provider_ID", "Encounter_ID")
+existing_drop <- intersect(cols_to_drop, names(drug_sample))
+if (length(existing_drop) > 0L) {
+  drug_sample <- drug_sample[, setdiff(names(drug_sample), existing_drop), drop = FALSE]
+}
+
 out_path <- "drug_source_first_100.csv"
 write.csv(drug_sample, out_path, row.names = FALSE)
 message("Wrote first ", nrow(drug_sample), " rows to ", normalizePath(out_path, mustWork = FALSE))

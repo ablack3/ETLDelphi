@@ -77,10 +77,12 @@ run_sql_scripts <- function(con,
     sql <- readLines(f, warn = FALSE)
     sql <- paste(sql, collapse = "\n")
     # Substitute schema placeholders if used
-    cdm <- config[["schemas"]][["cdm"]]; if (is.null(cdm)) cdm <- "cdm"
+    cdm <- config[["schemas"]][["cdm"]]; if (is.null(cdm)) cdm <- "main"
     src <- config[["schemas"]][["src"]]; if (is.null(src)) src <- "src"
     sql <- gsub("@cdmDatabaseSchema", cdm, sql, fixed = TRUE)
     sql <- gsub("\\{cdm\\}", cdm, sql)
+    # Replace literal "cdm." so vocab/CDM tables (e.g. cdm.concept) use the configured schema
+    sql <- gsub("\\bcdm\\.", paste0(cdm, "."), sql)
     sql <- gsub("\\{stg\\}", stg, sql)
     sql <- gsub("\\{src\\}", src, sql)
     # Drug name mapping path (Hecate-built CSV for fallback drug mapping)
@@ -112,6 +114,20 @@ run_sql_scripts <- function(con,
       custom_path_final <- normalizePath(tmp, mustWork = TRUE)
     }
     sql <- gsub("@customMappingPath", custom_path_final, sql, fixed = TRUE)
+    # Custom NDC mapping path (drug_ndc_normalized, drug_concept_id)
+    ndc_path <- config[["custom_ndc_mapping_path"]]
+    if (is.null(ndc_path) || !nzchar(trimws(ndc_path))) {
+      ndc_path <- system.file("extdata", "custom_ndc_mapping.csv", package = "ETLDelphi")
+    }
+    if (nzchar(ndc_path) && file.exists(ndc_path)) {
+      ndc_path_final <- normalizePath(ndc_path, mustWork = TRUE)
+    } else {
+      tmp <- tempfile(fileext = ".csv")
+      writeLines("drug_ndc_normalized,drug_concept_id", tmp)
+      on.exit(unlink(tmp), add = TRUE)
+      ndc_path_final <- normalizePath(tmp, mustWork = TRUE)
+    }
+    sql <- gsub("@customNdcMappingPath", ndc_path_final, sql, fixed = TRUE)
     # Strip single-line comments so semicolons in comments don't break statement split
     sql <- gsub("--[^\n]*", "\n", sql)
 

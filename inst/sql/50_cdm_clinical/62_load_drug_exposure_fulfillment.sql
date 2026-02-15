@@ -32,7 +32,7 @@ SELECT
     m.days_of_supply,
     NULL,
     mv.visit_occurrence_id,
-    SUBSTR(m.drug_name, 1, 50),
+    SUBSTR(COALESCE(NULLIF(TRIM(m.drug_ndc_normalized), ''), m.drug_name), 1, 50),
     COALESCE(m.drug_source_concept_id, 0)
 FROM mapped m
 JOIN stg.map_person mp ON mp.member_id = m.member_id

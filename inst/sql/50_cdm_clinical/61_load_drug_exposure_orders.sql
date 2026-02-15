@@ -23,7 +23,7 @@ SELECT
     o.sig,
     mpr.provider_id,
     mv.visit_occurrence_id,
-    SUBSTR(o.drug_name, 1, 50),
+    SUBSTR(COALESCE(NULLIF(TRIM(o.drug_ndc_normalized), ''), o.drug_name), 1, 50),
     COALESCE(d.drug_source_concept_id, 0),
     SUBSTR(o.route, 1, 50),
     SUBSTR(o.dose_units, 1, 50)

@@ -7,8 +7,8 @@
 library(shiny)
 library(DT)
 
-# Default results directory: use mapping_quality_results in current working directory
-default_results_dir <- "mapping_quality_results"
+# Default results directory: from option (when launched via run_mapping_quality_app(path)) or fallback
+default_results_dir <- getOption("etldelphi.mapping_quality_results_dir", "mapping_quality_results")
 
 # Safe CSV read: return NULL if file missing or empty
 read_mq_csv <- function(path) {
@@ -116,8 +116,15 @@ server <- function(input, output, session) {
 
   load_results <- function() {
     dir <- trimws(input$results_dir)
-    if (!nzchar(dir) || !dir.exists(dir)) {
-      if (nzchar(dir)) showNotification("Directory not found.", type = "error")
+    if (!nzchar(dir)) return()
+    # Resolve to absolute path so files load correctly regardless of app working directory
+    if (dir.exists(dir)) {
+      dir <- normalizePath(dir, winslash = "/")
+    } else if (!startsWith(dir, "/") && !grepl("^[A-Za-z]:", dir)) {
+      dir <- normalizePath(file.path(getwd(), dir), mustWork = FALSE, winslash = "/")
+    }
+    if (!dir.exists(dir)) {
+      showNotification("Directory not found.", type = "error")
       return()
     }
     data(list(
@@ -135,12 +142,13 @@ server <- function(input, output, session) {
 
   observeEvent(input$load_btn, load_results())
 
-  # Auto-load when default directory exists at startup
+  # Auto-load when default directory exists at startup (use same path resolution as load_results)
   observe({
     dir <- trimws(input$results_dir)
-    if (nzchar(dir) && dir.exists(dir) && length(data()) == 0) {
-      load_results()
-    }
+    if (!nzchar(dir) || length(data()) > 0) return()
+    if (dir.exists(dir)) dir <- normalizePath(dir, winslash = "/")
+    else if (!startsWith(dir, "/") && !grepl("^[A-Za-z]:", dir)) dir <- normalizePath(file.path(getwd(), dir), mustWork = FALSE, winslash = "/")
+    if (dir.exists(dir)) load_results()
   })
 
   output$files_loaded <- reactive({

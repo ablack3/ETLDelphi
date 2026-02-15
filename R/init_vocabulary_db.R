@@ -10,7 +10,7 @@
 #'   \code{":memory:"} for an in-memory database.
 #' @param vocabulary_dir Character. Directory containing vocabulary TSV/CSV files
 #'   (e.g. \code{CONCEPT.csv}, \code{VOCABULARY.csv}).
-#' @param cdm_schema Character. Schema name for CDM/vocabulary tables (default \code{"cdm"}).
+#' @param cdm_schema Character. Schema name for CDM/vocabulary tables (default \code{"main"}).
 #' @param delimiter Character. Column delimiter in vocabulary files (default \code{"\\t"} for TSV).
 #'   Use \code{","} if files are comma-separated.
 #' @return The DBI connection (invisibly). If \code{con} was supplied, the same connection;
@@ -18,7 +18,7 @@
 #' @export
 init_vocabulary_db <- function(db_path,
                                vocabulary_dir = NULL,
-                               cdm_schema = "cdm",
+                               cdm_schema = "main",
                                delimiter = "\t") {
 
   checkmate::assertCharacter(db_path, min.chars = 1, any.missing = FALSE)
@@ -35,9 +35,11 @@ init_vocabulary_db <- function(db_path,
   # Default DDL to package OMOP DDL
   ddl_path <- system.file("omop_cdm_specification", "OMOPCDM_duckdb_5.4_ddl.sql", package = "ETLDelphi", mustWork = TRUE)
 
-  # Create schema and run DDL
-  DBI::dbExecute(con, glue::glue("DROP SCHEMA IF EXISTS {cdm_schema} CASCADE;"))
-  DBI::dbExecute(con, glue::glue("CREATE SCHEMA {cdm_schema};"))
+  # Create schema and run DDL (skip for "main" — DuckDB default schema, always exists)
+  if (cdm_schema != "main") {
+    DBI::dbExecute(con, glue::glue("DROP SCHEMA IF EXISTS {cdm_schema} CASCADE;"))
+    DBI::dbExecute(con, glue::glue("CREATE SCHEMA {cdm_schema};"))
+  }
   sql <- readLines(ddl_path, warn = FALSE)
   sql <- paste(sql, collapse = "\n")
   sql <- gsub("@cdmDatabaseSchema", cdm_schema, sql, fixed = TRUE)

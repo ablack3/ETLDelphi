@@ -4,7 +4,13 @@
 \alias{run_mapping_quality_app}
 \title{Run Shiny app to visualize mapping quality results}
 \usage{
-run_mapping_quality_app()
+run_mapping_quality_app(results_dir = NULL)
+}
+\arguments{
+\item{results_dir}{Optional path to the folder containing mapping quality CSV
+files (e.g. \code{01_unmapped_concepts_by_table.csv}, \code{02_top_unmapped_source_values.csv}, etc.).
+If provided, the app opens with this path pre-filled and will auto-load when the directory exists.
+If \code{NULL}, the app uses \code{"mapping_quality_results"} as the default path.}
 }
 \value{
 Invisible NULL (app runs until the user closes it).

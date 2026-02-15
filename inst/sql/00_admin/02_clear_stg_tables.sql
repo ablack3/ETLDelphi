@@ -42,6 +42,7 @@ DROP TABLE IF EXISTS stg.map_condition;
 DROP TABLE IF EXISTS stg.map_units;
 DROP TABLE IF EXISTS stg.map_loinc_measurement;
 DROP TABLE IF EXISTS stg.custom_concept_mapping;
+DROP TABLE IF EXISTS stg.custom_ndc_mapping;
 DROP TABLE IF EXISTS stg.drug_name_to_concept;
 DROP TABLE IF EXISTS stg.map_drug_order;
 DROP TABLE IF EXISTS stg.map_immunization;

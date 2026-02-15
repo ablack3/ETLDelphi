@@ -3,7 +3,7 @@
 #' @export
 default_etl_config <- function() {
   list(
-    schemas = list(src = "src", stg = "stg", cdm = "cdm"),
+    schemas = list(src = "src", stg = "stg", cdm = "main"),
     concept_id_unknown = 0L,
     date_formats = c(
       "%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%SZ", "%Y-%m-%dT%H:%M:%S",
@@ -29,7 +29,8 @@ default_etl_config <- function() {
     ),
     prefer_fulfillment = FALSE,
     drug_name_mapping_path = NULL,
-    custom_mapping_path = NULL
+    custom_mapping_path = NULL,
+    custom_ndc_mapping_path = NULL
   )
 }
 

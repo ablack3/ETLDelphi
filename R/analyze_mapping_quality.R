@@ -12,7 +12,7 @@
 #' @export
 analyze_mapping_quality <- function(con, output_dir = "mapping_quality_results", config = NULL) {
   stg <- config[["schemas"]][["stg"]]; if (is.null(stg)) stg <- "stg"
-  cdm <- config[["schemas"]][["cdm"]]; if (is.null(cdm)) cdm <- "cdm"
+  cdm <- config[["schemas"]][["cdm"]]; if (is.null(cdm)) cdm <- "main"
 
   if (!dir.exists(output_dir)) {
     dir.create(output_dir, recursive = TRUE)
@@ -53,6 +53,18 @@ analyze_mapping_quality <- function(con, output_dir = "mapping_quality_results",
       " COUNT(*) AS total_rows, SUM(CASE WHEN observation_concept_id = 0 THEN 1 ELSE 0 END) AS unmapped_count,",
       " 100.0 * SUM(CASE WHEN observation_concept_id = 0 THEN 1 ELSE 0 END) / NULLIF(COUNT(*), 0) AS unmapped_pct ",
       "FROM \"{cdm}\".observation"
+    ),
+    measurement_unit = glue::glue(
+      "SELECT '{cdm}.measurement' AS cdm_table, 'unit_concept_id' AS concept_column,",
+      " COUNT(*) AS total_rows, SUM(CASE WHEN unit_concept_id = 0 THEN 1 ELSE 0 END) AS unmapped_count,",
+      " 100.0 * SUM(CASE WHEN unit_concept_id = 0 THEN 1 ELSE 0 END) / NULLIF(COUNT(*), 0) AS unmapped_pct ",
+      "FROM \"{cdm}\".measurement WHERE unit_source_value IS NOT NULL AND TRIM(unit_source_value) <> ''"
+    ),
+    measurement_value_as_concept = glue::glue(
+      "SELECT '{cdm}.measurement' AS cdm_table, 'value_as_concept_id' AS concept_column,",
+      " COUNT(*) AS total_rows, SUM(CASE WHEN value_as_concept_id = 0 THEN 1 ELSE 0 END) AS unmapped_count,",
+      " 100.0 * SUM(CASE WHEN value_as_concept_id = 0 THEN 1 ELSE 0 END) / NULLIF(COUNT(*), 0) AS unmapped_pct ",
+      "FROM \"{cdm}\".measurement WHERE value_as_concept_id IS NOT NULL"
     )
   )
 
@@ -92,6 +104,16 @@ analyze_mapping_quality <- function(con, output_dir = "mapping_quality_results",
       "SELECT observation_source_value AS source_value, COUNT(*) AS record_count ",
       "FROM \"{cdm}\".observation WHERE observation_concept_id = 0 AND observation_source_value IS NOT NULL ",
       "GROUP BY observation_source_value ORDER BY record_count DESC LIMIT 500"
+    ),
+    measurement_unit = glue::glue(
+      "SELECT unit_source_value AS source_value, COUNT(*) AS record_count ",
+      "FROM \"{cdm}\".measurement WHERE unit_concept_id = 0 AND unit_source_value IS NOT NULL ",
+      "GROUP BY unit_source_value ORDER BY record_count DESC LIMIT 500"
+    ),
+    measurement_value = glue::glue(
+      "SELECT value_source_value AS source_value, COUNT(*) AS record_count ",
+      "FROM \"{cdm}\".measurement WHERE value_as_concept_id = 0 AND value_source_value IS NOT NULL ",
+      "GROUP BY value_source_value ORDER BY record_count DESC LIMIT 500"
     )
   )
 

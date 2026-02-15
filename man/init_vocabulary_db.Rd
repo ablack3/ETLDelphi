@@ -7,7 +7,7 @@
 init_vocabulary_db(
   db_path,
   vocabulary_dir = NULL,
-  cdm_schema = "cdm",
+  cdm_schema = "main",
   delimiter = "\\t"
 )
 }
@@ -18,7 +18,7 @@ init_vocabulary_db(
 \item{vocabulary_dir}{Character. Directory containing vocabulary TSV/CSV files
 (e.g. \code{CONCEPT.csv}, \code{VOCABULARY.csv}).}
 
-\item{cdm_schema}{Character. Schema name for CDM/vocabulary tables (default \code{"cdm"}).}
+\item{cdm_schema}{Character. Schema name for CDM/vocabulary tables (default \code{"main"}).}
 
 \item{delimiter}{Character. Column delimiter in vocabulary files (default \code{"\\t"} for TSV).
 Use \code{","} if files are comma-separated.}

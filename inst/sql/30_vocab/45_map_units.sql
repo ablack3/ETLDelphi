@@ -1,7 +1,7 @@
 -- Unit mapping: common unit strings -> unit_concept_id (OMOP UCUM where applicable). Unmapped -> 0.
 -- Normalize: LOWER, TRIM, strip brackets []. Lab units from source may have trailing ].
 -- UCUM IDs: 8840=mg/dL, 8713=g/dL, 8842=ng/mL, 8845=pg/mL, 8753=mmol/L, 9557=meq/L, 8923=IU/L, 8554=%, 8647=/uL
--- 8751=mg/L, 8583=fL, 8564=pg, 8588=mm, 8555=s, 8550=min, 8795=mL/min, 8862=mosm/kg, 8784=cells/uL, 8785=/mm3
+-- 8751=mg/L, 8583=fL, 8564=pg, 8588=mm, 8555=s, 8550=min, 8587=mL, 8795=mL/min, 8862=mosm/kg, 8784=cells/uL, 8785=/mm3, 9330=in (inches), 8739=lb/lbs (pounds)
 -- 8889=cells/HPF, 8786=/HPF, 9257=/mL, 8815=million/uL, 8940=mIU/L, 8714=U/mL
 CREATE OR REPLACE TABLE stg.map_units AS
 SELECT unit_source_value, unit_concept_id FROM (VALUES
@@ -11,10 +11,12 @@ SELECT unit_source_value, unit_concept_id FROM (VALUES
     ('mg/dL', 8840),
     ('mg/l', 8751),
     ('mg/d', 8751),
-    ('ml', 8647),
+    ('ml', 8587),
     ('cm', 8510),
+    ('in', 9330),
     ('kg', 9529),
     ('lb', 8739),
+    ('lbs', 8739),
     ('beats/min', 8739),
     ('c', 8817),
     ('f', 8816),

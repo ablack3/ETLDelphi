@@ -43,10 +43,10 @@ run_achilles <- function(db_path = NULL,
   if (is.null(cdm_schema)) {
     if (!is.null(config_path) && nzchar(config_path) && file.exists(config_path)) {
       config <- yaml::read_yaml(config_path)
-      cdm_schema <- config[["schemas"]][["cdm"]] %||% "cdm"
+      cdm_schema <- config[["schemas"]][["cdm"]] %||% "main"
     } else {
       config <- ETLDelphi::default_etl_config()
-      cdm_schema <- config[["schemas"]][["cdm"]] %||% "cdm"
+      cdm_schema <- config[["schemas"]][["cdm"]] %||% "main"
     }
   }
   scratch_schema <- scratch_schema %||% results_schema

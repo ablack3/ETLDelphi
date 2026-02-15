@@ -2,7 +2,7 @@
 % Please edit documentation in R/export_unmapped_units.R
 \name{export_unmapped_units}
 \alias{export_unmapped_units}
-\title{Export unmapped units to CSV for manual mapping}
+\title{Export unmapped units with their measurements to CSV for manual mapping}
 \usage{
 export_unmapped_units(con, output_path = "unmapped_units.csv", config = NULL)
 }
@@ -11,13 +11,13 @@ export_unmapped_units(con, output_path = "unmapped_units.csv", config = NULL)
 
 \item{output_path}{Path to the output CSV file. Default: \code{unmapped_units.csv} in current directory.}
 
-\item{config}{Optional list with \code{schemas$stg}; if NULL, uses \code{stg}.}
+\item{config}{Optional list with \code{schemas$stg} and \code{schemas$cdm}; if NULL, uses \code{stg} and \code{main}.}
 }
 \value{
 Invisible path to the written file.
 }
 \description{
-Writes unmapped units (unit_concept_id = 0 in stg.map_units) to a CSV file
-with columns \code{source_value} and \code{target_concept_id} (empty for you to fill).
-Run after ETL so stg.map_units is populated.
+Writes unmapped unit + measurement combinations (unit_concept_id = 0 in
+cdm.measurement) to a CSV so you can see which measurements use each unit,
+which helps identify the correct UCUM concept. Run after ETL.
 }
