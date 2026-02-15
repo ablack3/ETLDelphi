@@ -1,0 +1,72 @@
+DBMS:
+duckdb
+
+Error:
+Catalog Error: Table with name COHORT does not exist!
+
+LINE 18:     	FROM results.COHORT cdmTable
+                  ^
+[34mℹ[39m Context: rapi_prepare
+[34mℹ[39m Error type: CATALOG
+
+SQL:
+/*********
+PLAUSIBLE_VALUE_HIGH
+get number of records and the proportion to total number of eligible records that exceed this threshold
+Parameters used in this template:
+schema = results
+cdmTableName = COHORT
+cdmFieldName = COHORT_END_DATE
+plausibleValueHigh = DATEADD(dd,1,GETDATE())
+**********/
+SELECT 
+	num_violated_rows, 
+	CASE 
+		WHEN denominator.num_rows = 0 THEN 0 
+		ELSE 1.0*num_violated_rows/denominator.num_rows 
+	END AS pct_violated_rows, 
+  	denominator.num_rows AS num_denominator_rows
+FROM
+(
+	SELECT 
+		COUNT(violated_rows.violating_field) AS num_violated_rows
+	FROM
+	(
+		/*violatedRowsBegin*/
+		SELECT 
+            'COHORT.COHORT_END_DATE' AS violating_field, 
+		    cdmTable.*
+    	FROM results.COHORT cdmTable
+      	    WHERE cast(cdmTable.COHORT_END_DATE as date) > cast((CURRENT_DATE + TO_DAYS(CAST(1 AS INTEGER))) as date)
+		/*violatedRowsEnd*/
+	) violated_rows
+) violated_row_count,
+(
+	SELECT 
+		COUNT(*) AS num_rows
+	FROM results.COHORT cdmTable
+  	WHERE COHORT_END_DATE IS NOT NULL
+) denominator
+;
+
+
+R version:
+R version 4.5.1 (2025-06-13)
+
+Platform:
+aarch64-apple-darwin20
+
+Attached base packages:
+- stats
+- graphics
+- grDevices
+- utils
+- datasets
+- methods
+- base
+
+Other attached packages:
+- dplyr (1.2.0)
+- DT (0.34.0)
+- shiny (1.12.1)
+- ETLDelphi (0.1.0)

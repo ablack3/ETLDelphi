@@ -18,8 +18,7 @@ Invisible path to the written file.
 }
 \description{
 Writes drugs that did not map to an OMOP concept (drug_concept_id = 0 in
-\code{stg.map_drug_order}) to a CSV with \code{drug_name}, \code{drug_ndc_normalized},
-\code{drug_ndc_raw} (sample), \code{n_occurrences}, and \code{target_concept_id}
-(empty for you to fill). Use for custom mapping (e.g. ingredient-level) when
-NDC is missing, wildcard (e.g. 59630*70248), or ambiguous. Run after ETL.
+stg.map_drug_order) to a CSV with drug name, NDC (normalized and raw sample),
+and record counts. Use for custom mapping (e.g. ingredient-level) when NDC
+is missing, wildcard, or ambiguous. Run after ETL.
 }

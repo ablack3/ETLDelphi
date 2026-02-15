@@ -19,6 +19,27 @@
 #   ETLDELPHI_DB_PATH    Path to DuckDB file (default: same as first script arg)
 #   config_path          Path to config YAML (optional; else default_etl_config() for schema names)
 
+cd <- DatabaseConnector::createConnectionDetails(
+  dbms = "duckdb",
+  server = "~/Desktop/delphi.duckdb"
+)
+
+con <- DatabaseConnector::connect(cd)
+
+DatabaseConnector::executeSql(con, "create schema results")
+DatabaseConnector::executeSql(con, "create schema scratch")
+DatabaseConnector::disconnect(con)
+
+results <- DataQualityDashboard::executeDqChecks(
+  connectionDetails = cd,
+  cdmDatabaseSchema = "main",
+  resultsDatabaseSchema = 'results',
+  numThreads = 4,
+  cdmVersion = "5.4",
+  cdmSourceName = "delphi",
+  outputFolder = here::here("dqd_results")
+)
+
 options(warn = 1)
 
 run_data_quality_dashboard <- function(db_path = NULL,

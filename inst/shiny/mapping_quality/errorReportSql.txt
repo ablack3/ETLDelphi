@@ -1,0 +1,31 @@
+DBMS:
+duckdb
+
+Error:
+Invalid Error: Catalog Error: Schema with name "results" already exists!
+[34mℹ[39m Context: rapi_execute
+[34mℹ[39m Error type: INVALID
+
+SQL:
+create schema results
+
+R version:
+R version 4.5.1 (2025-06-13)
+
+Platform:
+aarch64-apple-darwin20
+
+Attached base packages:
+- stats
+- graphics
+- grDevices
+- utils
+- datasets
+- methods
+- base
+
+Other attached packages:
+- dplyr (1.2.0)
+- DT (0.34.0)
+- shiny (1.12.1)
+- ETLDelphi (0.1.0)

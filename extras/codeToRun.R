@@ -106,7 +106,19 @@ ETLDelphi::run_etl(con = con, config = config)
 
 
 
+
+
+DBI::dbDisconnect(con, shutdown = T)
+
+con <- DBI::dbConnect(duckdb::duckdb(), "~/Desktop/delphi.duckdb")
+
 cdm <- CDMConnector::cdmFromCon(con, "main")
+
+library(dplyr)
+prov <- cdm$provider %>%
+  collect()
+
+readr::write_csv(prov, "prov.csv")
 
 cdm$person
 
@@ -141,6 +153,23 @@ cdm$condition_occurrence %>%
 cdm$drug_exposure %>%
   select(drug_source_value, drug_source_concept_id, drug_concept_id )
 
+
+# --- 3. Run Achilles ----------------------------------------------------------
+
+cd <- DatabaseConnector::createConnectionDetails(
+  dbms = "duckdb",
+  server = "~/Desktop/delphi.duckdb"
+)
+
+r <- Achilles::achilles(
+  connectionDetails = cd,
+  cdmDatabaseSchema = "main",
+  resultsDatabaseSchema = "results",
+  scratchDatabaseSchema = "scratch",
+  dropScratchTables = T,
+  optimizeAtlasCache = T,
+  defaultAnalysesOnly = F
+)
 
 DBI::dbDisconnect(con, shutdown = TRUE)
 message("ETL complete. DuckDB output: ", duckdb_path)

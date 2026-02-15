@@ -1,13 +1,13 @@
--- Load cdm.provider from stg.map_provider and stg.provider. provider_id from map; name, npi, specialty from stg.provider.
+-- Load cdm.provider from stg.map_provider and stg.provider. Only provider_id (renumbered) and specialty; leave provider_name, npi, provider_source_value, gender_source_value NULL for privacy.
 INSERT INTO cdm.provider (provider_id, provider_name, npi, specialty_concept_id, provider_source_value, specialty_source_value, gender_source_value)
 SELECT
     mp.provider_id,
-    SUBSTR(p.name, 1, 255),
-    SUBSTR(p.npi, 1, 20),
     NULL,
-    mp.provider_id_source,
+    NULL,
+    NULL,
+    NULL,
     SUBSTR(p.specialty, 1, 50),
-    p.sex_clean
+    NULL
 FROM stg.map_provider mp
 JOIN stg.provider p ON p.provider_id = mp.provider_id_source
 WHERE NOT EXISTS (SELECT 1 FROM cdm.provider c WHERE c.provider_id = mp.provider_id);

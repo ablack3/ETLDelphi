@@ -127,6 +127,7 @@ Load order respects foreign keys: location and care_site first, then provider, p
 | `54_load_visit_occurrence.sql` | `cdm.visit_occurrence` | From stg.encounter + map_visit, map_person, map_visit_concept, map_provider, map_care_site. visit_type_concept_id = 44818517 (EHR). Visit end date = start when no end time. Encounters with member_id not in map_person → `stg.reject_visit_missing_person`. |
 | `55_load_note.sql` | `cdm.note` | SOAP_Note from encounter; note_id = 900000000 + row_number (deterministic). note_type/class/encoding/language from config. Reject table for notes missing person/visit. |
 | `56_load_death.sql` | `cdm.death` | From stg.death + map_person. death_type_concept_id from config. Reject rows with no matching person → `stg.reject_death_load`. |
+| `57_load_cdm_source.sql` | `cdm.cdm_source` | Single row: source name, abbreviation, holder, description, ETL reference (from package vignettes), source/cdm release dates (CURRENT_DATE), cdm_version 5.4, cdm_version_concept_id from vocabulary, vocabulary_version. Insert only if cdm_source is empty. |
 
 ### Phase 5 — CDM clinical tables
 
