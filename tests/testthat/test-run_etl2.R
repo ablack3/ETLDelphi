@@ -14,12 +14,8 @@ test_that("run_etl", {
 
   on.exit(DBI::dbDisconnect(con, shutdown = TRUE), add = TRUE)
 
-  # Run the ETL (same config_path logic as codeToRun.R)
-  config_path <- Sys.getenv("ETL_CONFIG_PATH", NA_character_)
-  out <- run_etl(
-    con = con,
-    config_path = if (is.na(config_path) || !nzchar(config_path)) NULL else config_path
-  )
+  # Run the ETL with default config (codeToRun.R now passes config list in script)
+  out <- run_etl(con = con, config = NULL)
 
   expect_true(is.list(out))
   expect_true(length(out$steps) >= 1L)

@@ -39,8 +39,8 @@
 "condition","428.0",482
 "condition","780.4",481
 "condition","250.00",454
-"condition","272.0",445
 "condition","784.61",445
+"condition","272.0",445
 "condition","365.9",437
 "condition","362.74",432
 "condition","389.9",432
@@ -90,22 +90,22 @@
 "drug","MMR II (series)",24465
 "drug","Fluzone",20543
 "drug","Havrix",20087
+"drug","Daptacel (series)",19912
 "drug","ActHib (series)",19912
 "drug","IPOL (series)",19912
-"drug","Daptacel (series)",19912
 "drug","Prevnar 13 (series)",19912
 "drug","Tetanus and diphtheria toxoids adsorbed",17662
 "drug","IPOL (booster)",16089
 "drug","Recombivax HB Ped/Adol",13665
 "drug","Rotarix",12880
-"drug","MMR II (booster)",9869
 "drug","Varivax (booster)",9869
+"drug","MMR II (booster)",9869
 "drug","Prednisolone",9060
 "drug","Isotonic Saline (0.9%)",8777
 "drug","Ciprofloxacin",8544
 "drug","5-FU",8491
-"drug","ActHib (booster)",8455
 "drug","Prevnar 13 (booster)",8455
+"drug","ActHib (booster)",8455
 "drug","Telbivudine",7763
 "drug","Lisinopril",7518
 "drug","Isoniazid",5566
@@ -126,8 +126,8 @@
 "drug","enalapril",3326
 "drug","METHYLIN",3211
 "drug","amitriptyline",2901
-"drug","Ethambutol",2755
 "drug","Pyrazinamide",2755
+"drug","Ethambutol",2755
 "drug","vitamin A",2715
 "drug","hydralazine",2715
 "drug","Ibuprofen",2712
@@ -177,8 +177,8 @@
 "drug","ZYPREXA",1152
 "drug","nilotinib",1150
 "drug","azathioprine",1141
-"drug","Heparin",1134
 "drug","imatinib",1134
+"drug","Heparin",1134
 "drug","heparin",1096
 "drug","Elevated dose of albuterol(dosage individualized)",1038
 "drug","sucralfate",1030
@@ -255,8 +255,8 @@
 "drug","fluoxetine",384
 "drug","nitroprusside",377
 "drug","ARAVA",369
-"drug","sumatriptan",367
 "drug","DIBENZYLINE",367
+"drug","sumatriptan",367
 "drug","Diltiazem",367
 "drug","hyoscyamine",364
 "drug","cyclophosphamide",364
@@ -276,8 +276,8 @@
 "drug","Dexamethasone",317
 "drug","Cilostazol",310
 "drug","ROFERON-A",306
-"drug","Alendronate sodium",298
 "drug","hydrocortisone",298
+"drug","Alendronate sodium",298
 "drug","cytarabine",298
 "drug","oxycodone",297
 "drug","hydrocodone (Vicodin)",296
@@ -303,41 +303,41 @@
 "drug","ELOXATIN",179
 "drug","ATNATIV",175
 "drug","Lamivudine",168
-"drug","Ultram",163
 "drug","clindamycin",163
+"drug","Ultram",163
 "drug","LEVAQUIN",159
 "drug","Trental",156
 "drug","Nicardipine",146
 "drug","Pentoxil",144
-"drug","AVANDIA",140
 "drug","Azathioprine",140
 "drug","LIPITOR",140
+"drug","AVANDIA",140
 "drug","Acetaminophen",129
 "drug","XELODA",125
-"drug","Simvastatin",123
 "drug","Pletal",123
+"drug","Simvastatin",123
 "drug","diclofenac",121
 "drug","Theophylline",119
 "drug","mitomycin",114
-"drug","Clopidogrel",99
-"drug","hydroxyurea",99
 "drug","Metoprolol",99
+"drug","hydroxyurea",99
+"drug","Clopidogrel",99
 "drug","glipizide",97
 "drug","benazepril",96
 "drug","amlodipine",96
 "drug","fondaparinux",92
-"drug","HYCAMTIN",88
 "drug","Irinotecan",88
+"drug","HYCAMTIN",88
 "drug","buproprion SR",82
-"drug","tamoxifen",76
 "drug","salmeterol",76
+"drug","tamoxifen",76
 "drug","ACTOS",73
 "drug","capecitabine",56
 "drug","cyclobenzaprine",53
-"drug","oxaliplatin",52
 "drug","FASLODEX",52
-"drug","CYMBALTA",49
+"drug","oxaliplatin",52
 "drug","HUMALOG",49
+"drug","CYMBALTA",49
 "drug","morphine sulfate",48
 "drug","insulin detemir",48
 "drug","haloperidol",47
@@ -354,27 +354,27 @@
 "drug","Esmolol",29
 "drug","scopolamine",24
 "drug","trastuzumab",18
-"drug","Epirubicin",17
 "drug","Capecitabine",17
-"drug","Warfarin",16
+"drug","Epirubicin",17
 "drug","AVELOX",16
+"drug","Warfarin",16
 "drug","INNOHEP",15
 "drug","ciprofloxacin",14
-"drug","metronidazole",12
-"drug","Albuterol",12
 "drug","DACOGEN",12
-"drug","carboplatin",10
+"drug","Albuterol",12
+"drug","metronidazole",12
 "drug","etoposide",10
+"drug","carboplatin",10
 "drug","B12",9
-"drug","oxycodone-acetaminophen 5-500",8
-"drug","Tinzaparin",8
 "drug","desipramine",8
-"drug","paclitaxel",7
+"drug","Tinzaparin",8
+"drug","oxycodone-acetaminophen 5-500",8
 "drug","venlafaxine",7
+"drug","paclitaxel",7
 "drug","ABBOKINASE",7
+"drug","Cefazolin",6
 "drug","Sodium tetradecyl sulfate",6
 "drug","erythropoetin",6
-"drug","Cefazolin",6
 "drug","Intravenous Immunoglobulin",5
 "drug","Reteplase",4
 "drug","Alteplase",3
@@ -431,8 +431,8 @@
 "procedure","44.43",851
 "procedure","54.98",811
 "procedure","33.51",808
-"procedure","80.88",722
 "procedure","83.77",722
+"procedure","80.88",722
 "procedure","37.34",721
 "procedure","39.50",712
 "procedure","81.91",708
@@ -468,8 +468,8 @@
 "procedure","32.39",458
 "procedure","95.43",456
 "procedure","54.91",444
-"procedure","41.5",418
 "procedure","80.70",418
+"procedure","41.5",418
 "procedure","42.92",402
 "procedure","38.7",400
 "procedure","42.41",393
@@ -492,9 +492,9 @@
 "procedure","20.99",319
 "procedure","38.12",317
 "procedure","84.65",314
-"procedure","84.84",312
 "procedure","05.29",312
 "procedure","77.25",312
+"procedure","84.84",312
 "procedure","14.24",310
 "procedure","81.65",302
 "procedure","81.66",292
@@ -519,8 +519,8 @@
 "procedure","34.09",190
 "procedure","35.11",190
 "procedure","00.63",189
-"procedure","38.16",188
 "procedure","54.4",188
+"procedure","38.16",188
 "procedure","43.91",186
 "procedure","38.06",182
 "procedure","04.01",182
@@ -531,9 +531,9 @@
 "procedure","39.24",166
 "procedure","39.51",166
 "procedure","01.24",161
+"procedure","64.97",158
 "procedure","53.81",158
 "procedure","04.71",158
-"procedure","64.97",158
 "procedure","52.52",156
 "procedure","55.61",156
 "procedure","51.51",152
@@ -543,8 +543,8 @@
 "procedure","38.0",144
 "procedure","37.95",141
 "procedure","14.9",136
-"procedure","78.05",134
 "procedure","81.81",134
+"procedure","78.05",134
 "procedure","81.80",130
 "procedure","04.43",126
 "procedure","96.07",112
@@ -555,8 +555,8 @@
 "procedure","45.30",91
 "procedure","45.42",82
 "procedure","38.18",82
-"procedure","07.22",80
 "procedure","37.49",80
+"procedure","07.22",80
 "procedure","35.96",78
 "procedure","86.22",78
 "procedure","45.73",76
@@ -567,100 +567,100 @@
 "procedure","39.74",58
 "procedure","64.92",56
 "procedure","92.25",56
+"procedure","77.98",54
 "procedure","45.82",54
 "procedure","00.61",54
-"procedure","77.98",54
 "procedure","12.59",52
 "procedure","45.72",49
+"procedure","19.52",48
 "procedure","36.06",48
 "procedure","13.59",48
-"procedure","19.52",48
 "procedure","65.49",46
 "procedure","13.19",45
 "procedure","35.35",44
 "procedure","36.16",44
 "procedure","55.54",42
 "procedure","37.80",42
-"procedure","39.91",40
 "procedure","12.14",40
+"procedure","39.91",40
 "procedure","12.99",40
 "procedure","64.94",40
 "procedure","38.69",38
-"procedure","37.65",38
-"procedure","52.80",38
+"procedure","55.4",38
 "procedure","37.83",38
 "procedure","37.81",38
-"procedure","55.4",38
-"procedure","35.72",36
-"procedure","99.99",36
-"procedure","38.83",36
-"procedure","55.52",36
+"procedure","37.65",38
+"procedure","52.80",38
 "procedure","00.66",36
 "procedure","32.29",36
+"procedure","55.52",36
+"procedure","99.99",36
+"procedure","35.72",36
+"procedure","38.83",36
 "procedure","81.11",32
 "procedure","45.75",32
-"procedure","36.12",30
 "procedure","36.10",30
+"procedure","36.12",30
 "procedure","85.43",30
 "procedure","99.09",29
+"procedure","13.64",28
 "procedure","35.24",28
 "procedure","12.91",28
-"procedure","13.64",28
-"procedure","52.6",24
-"procedure","36.01",24
 "procedure","60.62",24
-"procedure","80.76",24
+"procedure","36.01",24
 "procedure","37.52",24
-"procedure","13.3",22
-"procedure","80.52",22
-"procedure","92.31",22
+"procedure","80.76",24
+"procedure","52.6",24
 "procedure","37.51",22
-"procedure","36.31",20
+"procedure","13.3",22
+"procedure","92.31",22
+"procedure","80.52",22
+"procedure","65.39",20
 "procedure","83.13",20
 "procedure","67.33",20
-"procedure","65.39",20
-"procedure","38.34",18
+"procedure","36.31",20
 "procedure","36.13",18
-"procedure","03.91",18
-"procedure","38.93",18
+"procedure","38.34",18
 "procedure","68.41",18
+"procedure","38.93",18
+"procedure","03.91",18
+"procedure","80.59",16
 "procedure","68.49",16
 "procedure","67.39",16
-"procedure","80.59",16
+"procedure","35.22",14
 "procedure","82.85",14
 "procedure","67.32",14
-"procedure","35.22",14
+"procedure","39.72",12
 "procedure","01.25",12
 "procedure","85.45",12
 "procedure","19.19",12
-"procedure","39.72",12
 "procedure","39.71",10
-"procedure","38.44",10
 "procedure","04.42",10
-"procedure","85.41",10
 "procedure","98.51",10
 "procedure","60.97",10
+"procedure","85.41",10
+"procedure","38.44",10
 "procedure","50.23",9
-"procedure","85.20",8
-"procedure","39.28",8
-"procedure","56.0",8
 "procedure","38.45",8
+"procedure","85.20",8
+"procedure","56.0",8
+"procedure","39.28",8
 "procedure","51.23",6
-"procedure","85.23",6
 "procedure","68.69",6
+"procedure","85.23",6
+"procedure","55.04",4
+"procedure","85.33",4
+"procedure","43.99",4
+"procedure","20.96",4
 "procedure","20.95",4
 "procedure","92.27",4
 "procedure","92.28",4
-"procedure","43.99",4
-"procedure","85.33",4
-"procedure","55.04",4
-"procedure","20.96",4
-"procedure","32.23",2
-"procedure","40.23",2
 "procedure","85.22",2
-"procedure","55.92",2
-"procedure","20.49",2
+"procedure","32.23",2
 "procedure","33.28",2
+"procedure","55.92",2
+"procedure","40.23",2
+"procedure","20.49",2
 "observation","cefuroxime",2530
 "observation","Anticonvulsants",2504
 "observation","Sulfa Drugs",2501

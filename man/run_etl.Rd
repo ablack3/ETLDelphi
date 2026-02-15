@@ -17,7 +17,7 @@ run_etl(
 \arguments{
 \item{con}{DBI connection to DuckDB (source and CDM must exist in DB).}
 
-\item{config_path}{Path to config YAML; if NULL, uses package default.}
+\item{config_path}{Path to config YAML; if NULL, uses \code{default_etl_config()}.}
 
 \item{config}{List override; if provided, config_path is ignored.}
 

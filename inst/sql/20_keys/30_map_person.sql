@@ -1,4 +1,4 @@
--- Deterministic person_id from distinct member_id across all source tables.
+-- Deterministic person_id from distinct member_id across all source tables (1, 2, 3, ...).
 -- Enrollment may not contain all members; union Member_ID from every table that has it.
 CREATE OR REPLACE TABLE stg.map_person AS
 WITH all_members AS (

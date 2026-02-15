@@ -16,7 +16,7 @@
 #
 # Options (environment variables or arguments):
 #   ETLDELPHI_DB_PATH    Path to DuckDB file (default: same as first script arg)
-#   ETLDELPHI_CONFIG     Path to config.yml (optional; used for schema names)
+#   config_path          Path to config YAML (optional; else default_etl_config() for schema names)
 
 options(warn = 1)
 
@@ -41,18 +41,12 @@ run_achilles <- function(db_path = NULL,
 
   # Resolve schema names from config if not provided
   if (is.null(cdm_schema)) {
-    if (is.null(config_path)) {
-      config_path <- Sys.getenv("ETLDELPHI_CONFIG", "")
-      if (!nzchar(config_path)) {
-        pkg_config <- system.file("extdata", "config.yml", package = "ETLDelphi")
-        if (file.exists(pkg_config)) config_path <- pkg_config
-      }
-    }
-    if (nzchar(config_path) && file.exists(config_path)) {
+    if (!is.null(config_path) && nzchar(config_path) && file.exists(config_path)) {
       config <- yaml::read_yaml(config_path)
       cdm_schema <- config[["schemas"]][["cdm"]] %||% "cdm"
     } else {
-      cdm_schema <- "cdm"
+      config <- ETLDelphi::default_etl_config()
+      cdm_schema <- config[["schemas"]][["cdm"]] %||% "cdm"
     }
   }
   scratch_schema <- scratch_schema %||% results_schema

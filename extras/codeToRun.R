@@ -1,12 +1,12 @@
 # =============================================================================
 # codeToRun.R — Load ETLDelphi and run the full ETL with parameterized paths
 # =============================================================================
-# Set the three paths below (or pass via environment / command line), then
+# Set the paths and config below (or pass via environment / command line), then
 # source this file or run in R to create the DuckDB, load vocabulary and
 # Delphi source data, and execute the ETL.
 # =============================================================================
 
-# --- Parameters (edit these or set via Sys.setenv / command line) ------------
+# --- Path parameters (edit these or set via Sys.setenv / command line) -------
 
 # Directory containing vocabulary CSV/TSV files (e.g. CONCEPT.csv, VOCABULARY.csv)
 vocabulary_dir <- Sys.getenv("VOCABULARY_DIR", "vocabulary_download_v5")
@@ -17,11 +17,42 @@ delphi_source_dir <- Sys.getenv("DELPHI_SOURCE_DIR", "delphi100k")
 # Path to the output DuckDB database file (created or overwritten)
 duckdb_path <- Sys.getenv("DUCKDB_PATH", "~/Desktop/delphi.duckdb")
 
+file.remove(duckdb_path)
+
 # Optional: vocabulary file delimiter ("," for CSV, "\t" for TSV)
 vocab_delimiter <- Sys.getenv("VOCAB_DELIMITER", "\t")
 
-# Optional: path to config YAML; if unset, package default is used
-config_path <- Sys.getenv("ETL_CONFIG_PATH", NA_character_)
+# --- ETL config (schemas, type concept IDs, optional mapping paths) ----------
+# Edit this list to override defaults. NULL paths use package defaults.
+config <- list(
+  schemas = list(src = "src", stg = "stg", cdm = "main"),
+  concept_id_unknown = 0L,
+  date_formats = c(
+    "%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%SZ", "%Y-%m-%dT%H:%M:%S",
+    "%Y-%m-%d", "%m/%d/%Y", "%m-%d-%Y", "%d-%b-%Y", "%Y/%m/%d"
+  ),
+  type_concept_ids = list(
+    visit_type_concept_id = 44818517L,
+    default_visit_concept_id = 44813942L,
+    condition_type_concept_id = 32818L,
+    drug_type_orders = 38000177L,
+    drug_type_dispensed = 38000230L,
+    drug_type_immunization = 38000280L,
+    measurement_type_vitals = 32817L,
+    measurement_type_labs = 32827L,
+    observation_type_allergy = 32859L,
+    note_type_concept_id = 44813942L,
+    note_class_concept_id = 44814639L,
+    language_concept_id = 4180186L,
+    encoding_concept_id = 44815386L,
+    procedure_type_concept_id = 38000268L,
+    period_type_concept_id = 32821L,
+    death_type_concept_id = 32817L
+  ),
+  prefer_fulfillment = FALSE,
+  drug_name_mapping_path = NULL,  # NULL = use package default drug_name_to_concept.csv
+  custom_mapping_path = NULL      # NULL = use package default custom_concept_mapping.csv
+)
 
 if (file.exists(duckdb_path)) file.remove(duckdb_path)
 
@@ -71,13 +102,30 @@ DBI::dbDisconnect(con, shutdown = T)
 
 con <- DBI::dbConnect(duckdb::duckdb(), "~/Desktop/delphi.duckdb")
 
-ETLDelphi::run_etl(
-  con = con,
-  config_path = if (is.na(config_path) || !nzchar(config_path)) NULL else config_path
-)
+system.time({
+  cdm <- CDMConnector::cdmFromCon(con, "cdm", "main")
+})
+
+cdm$person
+
+ETLDelphi::run_etl(con = con, config = config)
+
+DBI::dbListTables(con)
+
+CDMConnector::listTables(con, "cdm")
 
 ETLDelphi::export_unmapped_units(con, output_path = "unmapped_units.csv")
-ETLDelphi::analyze_mapping_quality(con, output_dir = "mapping_quality_results")
+unlink(here::here("inst/shiny/mapping_quality"), recursive = T)
+ETLDelphi::analyze_mapping_quality(con, output_dir = "inst/shiny/mapping_quality/mapping_quality_results")
+
+library(CDMConnector)
+library(dplyr)
+
+cdm <- CDMConnector::cdmFromCon(con, "main", "main")
+
+
+
+
 
 DBI::dbDisconnect(con, shutdown = TRUE)
 message("ETL complete. DuckDB output: ", duckdb_path)

@@ -7,6 +7,9 @@ CREATE OR REPLACE TABLE stg.custom_concept_mapping (
     concept_id INTEGER
 );
 INSERT INTO stg.custom_concept_mapping
-SELECT TRIM(source_value), TRIM(domain), concept_id
-FROM read_csv('@customMappingPath', header = true, auto_detect = true)
+SELECT source_value, domain, concept_id
+FROM (
+  SELECT TRIM(source_value) AS source_value, TRIM(domain) AS domain, TRY_CAST(concept_id AS INTEGER) AS concept_id
+  FROM read_csv('@customMappingPath', header = true, auto_detect = true)
+) sub
 WHERE concept_id IS NOT NULL AND concept_id > 0;

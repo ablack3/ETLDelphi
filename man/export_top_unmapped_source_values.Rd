@@ -8,7 +8,8 @@ export_top_unmapped_source_values(
   con,
   output_path = "mapping_quality_results/top_unmapped_source_values.csv",
   limit = 500L,
-  config = NULL
+  config = NULL,
+  template_for_custom_mapping = FALSE
 )
 }
 \arguments{
@@ -19,6 +20,8 @@ export_top_unmapped_source_values(
 \item{limit}{Maximum number of rows per domain. Default 500.}
 
 \item{config}{Optional list with \code{schemas$cdm}; if NULL, uses \code{cdm}.}
+
+\item{template_for_custom_mapping}{If TRUE, adds empty \code{concept_id} column for use as custom mapping CSV.}
 }
 \value{
 Invisible path to the written file.

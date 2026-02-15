@@ -30,10 +30,7 @@ test_that("run_etl uses config list when provided and ignores config_path", {
   expect_true(is.character(out$files))
 })
 
-test_that("run_etl uses default config path when config_path is NULL and config is NULL", {
-  # Without installing the package, system.file may return "" for sql and extdata
-  config_path <- system.file("extdata", "config.yml", package = "ETLDelphi")
-  skip_if(!file.exists(config_path), "Package extdata config not available")
+test_that("run_etl uses default_etl_config() when config_path is NULL and config is NULL", {
   sql_dir <- system.file("sql", package = "ETLDelphi")
   skip_if(!dir.exists(sql_dir), "Package SQL dir not available")
   out <- run_etl(con = NULL, config_path = NULL, config = NULL, sql_dir = NULL, dry_run = TRUE)
@@ -109,12 +106,8 @@ test_that("run_etl runs to completion on a minimal DuckDB (DDL + empty src table
     DBI::dbExecute(con, paste0('CREATE TABLE src.', tbl, ' AS ', empty_select(src_tables[[tbl]])))
   }
 
-  # Same pattern as extras/codeToRun.R: use default config when path is NA or empty
-  config_path <- NULL
-  out <- run_etl(
-    con = con,
-    config_path = if (!is.null(config_path) && !is.na(config_path) && nzchar(config_path)) config_path else NULL
-  )
+  # Use default config (same as codeToRun.R with config list)
+  out <- run_etl(con = con, config = NULL)
   expect_true(is.list(out))
   expect_true(length(out$steps) >= 1L)
 
