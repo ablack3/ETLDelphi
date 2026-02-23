@@ -35,6 +35,9 @@
 #' @param model OpenAI model name. Default: env var OPENAI_MODEL or \code{"gpt-4o"}.
 #' @param api_key OpenAI API key. Default: env var OPENAI_API_KEY.
 #' @param hecate Hecate client object. Default: created from env vars.
+#' @param omophub OMOPHub client object. Default: created from env vars. Used for NDC lookups.
+#' @param custom_ndc_mapping_path Path to custom NDC mapping CSV. Default: from config or package default.
+#'   NDC-identified drug mappings are written here as well as to the main custom mapping CSV.
 #' @param dry_run If TRUE, show what would be processed without calling LLM.
 #' @return Invisible data.frame of all log results.
 #' @export
@@ -44,10 +47,12 @@ improve_mappings <- function(con,
                              limit = 50L,
                              confidence_threshold = 0.7,
                              custom_mapping_path = NULL,
+                             custom_ndc_mapping_path = NULL,
                              log_path = "mapping_improvement_log.csv",
                              model = NULL,
                              api_key = NULL,
                              hecate = NULL,
+                             omophub = NULL,
                              dry_run = FALSE) {
   config <- config %||% default_etl_config()
   cdm <- config$schemas$cdm %||% "main"
@@ -57,6 +62,14 @@ improve_mappings <- function(con,
     custom_mapping_path <- config$custom_mapping_path
     if (is.null(custom_mapping_path) || !nzchar(trimws(custom_mapping_path))) {
       custom_mapping_path <- system.file("extdata", "custom_concept_mapping.csv", package = "ETLDelphi")
+    }
+  }
+
+  # Resolve custom_ndc_mapping_path
+  if (is.null(custom_ndc_mapping_path)) {
+    custom_ndc_mapping_path <- config$custom_ndc_mapping_path
+    if (is.null(custom_ndc_mapping_path) || !nzchar(trimws(custom_ndc_mapping_path))) {
+      custom_ndc_mapping_path <- system.file("extdata", "custom_ndc_mapping.csv", package = "ETLDelphi")
     }
   }
 
@@ -113,27 +126,52 @@ improve_mappings <- function(con,
   hc <- hecate %||% hecate_client()
   model <- model %||% Sys.getenv("OPENAI_MODEL", "gpt-4o")
 
-  tools <- mapping_tools()
-  handlers <- build_tool_handlers(hc)
+  # OMOPHub client for NDC lookups (only used for drug domain)
+  has_omophub <- nzchar(Sys.getenv("OMOPHUB_API_KEY", ""))
+  oh <- if ("drug" %in% domains && (has_omophub || !is.null(omophub))) {
+    omophub %||% omophub_client()
+  } else {
+    NULL
+  }
+
+  if ("drug" %in% domains && is.null(oh)) {
+    cli::cli_alert_warning("OMOPHUB_API_KEY not set. NDC lookup tools will not be available for drug mapping.")
+  }
+
+  # Load existing NDC mappings
+  existing_ndc <- if (file.exists(custom_ndc_mapping_path)) {
+    tryCatch(
+      read.csv(custom_ndc_mapping_path, stringsAsFactors = FALSE),
+      error = function(e) data.frame(drug_ndc_normalized = character(), drug_concept_id = integer(), stringsAsFactors = FALSE)
+    )
+  } else {
+    data.frame(drug_ndc_normalized = character(), drug_concept_id = integer(), stringsAsFactors = FALSE)
+  }
 
   # Ensure log file has header
   if (!file.exists(log_path) || file.size(log_path) == 0) {
     writeLines(
-      "source_value,domain,record_count,concept_id,concept_name,vocabulary_id,confidence,reasoning,tool_calls,timestamp,model",
+      "source_value,domain,record_count,concept_id,concept_name,vocabulary_id,confidence,reasoning,source_is_ndc,ndc_normalized,tool_calls,timestamp,model",
       log_path
     )
   }
 
   new_custom_rows <- list()
+  new_ndc_rows <- list()
 
   for (i in seq_len(nrow(unmapped))) {
     row <- unmapped[i, ]
     cli::cli_alert_info("[{i}/{nrow(unmapped)}] {row$domain}: \"{row$source_value}\" ({row$record_count} records)")
 
+    # Build domain-specific tools and handlers
+    domain <- row$domain
+    tools <- mapping_tools(domain = domain)
+    handlers <- build_tool_handlers(hc, oh = oh, domain = domain)
+
     result <- tryCatch(
       map_single_value(
         source_value = row$source_value,
-        domain = row$domain,
+        domain = domain,
         record_count = row$record_count,
         tools = tools,
         tool_handlers = handlers,
@@ -146,6 +184,7 @@ improve_mappings <- function(con,
           concept_id = NA_integer_, concept_name = NA_character_,
           vocabulary_id = NA_character_, confidence = 0,
           reasoning = paste("Error:", conditionMessage(e)),
+          source_is_ndc = FALSE, ndc_normalized = NA_character_,
           tool_calls = 0L
         )
       }
@@ -154,13 +193,15 @@ improve_mappings <- function(con,
     # Build log row
     log_row <- data.frame(
       source_value = row$source_value,
-      domain = row$domain,
+      domain = domain,
       record_count = row$record_count,
       concept_id = as.integer(result$concept_id %||% NA_integer_),
       concept_name = result$concept_name %||% NA_character_,
       vocabulary_id = result$vocabulary_id %||% NA_character_,
       confidence = as.numeric(result$confidence %||% 0),
       reasoning = result$reasoning %||% "",
+      source_is_ndc = as.logical(result$source_is_ndc %||% FALSE),
+      ndc_normalized = result$ndc_normalized %||% NA_character_,
       tool_calls = as.integer(result$tool_calls %||% 0L),
       timestamp = format(Sys.time(), "%Y-%m-%dT%H:%M:%S"),
       model = model,
@@ -175,13 +216,31 @@ improve_mappings <- function(con,
     conf <- as.numeric(result$confidence %||% 0)
     cid <- as.integer(result$concept_id %||% NA_integer_)
     if (!is.na(cid) && cid > 0 && !is.na(conf) && conf >= confidence_threshold) {
+      # Always add to generic custom mapping
       new_custom_rows[[length(new_custom_rows) + 1L]] <- data.frame(
         source_value = row$source_value,
-        domain = row$domain,
+        domain = domain,
         concept_id = cid,
         stringsAsFactors = FALSE
       )
-      cli::cli_alert_success("  -> {result$concept_name} ({cid}) confidence={round(conf, 2)}")
+
+      # If this is an NDC drug mapping, also add to custom_ndc_mapping.csv
+      is_ndc <- isTRUE(result$source_is_ndc) || (domain == "drug" && is_ndc_like(row$source_value))
+      if (is_ndc && domain == "drug") {
+        # Use the LLM's normalized NDC, or fall back to the source value as-is
+        ndc_norm <- result$ndc_normalized
+        if (is.null(ndc_norm) || is.na(ndc_norm) || !nzchar(ndc_norm)) {
+          ndc_norm <- row$source_value
+        }
+        new_ndc_rows[[length(new_ndc_rows) + 1L]] <- data.frame(
+          drug_ndc_normalized = ndc_norm,
+          drug_concept_id = cid,
+          stringsAsFactors = FALSE
+        )
+        cli::cli_alert_success("  -> {result$concept_name} ({cid}) [NDC: {ndc_norm}] confidence={round(conf, 2)}")
+      } else {
+        cli::cli_alert_success("  -> {result$concept_name} ({cid}) confidence={round(conf, 2)}")
+      }
     } else {
       cli::cli_alert_warning("  -> No mapping (confidence={round(conf, 2)})")
     }
@@ -193,11 +252,19 @@ improve_mappings <- function(con,
   if (length(new_custom_rows) > 0) {
     new_custom <- do.call(rbind, new_custom_rows)
     merged <- rbind(existing_custom, new_custom)
-    # Deduplicate by source_value + domain (keep last = new mapping wins)
     dup_key <- paste(merged$source_value, merged$domain, sep = "|||")
     merged <- merged[!duplicated(dup_key, fromLast = TRUE), , drop = FALSE]
     write.csv(merged, custom_mapping_path, row.names = FALSE)
     cli::cli_alert_success("Added {nrow(new_custom)} new mapping(s) to {custom_mapping_path}")
+  }
+
+  # Merge new NDC mappings into custom_ndc_mapping.csv
+  if (length(new_ndc_rows) > 0) {
+    new_ndc <- do.call(rbind, new_ndc_rows)
+    merged_ndc <- rbind(existing_ndc, new_ndc)
+    merged_ndc <- merged_ndc[!duplicated(merged_ndc$drug_ndc_normalized, fromLast = TRUE), , drop = FALSE]
+    write.csv(merged_ndc, custom_ndc_mapping_path, row.names = FALSE)
+    cli::cli_alert_success("Added {nrow(new_ndc)} NDC mapping(s) to {custom_ndc_mapping_path}")
   }
 
   # Return full log

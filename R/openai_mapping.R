@@ -119,23 +119,24 @@ openai_tool_loop <- function(messages,
   )
 }
 
-# OpenAI function-calling tool definitions for Hecate vocabulary search.
-mapping_tools <- function() {
-  list(
+# OpenAI function-calling tool definitions.
+# Base tools (Hecate) are always available; drug-specific tools (OMOPHub NDC) added for drug domain.
+mapping_tools <- function(domain = NULL) {
+  base_tools <- list(
     list(
       type = "function",
       `function` = list(
         name = "search_concepts",
         description = paste(
-          "Search the OMOP Standardized Vocabulary for concepts.",
-          "Returns concept_id, concept_name, domain_id, vocabulary_id,",
-          "concept_class_id, standard_concept, and similarity score."
+          "Search the OMOP Standardized Vocabulary for concepts using semantic search.",
+          "Best for name/text searches. Returns concept_id, concept_name, domain_id,",
+          "vocabulary_id, concept_class_id, standard_concept, and similarity score."
         ),
         parameters = list(
           type = "object",
           properties = list(
             query = list(type = "string", description = "Search text (concept name, code, or description)"),
-            vocabulary_id = list(type = "string", description = "Filter by vocabulary: SNOMED, ICD10CM, ICD9CM, RxNorm, LOINC, CPT4, HCPCS, UCUM, etc."),
+            vocabulary_id = list(type = "string", description = "Filter by vocabulary: SNOMED, ICD10CM, ICD9CM, RxNorm, LOINC, CPT4, HCPCS, UCUM, NDC, etc."),
             domain_id = list(type = "string", description = "Filter by domain: Condition, Drug, Procedure, Measurement, Observation, Device, Unit"),
             standard_concept = list(type = "string", enum = list("S", "C"), description = "S = Standard concepts only, C = Classification only"),
             limit = list(type = "integer", description = "Max results (default 25, max 100)")
@@ -176,12 +177,63 @@ mapping_tools <- function() {
       )
     )
   )
+
+  # Drug-specific tools: OMOPHub NDC lookup and mapping
+  drug_tools <- list(
+    list(
+      type = "function",
+      `function` = list(
+        name = "lookup_ndc",
+        description = paste(
+          "Look up an NDC (National Drug Code) in the OMOP vocabulary by exact code.",
+          "Automatically tries multiple normalized variants: digits-only, 11-digit padded,",
+          "hyphenated formats (5-4-1, 5-3-2, 4-4-2), and * replaced with 0.",
+          "Returns the NDC concept AND the standard RxNorm concept it maps to.",
+          "Use this FIRST for any source value that looks like an NDC code (mostly digits,",
+          "possibly with hyphens, asterisks, or other separators)."
+        ),
+        parameters = list(
+          type = "object",
+          properties = list(
+            ndc_code = list(type = "string", description = "The raw NDC code string (e.g. '00944262001', '58914*01310', '00078-0538-15')")
+          ),
+          required = list("ndc_code")
+        )
+      )
+    ),
+    list(
+      type = "function",
+      `function` = list(
+        name = "search_ndc",
+        description = paste(
+          "Search OMOPHub for NDC concepts by text query.",
+          "Good for searching NDC codes that may have unusual formatting.",
+          "Returns matching concepts from the NDC vocabulary."
+        ),
+        parameters = list(
+          type = "object",
+          properties = list(
+            query = list(type = "string", description = "NDC code or drug text to search for"),
+            page_size = list(type = "integer", description = "Max results (default 10)")
+          ),
+          required = list("query")
+        )
+      )
+    )
+  )
+
+  if (identical(domain, "drug")) {
+    c(base_tools, drug_tools)
+  } else {
+    base_tools
+  }
 }
 
-# Build named list of tool handler functions that call Hecate API.
+# Build named list of tool handler functions.
+# Base handlers call Hecate; drug domain adds OMOPHub NDC handlers.
 # Each handler takes a list of arguments and returns a JSON string.
-build_tool_handlers <- function(hc) {
-  list(
+build_tool_handlers <- function(hc, oh = NULL, domain = NULL) {
+  handlers <- list(
     search_concepts = function(args) {
       Sys.sleep(0.3)
       result <- hecate_search(
@@ -205,6 +257,27 @@ build_tool_handlers <- function(hc) {
       jsonlite::toJSON(result, auto_unbox = TRUE, pretty = FALSE)
     }
   )
+
+  # Drug domain: add OMOPHub NDC handlers
+  if (identical(domain, "drug") && !is.null(oh)) {
+    handlers$lookup_ndc <- function(args) {
+      result <- lookup_ndc_smart(args$ndc_code, oh_client = oh, hc_client = hc)
+      jsonlite::toJSON(result, auto_unbox = TRUE, pretty = FALSE)
+    }
+    handlers$search_ndc <- function(args) {
+      Sys.sleep(0.3)
+      result <- omophub_search(
+        query = args$query,
+        vocabulary_ids = "NDC",
+        domain_ids = "Drug",
+        page_size = args$page_size %||% 10L,
+        client = oh
+      )
+      jsonlite::toJSON(result, auto_unbox = TRUE, pretty = FALSE)
+    }
+  }
+
+  handlers
 }
 
 # Domain-aware system prompt for GPT-4 vocabulary mapping.
@@ -220,12 +293,46 @@ build_mapping_system_prompt <- function(domain) {
 
   domain_hints <- switch(domain,
     condition = "Search SNOMED with domain_id='Condition' and standard_concept='S'. If the source looks like an ICD code, search for it by code first.",
-    drug = "Search RxNorm with domain_id='Drug' and standard_concept='S'. Prefer Ingredient-level concepts. If source is a brand name, find the generic ingredient.",
+    drug = paste(
+      "IMPORTANT: Many unmapped drug values are NDC (National Drug Code) codes with formatting issues.",
+      "If the source value is mostly digits (with optional hyphens, asterisks, or dots), it is almost certainly an NDC code.",
+      "Use lookup_ndc FIRST for any NDC-like value - it automatically tries multiple normalizations.",
+      "Common NDC issues in this data: * used instead of hyphens, missing hyphens entirely, leading zeros stripped.",
+      "NDC codes are 10 digits in 5-4-1, 5-3-2, or 4-4-2 format (e.g. 00944-2620-01).",
+      "If lookup_ndc finds the NDC, it returns both the NDC concept and the standard RxNorm concept.",
+      "If lookup_ndc fails, try search_ndc with the digits, or search_concepts with RxNorm.",
+      "If the source value is a drug NAME (not a code), search RxNorm with domain_id='Drug' and standard_concept='S'.",
+      "Prefer Ingredient-level RxNorm concepts. If source is a brand name, find the generic ingredient."
+    ),
     measurement = "Search LOINC or SNOMED with domain_id='Measurement' and standard_concept='S'. For lab tests, LOINC is preferred.",
     procedure = "Search SNOMED, CPT4, or HCPCS with domain_id='Procedure' and standard_concept='S'.",
     observation = "Search SNOMED with domain_id='Observation' and standard_concept='S'.",
     "Search with standard_concept='S'."
   )
+
+  # Drug domain gets extra tool descriptions
+  tools_desc <- if (domain == "drug") {
+    paste0(
+      "## Your Tools\n",
+      "You have access to two vocabulary APIs:\n\n",
+      "**NDC Lookup (OMOPHub) - use for code-based lookups:**\n",
+      "- lookup_ndc: Smart NDC lookup - tries multiple normalized variants automatically.\n",
+      "  Returns the NDC concept AND the standard RxNorm concept it maps to.\n",
+      "- search_ndc: Search NDC vocabulary by text query.\n\n",
+      "**Semantic Search (Hecate) - use for name-based and general searches:**\n",
+      "- search_concepts: Semantic search across all OMOP vocabularies\n",
+      "- get_concept: Look up a specific concept by ID\n",
+      "- get_concept_relationships: Find related concepts (Maps to, Is a, etc.)\n"
+    )
+  } else {
+    paste0(
+      "## Your Tools\n",
+      "You have access to the Hecate OMOP vocabulary search API:\n",
+      "- search_concepts: Search by text across all OMOP vocabularies\n",
+      "- get_concept: Look up a specific concept by ID\n",
+      "- get_concept_relationships: Find related concepts (Maps to, Is a, etc.)\n"
+    )
+  }
 
   paste0(
     "You are an OMOP CDM vocabulary mapping specialist. Your task is to find the best ",
@@ -233,11 +340,7 @@ build_mapping_system_prompt <- function(domain) {
     "## Context\n",
     "- The source value comes from the \"", domain, "\" domain of a healthcare ETL\n",
     "- It represents a ", domain_desc, " that could not be automatically mapped\n\n",
-    "## Your Tools\n",
-    "You have access to the Hecate OMOP vocabulary search API:\n",
-    "- search_concepts: Search by text across all OMOP vocabularies\n",
-    "- get_concept: Look up a specific concept by ID\n",
-    "- get_concept_relationships: Find related concepts (Maps to, Is a, etc.)\n\n",
+    tools_desc, "\n",
     "## Instructions\n",
     "1. Analyze the source value to understand what clinical concept it represents\n",
     "2. ", domain_hints, "\n",
@@ -254,7 +357,9 @@ build_mapping_system_prompt <- function(domain) {
     "  \"concept_name\": \"<name of the chosen concept>\",\n",
     "  \"vocabulary_id\": \"<vocabulary of the chosen concept>\",\n",
     "  \"confidence\": <float 0.0 to 1.0>,\n",
-    "  \"reasoning\": \"<1-2 sentence explanation>\"\n",
+    "  \"reasoning\": \"<1-2 sentence explanation>\",\n",
+    "  \"source_is_ndc\": <true/false - set true if the source value is an NDC code>,\n",
+    "  \"ndc_normalized\": \"<the normalized NDC code if source_is_ndc is true, else null>\"\n",
     "}\n\n",
     "## Confidence Guidelines\n",
     "- 1.0: Exact code match (source code directly maps to OMOP concept)\n",
