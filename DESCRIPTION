@@ -16,6 +16,8 @@ Imports:
     duckdb,
     fs,
     glue,
+    httr2,
+    jsonlite,
     yaml,
     cli,
     digest,
