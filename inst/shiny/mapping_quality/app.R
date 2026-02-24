@@ -300,6 +300,52 @@ ui <- page_navbar(
   ),
 
   # =====================================================================
+  # Domain Conformance tab
+  # =====================================================================
+  nav_panel(
+    title = "Domain Conformance",
+    icon = icon("arrows-rotate"),
+
+    # KPI row
+    layout_columns(
+      col_widths = c(4, 4, 4),
+      uiOutput("kpi_domain_conformance"),
+      uiOutput("kpi_routed_records"),
+      uiOutput("kpi_tables_conforming")
+    ),
+
+    # Conformance by table
+    card(
+      class = "mt-3",
+      card_header("Domain Conformance by CDM Table"),
+      card_body(plotOutput("domain_conf_plot", height = "340px"))
+    ),
+
+    layout_columns(
+      col_widths = c(6, 6),
+      class = "mt-3",
+
+      card(
+        card_header("Conformance Detail"),
+        card_body(
+          tags$p(class = "text-muted small mb-2",
+                 "Records by CDM table and concept domain. Concept_id = 0 excluded."),
+          DTOutput("domain_conf_table")
+        )
+      ),
+
+      card(
+        card_header("Domain Routing Log"),
+        card_body(
+          tags$p(class = "text-muted small mb-2",
+                 "Records moved between CDM tables during domain routing step."),
+          DTOutput("routing_log_table")
+        )
+      )
+    )
+  ),
+
+  # =====================================================================
   # Data Quality tab
   # =====================================================================
   nav_panel(
@@ -371,7 +417,9 @@ server <- function(input, output, session) {
       person_count  = read_mq_csv(file.path(dir, "04_person_count_comparison.csv")),
       one_to_many   = read_mq_csv(file.path(dir, "05_one_to_many_mappings.csv")),
       many_to_one   = read_mq_csv(file.path(dir, "06_many_to_one_mappings.csv")),
-      reject        = read_mq_csv(file.path(dir, "07_reject_table_row_counts.csv"))
+      reject        = read_mq_csv(file.path(dir, "07_reject_table_row_counts.csv")),
+      domain_conf   = read_mq_csv(file.path(dir, "09_domain_conformance.csv")),
+      routing_log   = read_mq_csv(file.path(dir, "10_domain_routing_log.csv"))
     ))
     showNotification("Results loaded successfully.", type = "message", duration = 3)
   }
@@ -829,6 +877,124 @@ server <- function(input, output, session) {
     d <- data()$many_to_one
     n <- if (!is.null(d) && nrow(d) > 0) nrow(d) else 0
     tags$span(class = paste0("badge bg-", if (n > 0) "info" else "success"), n)
+  })
+
+  # -----------------------------------------------------------------------
+  # Domain Conformance tab
+  # -----------------------------------------------------------------------
+  # Summarise conformance per table: one row per table with conformance %
+  domain_conf_summary <- reactive({
+    d <- data()$domain_conf
+    if (is.null(d) || nrow(d) == 0) return(NULL)
+    # Conforming rows are where concept_domain == expected_domain
+    conf_rows <- d[d$conforming == TRUE, , drop = FALSE]
+    tables <- unique(d$cdm_table)
+    result <- data.frame(
+      cdm_table = character(),
+      expected_domain = character(),
+      total_mapped = integer(),
+      conforming_count = integer(),
+      conformance_pct = numeric(),
+      stringsAsFactors = FALSE
+    )
+    for (tbl in tables) {
+      tbl_data <- d[d$cdm_table == tbl, , drop = FALSE]
+      total <- sum(tbl_data$record_count, na.rm = TRUE)
+      conf <- sum(tbl_data$record_count[tbl_data$conforming == TRUE], na.rm = TRUE)
+      expected <- tbl_data$expected_domain[1]
+      result <- rbind(result, data.frame(
+        cdm_table = tbl, expected_domain = expected,
+        total_mapped = total, conforming_count = conf,
+        conformance_pct = if (total > 0) round(100 * conf / total, 1) else NA_real_,
+        stringsAsFactors = FALSE
+      ))
+    }
+    result
+  })
+
+  overall_conformance <- reactive({
+    s <- domain_conf_summary()
+    if (is.null(s) || nrow(s) == 0) return(NA_real_)
+    total <- sum(s$total_mapped, na.rm = TRUE)
+    conf <- sum(s$conforming_count, na.rm = TRUE)
+    if (total == 0) return(NA_real_)
+    round(100 * conf / total, 1)
+  })
+
+  output$kpi_domain_conformance <- renderUI({
+    pct <- overall_conformance()
+    value_box(
+      title = "Domain Conformance",
+      value = if (is.na(pct)) "N/A" else fmt_pct(pct),
+      showcase = icon("arrows-rotate"),
+      theme = if (is.na(pct)) "secondary" else severity_color(pct),
+      p(class = "small mb-0", "Mapped records in correct table")
+    )
+  })
+
+  output$kpi_routed_records <- renderUI({
+    d <- data()$routing_log
+    n <- if (!is.null(d) && nrow(d) > 0) sum(d$record_count, na.rm = TRUE) else 0L
+    value_box(
+      title = "Records Routed",
+      value = fmt_num(n),
+      showcase = icon("shuffle"),
+      theme = if (n > 0) "info" else "success",
+      p(class = "small mb-0", "Moved to correct CDM table")
+    )
+  })
+
+  output$kpi_tables_conforming <- renderUI({
+    s <- domain_conf_summary()
+    if (is.null(s) || nrow(s) == 0) return(value_box(title = "Tables at 100%", value = "N/A",
+                                                       showcase = icon("check-double"), theme = "secondary"))
+    n_perfect <- sum(s$conformance_pct >= 100, na.rm = TRUE)
+    n_total <- nrow(s)
+    value_box(
+      title = "Tables at 100%",
+      value = paste0(n_perfect, "/", n_total),
+      showcase = icon("check-double"),
+      theme = if (n_perfect == n_total) "success" else "warning",
+      p(class = "small mb-0", "Fully domain-conformant tables")
+    )
+  })
+
+  output$domain_conf_plot <- renderPlot({
+    s <- domain_conf_summary()
+    if (is.null(s) || nrow(s) == 0) return(NULL)
+    s$label <- paste0(sub("_", "\n", s$cdm_table), "\n(", s$expected_domain, ")")
+    styled_barplot(
+      s$conformance_pct, s$label,
+      title = "Domain Conformance by CDM Table",
+      xlab = "Conformance %",
+      highlight_fn = function(v) severity_hex(v)
+    )
+  })
+
+  output$domain_conf_table <- renderDT({
+    d <- data()$domain_conf
+    if (is.null(d) || nrow(d) == 0) return(make_dt(data.frame()))
+    display <- d[, c("cdm_table", "expected_domain", "concept_domain", "record_count",
+                      "total_mapped", "conformance_pct"), drop = FALSE]
+    names(display) <- c("CDM Table", "Expected Domain", "Concept Domain", "Records",
+                         "Total Mapped", "% of Table")
+    make_dt(display, page_len = 15) |>
+      formatCurrency(c("Records", "Total Mapped"), currency = "", digits = 0) |>
+      formatStyle("Concept Domain",
+                  backgroundColor = styleEqual(
+                    display$`Expected Domain`,
+                    rep("#d4edda", nrow(display))
+                  ))
+  })
+
+  output$routing_log_table <- renderDT({
+    d <- data()$routing_log
+    if (is.null(d) || nrow(d) == 0) {
+      return(make_dt(data.frame(Message = "No records were routed between tables.")))
+    }
+    names(d) <- c("From Table", "To Domain", "Records Moved")
+    make_dt(d, page_len = 10) |>
+      formatCurrency("Records Moved", currency = "", digits = 0)
   })
 
   # -----------------------------------------------------------------------

@@ -328,5 +328,71 @@ analyze_mapping_quality <- function(con, output_dir = "mapping_quality_results",
   write.csv(df_not_mapped_summary, out_path("08_data_not_mapped_summary.csv"), row.names = FALSE)
   written <- c(written, out_path("08_data_not_mapped_summary.csv"))
 
+  # ----- 9. Domain conformance (concept domain_id vs CDM table) -----
+  domain_conf_queries <- list(
+    condition_occurrence = glue::glue(
+      "SELECT 'condition_occurrence' AS cdm_table, 'Condition' AS expected_domain, c.domain_id AS concept_domain, COUNT(*) AS record_count ",
+      "FROM \"{cdm}\".condition_occurrence co ",
+      "JOIN \"{cdm}\".concept c ON c.concept_id = co.condition_concept_id ",
+      "WHERE co.condition_concept_id <> 0 GROUP BY c.domain_id"
+    ),
+    drug_exposure = glue::glue(
+      "SELECT 'drug_exposure' AS cdm_table, 'Drug' AS expected_domain, c.domain_id AS concept_domain, COUNT(*) AS record_count ",
+      "FROM \"{cdm}\".drug_exposure de ",
+      "JOIN \"{cdm}\".concept c ON c.concept_id = de.drug_concept_id ",
+      "WHERE de.drug_concept_id <> 0 GROUP BY c.domain_id"
+    ),
+    measurement = glue::glue(
+      "SELECT 'measurement' AS cdm_table, 'Measurement' AS expected_domain, c.domain_id AS concept_domain, COUNT(*) AS record_count ",
+      "FROM \"{cdm}\".measurement m ",
+      "JOIN \"{cdm}\".concept c ON c.concept_id = m.measurement_concept_id ",
+      "WHERE m.measurement_concept_id <> 0 GROUP BY c.domain_id"
+    ),
+    observation = glue::glue(
+      "SELECT 'observation' AS cdm_table, 'Observation' AS expected_domain, c.domain_id AS concept_domain, COUNT(*) AS record_count ",
+      "FROM \"{cdm}\".observation o ",
+      "JOIN \"{cdm}\".concept c ON c.concept_id = o.observation_concept_id ",
+      "WHERE o.observation_concept_id <> 0 GROUP BY c.domain_id"
+    ),
+    procedure_occurrence = glue::glue(
+      "SELECT 'procedure_occurrence' AS cdm_table, 'Procedure' AS expected_domain, c.domain_id AS concept_domain, COUNT(*) AS record_count ",
+      "FROM \"{cdm}\".procedure_occurrence po ",
+      "JOIN \"{cdm}\".concept c ON c.concept_id = po.procedure_concept_id ",
+      "WHERE po.procedure_concept_id <> 0 GROUP BY c.domain_id"
+    )
+  )
+
+  df_domain_conf <- tryCatch({
+    res <- lapply(domain_conf_queries, function(sql) DBI::dbGetQuery(con, sql))
+    raw <- do.call(rbind, res)
+    if (!is.null(raw) && nrow(raw) > 0) {
+      totals <- stats::aggregate(record_count ~ cdm_table, data = raw, FUN = sum)
+      names(totals)[2] <- "total_mapped"
+      raw <- merge(raw, totals, by = "cdm_table")
+      raw$conforming <- raw$concept_domain == raw$expected_domain
+      raw$conformance_pct <- round(100 * raw$record_count / raw$total_mapped, 2)
+    }
+    raw
+  }, error = function(e) {
+    data.frame(cdm_table = character(), expected_domain = character(), concept_domain = character(),
+               record_count = integer(), total_mapped = integer(), conforming = logical(),
+               conformance_pct = numeric(), stringsAsFactors = FALSE)
+  })
+  write.csv(df_domain_conf, out_path("09_domain_conformance.csv"), row.names = FALSE)
+  written <- c(written, out_path("09_domain_conformance.csv"))
+
+  # ----- 10. Domain routing log (records moved between tables) -----
+  df_routing_log <- tryCatch({
+    if (table_exists(con, stg, "domain_routing_log")) {
+      DBI::dbGetQuery(con, glue::glue('SELECT * FROM "{stg}".domain_routing_log ORDER BY from_table, to_domain'))
+    } else {
+      data.frame(from_table = character(), to_domain = character(), record_count = integer(), stringsAsFactors = FALSE)
+    }
+  }, error = function(e) {
+    data.frame(from_table = character(), to_domain = character(), record_count = integer(), stringsAsFactors = FALSE)
+  })
+  write.csv(df_routing_log, out_path("10_domain_routing_log.csv"), row.names = FALSE)
+  written <- c(written, out_path("10_domain_routing_log.csv"))
+
   invisible(list(output_dir = output_dir, files = written))
 }
