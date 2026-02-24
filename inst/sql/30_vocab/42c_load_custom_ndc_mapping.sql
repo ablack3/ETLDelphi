@@ -5,6 +5,6 @@ CREATE OR REPLACE TABLE stg.custom_ndc_mapping (
     drug_concept_id INTEGER
 );
 INSERT INTO stg.custom_ndc_mapping
-SELECT TRIM(drug_ndc_normalized) AS drug_ndc_normalized, TRY_CAST(drug_concept_id AS INTEGER) AS drug_concept_id
+SELECT TRIM(CAST(drug_ndc_normalized AS VARCHAR)) AS drug_ndc_normalized, TRY_CAST(drug_concept_id AS INTEGER) AS drug_concept_id
 FROM read_csv('@customNdcMappingPath', header = true, auto_detect = true)
 WHERE TRY_CAST(drug_concept_id AS INTEGER) IS NOT NULL AND TRY_CAST(drug_concept_id AS INTEGER) > 0;

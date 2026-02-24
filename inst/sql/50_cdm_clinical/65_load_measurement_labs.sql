@@ -59,8 +59,22 @@ LEFT JOIN stg.map_units u ON u.unit_source_value = LOWER(TRIM(REPLACE(REPLACE(CO
 LEFT JOIN stg.map_visit mv ON mv.encounter_id_source = l.encounter_id
 LEFT JOIN stg.map_provider mpr ON mpr.provider_id_source = l.provider_id
 LEFT JOIN stg.map_measurement_value mval ON mval.result_source_value = LOWER(TRIM(REPLACE(REPLACE(COALESCE(l.result_description, ''), '[', ''), ']', '')))
-LEFT JOIN stg.custom_concept_mapping cust_val ON cust_val.source_value = TRIM(SUBSTR(l.result_description, 1, 50)) AND cust_val.domain = 'measurement_value'
+LEFT JOIN stg.custom_concept_mapping cust_val
+  ON cust_val.domain = 'measurement_value'
+  AND REGEXP_REPLACE(REGEXP_REPLACE(LOWER(TRIM(REPLACE(REPLACE(COALESCE(l.result_description, ''), '[', ''), ']', ''))), '[.,;:]+$', ''), '\\s+', ' ')
+   = REGEXP_REPLACE(REGEXP_REPLACE(LOWER(TRIM(cust_val.source_value)), '[.,;:]+$', ''), '\\s+', ' ')
 WHERE NOT EXISTS (SELECT 1 FROM cdm.measurement m WHERE m.measurement_id = l.measurement_id);
+
+-- Update existing measurement rows that have value_as_concept_id = 0 but now match custom mapping (idempotent after adding mappings)
+UPDATE cdm.measurement m
+SET value_as_concept_id = cust.concept_id
+FROM stg.custom_concept_mapping cust
+WHERE cust.domain = 'measurement_value'
+  AND m.value_as_concept_id = 0
+  AND m.value_source_value IS NOT NULL
+  AND TRIM(m.value_source_value) <> ''
+  AND REGEXP_REPLACE(REGEXP_REPLACE(LOWER(TRIM(REPLACE(REPLACE(COALESCE(m.value_source_value, ''), '[', ''), ']', ''))), '[.,;:]+$', ''), '\\s+', ' ')
+   = REGEXP_REPLACE(REGEXP_REPLACE(LOWER(TRIM(cust.source_value)), '[.,;:]+$', ''), '\\s+', ' ');
 
 CREATE OR REPLACE TABLE stg.reject_measurement_labs_missing AS
 SELECT member_id, test_loinc, date_resulted, date_collected
