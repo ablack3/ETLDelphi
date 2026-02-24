@@ -110,11 +110,29 @@ list.files("inst/shiny/mapping_quality/mapping_quality_results")
 run_mapping_quality_app(results_dir = here::here("inst/shiny/mapping_quality/mapping_quality_results"))
 
 
+# measurement_value	no abnormal skin or mole present	70,549
+# measurement_value	no lumps noted	69,582
+# measurement_value	no lumps noticed	38,357
+# measurement_value	uterus and ovaries are normal in size and location	35,321
+# measurement_value	no abnormal cervical cells	35,320
+# measurement_value	negative for HPV 16 & 18	21,633
+# drug	59630*70248	7,153
+# measurement_value	Platelet count = 200,000/uL
+
+devtools::load_all()
+rebuild_custom_mappings_from_log(dry_run = TRUE)  # preview
+rebuild_custom_mappings_from_log()                  # write CSVs
+run_etl(con, from_step = "30_vocab")               # re-run with pattern mapping
+
+
+df <- readr::read_csv("mapping_improvement_log.csv")
+
 # Create LLM generated custom mappings
 improve_mappings(
   con,
   config = config,
-  # domains = "drug",
+  domains = "measurement_value",
+  force_retry = "fail",
   dry_run = TRUE,
   limit = 10,
   confidence_threshold = .7,
@@ -138,6 +156,7 @@ ETLDelphi::export_unmapped_measurement_values(con, output_path = "unmapped_measu
 ETLDelphi::export_unmapped_drugs(con, output_path = "unmapped_drugs.csv")
 
 
+DBI::dbDisconnect(con, shutdown = TRUE)
 
 # --- 3. Run Achilles ----------------------------------------------------------
 
@@ -146,15 +165,67 @@ cd <- DatabaseConnector::createConnectionDetails(
   server = "~/Desktop/delphi.duckdb"
 )
 
+con <- DatabaseConnector::connect(cd)
+DatabaseConnector::querySql(con, "create schema if not exists scratch")
+DatabaseConnector::querySql(con, "create schema if not exists achilles")
+DatabaseConnector::querySql(con, "create schema if not exists achilles")
+DatabaseConnector::disconnect(con)
+
 r <- Achilles::achilles(
   connectionDetails = cd,
   cdmDatabaseSchema = "main",
-  resultsDatabaseSchema = "results",
+  resultsDatabaseSchema = "achilles",
   scratchDatabaseSchema = "scratch",
   dropScratchTables = T,
   optimizeAtlasCache = T,
   defaultAnalysesOnly = F
 )
 
-DBI::dbDisconnect(con, shutdown = TRUE)
+
+# --- 3. Run DQD ----------------------------------------------------------
+
+DatabaseConnector::querySql(con, "create schema if not exists dqd")
+DataQualityDashboard::executeDqChecks(
+  connectionDetails = cd,
+  cdmDatabaseSchema = "main",
+  resultsDatabaseSchema = "dqd",
+  cdmSourceName = "Delphi",
+  outputFolder = here::here("DQD_results"),
+  tablesToExclude = c("COHORT", "COHORT_DEFINITION"),
+  writeToTable = FALSE,
+  verboseMode = TRUE,
+  cdmVersion = "5.4"
+)
+list.files( here::here("DQD_results"))
+DataQualityDashboard::viewDqDashboard(here::here("DQD_results", "delphi-2m-20260224193532.json"))
+
+
+
+library(CDMConnector)
+
+con <- DBI::dbConnect(duckdb::duckdb(), "~/Desktop/delphi.duckdb")
+
+cdm <- cdmFromCon(
+  con,
+  cdmSchema = "main",
+  writeSchema = "scratch",
+  achillesSchema = "achilles"
+)
+
+snapshot(cdm) %>%
+  tidyr::gather()
+
+DBI::dbListTables(con)
+
+DBI::dbGetQuery(con, "
+select table_schema, table_name
+from information_schema.tables
+where table_type in ('BASE TABLE','VIEW')
+order by 1,2;")
+
+DBI::dbListTables(con)
+
+# DBI::dbExecute(con, "DROP SCHEMA src CASCADE;")
+# DBI::dbExecute(con, "DROP SCHEMA stg CASCADE;")
 message("ETL complete. DuckDB output: ", duckdb_path)
+
