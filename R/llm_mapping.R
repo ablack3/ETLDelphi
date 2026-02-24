@@ -422,7 +422,10 @@ build_mapping_system_prompt <- function(domain) {
     "7. When both code and name are available, cross-check: the mapped concept should ",
     "be consistent with both pieces of information\n\n",
     "## Required Output Format\n",
-    "Respond with EXACTLY this JSON (no markdown, no extra text):\n",
+    "CRITICAL: Your final response MUST be a single JSON object with NO surrounding text, ",
+    "NO markdown fences, and NO explanation outside the JSON. ",
+    "Your response will be parsed by jsonlite::fromJSON() — if it is not valid JSON, the mapping will be lost.\n\n",
+    "Return EXACTLY this JSON structure:\n",
     "{\n",
     "  \"concept_id\": <integer or null if no mapping found>,\n",
     "  \"concept_name\": \"<name of the chosen concept>\",\n",
@@ -432,6 +435,7 @@ build_mapping_system_prompt <- function(domain) {
     "  \"source_is_ndc\": <true/false - set true if the source value is an NDC code>,\n",
     "  \"ndc_normalized\": \"<the normalized NDC code if source_is_ndc is true, else null>\"\n",
     "}\n\n",
+    "Do NOT include any text before or after the JSON. Do NOT wrap in ```json``` fences.\n\n",
     "## Confidence Guidelines\n",
     "- 1.0: Exact code match verified against name (both code and name confirm the same concept)\n",
     "- 0.9: Very high confidence - code or name matches with confirmed standard concept\n",
@@ -500,6 +504,14 @@ anthropic_chat <- function(messages,
       ) |>
       httr2::req_body_json(body, auto_unbox = TRUE) |>
       httr2::req_timeout(120) |>
+      httr2::req_error(body = function(resp) {
+        body <- tryCatch(httr2::resp_body_json(resp), error = function(e) NULL)
+        if (!is.null(body) && !is.null(body$error$message)) {
+          body$error$message
+        } else {
+          NULL
+        }
+      }) |>
       httr2::req_retry(
         max_tries = 3, backoff = ~ 5,
         is_transient = function(resp) httr2::resp_status(resp) %in% c(429L, 503L, 529L)

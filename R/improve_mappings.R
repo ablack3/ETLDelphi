@@ -59,7 +59,7 @@
 #' @export
 improve_mappings <- function(con,
                              config = NULL,
-                             domains = c("condition", "drug", "measurement", "procedure", "observation"),
+                             domains = c("condition", "drug", "measurement", "measurement_value", "procedure", "observation"),
                              limit = 50L,
                              confidence_threshold = 0.7,
                              custom_mapping_path = NULL,
@@ -810,7 +810,7 @@ map_single_value <- function(source_value, domain, record_count,
     )
   }
 
-  # Parse the final JSON response
+  # Parse the final JSON response, retrying once if the LLM returned prose
   final_msg <- result$final_message
   if (!nzchar(trimws(final_msg))) {
     cli::cli_alert_warning("  LLM returned empty response after {result$tool_calls_made} tool call(s)")
@@ -818,30 +818,91 @@ map_single_value <- function(source_value, domain, record_count,
                 reasoning = "LLM returned empty response", tool_calls = result$tool_calls_made))
   }
 
-  parsed <- tryCatch(
-    jsonlite::fromJSON(final_msg, simplifyVector = FALSE),
-    error = function(e) {
-      # Try to extract JSON from possible markdown fence or surrounding text
-      m <- regmatches(final_msg, regexpr("\\{[^{}]*(?:\\{[^{}]*\\}[^{}]*)*\\}", final_msg, perl = TRUE))
-      if (length(m) > 0 && nchar(m[1]) > 2) {
-        tryCatch(
-          jsonlite::fromJSON(m[1], simplifyVector = FALSE),
-          error = function(e2) {
-            cli::cli_alert_warning("  Failed to parse LLM JSON: {substr(final_msg, 1, 120)}")
-            list(concept_id = NA_integer_, confidence = 0,
-                 reasoning = "Failed to parse LLM response")
-          }
-        )
+  parsed <- try_parse_llm_json(final_msg)
+
+  # If parsing failed, send a follow-up asking the LLM to reformat as JSON
+  if (is.null(parsed)) {
+    cli::cli_alert_warning("  Non-JSON response, requesting JSON reformat...")
+    retry_msg <- paste0(
+      "Your response was not valid JSON. Please respond with ONLY the JSON object, ",
+      "no other text:\n",
+      "{\"concept_id\": <int or null>, \"concept_name\": \"...\", \"vocabulary_id\": \"...\", ",
+      "\"confidence\": <0.0-1.0>, \"reasoning\": \"...\", ",
+      "\"source_is_ndc\": <true/false>, \"ndc_normalized\": <string or null>}"
+    )
+
+    # Append the retry message to the conversation and make one more API call
+    retry_messages <- c(result$messages, list(list(role = "user", content = retry_msg)))
+
+    retry_result <- tryCatch({
+      if (identical(provider, "openai")) {
+        openai_chat(messages = retry_messages, tools = NULL,
+                    model = model, api_key = api_key)
       } else {
-        cli::cli_alert_warning("  No JSON in LLM response: {substr(final_msg, 1, 120)}")
-        list(concept_id = NA_integer_, confidence = 0,
-             reasoning = "Failed to parse LLM response")
+        # For Anthropic, extract system prompt and pass separately
+        sys <- NULL
+        api_msgs <- list()
+        for (m in retry_messages) {
+          if (identical(m$role, "system")) { sys <- m$content } else { api_msgs <- c(api_msgs, list(m)) }
+        }
+        anthropic_chat(messages = api_msgs, tools = NULL,
+                       model = model, api_key = api_key, system_prompt = sys)
       }
+    }, error = function(e) NULL)
+
+    if (!is.null(retry_result)) {
+      retry_text <- if (identical(provider, "anthropic")) {
+        text_blocks <- Filter(function(b) identical(b$type, "text"), retry_result$content)
+        paste(vapply(text_blocks, function(b) b$text %||% "", character(1)), collapse = "\n")
+      } else {
+        retry_result$choices[[1]]$message$content %||% ""
+      }
+      parsed <- try_parse_llm_json(retry_text)
     }
-  )
+
+    if (is.null(parsed)) {
+      cli::cli_alert_warning("  Failed to get JSON after retry: {substr(final_msg, 1, 120)}")
+      parsed <- list(concept_id = NA_integer_, confidence = 0,
+                     reasoning = "Failed to parse LLM response")
+    }
+  }
 
   parsed$tool_calls <- result$tool_calls_made
   parsed
+}
+
+# Try to parse a JSON object from an LLM response string.
+# Returns a parsed list on success, or NULL if no valid JSON found.
+try_parse_llm_json <- function(text) {
+  if (!nzchar(trimws(text))) return(NULL)
+
+  # Try direct parse first
+  parsed <- tryCatch(
+    jsonlite::fromJSON(text, simplifyVector = FALSE),
+    error = function(e) NULL
+  )
+  if (!is.null(parsed) && !is.null(parsed$concept_id)) return(parsed)
+
+  # Strip markdown fences (```json ... ```)
+  stripped <- gsub("```(?:json)?\\s*", "", text, perl = TRUE)
+  stripped <- trimws(stripped)
+  parsed <- tryCatch(
+    jsonlite::fromJSON(stripped, simplifyVector = FALSE),
+    error = function(e) NULL
+  )
+  if (!is.null(parsed) && !is.null(parsed$concept_id)) return(parsed)
+
+  # Extract first JSON object from surrounding text
+  m <- regmatches(text, regexpr("\\{[^{}]*(?:\\{[^{}]*\\}[^{}]*)*\\}", text, perl = TRUE))
+  if (length(m) > 0 && nchar(m[1]) > 2) {
+    parsed <- tryCatch(
+      jsonlite::fromJSON(m[1], simplifyVector = FALSE),
+      error = function(e) NULL
+    )
+    if (!is.null(parsed) && !is.null(parsed$concept_id)) return(parsed)
+  }
+
+  NULL
 }
 
 
