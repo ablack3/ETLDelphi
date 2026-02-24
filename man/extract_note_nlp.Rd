@@ -49,7 +49,7 @@ and \code{cdm.procedure_occurrence}.
 \section{Pipeline integration}{
 
 \preformatted{
-# 1. Run ETL (includes note parsing + entity extraction in 35_nlp step)
+# 1. Run ETL (includes note parsing + entity extraction in 45_nlp step)
 run_etl(con)
 
 # 2. Map entities and load note_nlp + supplemental facts

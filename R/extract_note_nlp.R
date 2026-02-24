@@ -13,7 +13,7 @@
 #'
 #' @section Pipeline integration:
 #' \preformatted{
-#' # 1. Run ETL (includes note parsing + entity extraction in 35_nlp step)
+#' # 1. Run ETL (includes note parsing + entity extraction in 45_nlp step)
 #' run_etl(con)
 #'
 #' # 2. Map entities and load note_nlp + supplemental facts
@@ -120,9 +120,9 @@ extract_note_nlp <- function(con,
 # ── Helper: Run note parsing SQL if staging tables are missing ─────────
 run_note_parsing_sql <- function(con, config) {
   stg <- config$schemas$stg %||% "stg"
-  sql_dir <- system.file("sql", "35_nlp", package = "ETLDelphi")
+  sql_dir <- system.file("sql", "45_nlp", package = "ETLDelphi")
   if (!nzchar(sql_dir) || !dir.exists(sql_dir)) {
-    stop("NLP SQL directory not found. Ensure inst/sql/35_nlp/ exists.", call. = FALSE)
+    stop("NLP SQL directory not found. Ensure inst/sql/45_nlp/ exists.", call. = FALSE)
   }
 
   sql_files <- sort(list.files(sql_dir, pattern = "\\.sql$", full.names = TRUE))

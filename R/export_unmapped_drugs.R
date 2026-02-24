@@ -11,12 +11,12 @@
 #' @return Invisible path to the written file.
 #' @export
 export_unmapped_drugs <- function(con, output_path = "unmapped_drugs.csv", config = NULL) {
-  stg <- if (is.null(config) || is.null(config[["schemas"]]) || is.null(config[["schemas"]][["stg"]])) "stg" else config[["schemas"]][["stg"]]
+  stg <- resolve_schema(config, "stg")
 
-  if (!ETLDelphi:::table_exists(con, stg, "map_drug_order")) {
+  if (!table_exists(con, stg, "map_drug_order")) {
     stop("stg.map_drug_order does not exist. Run the ETL first.")
   }
-  if (!ETLDelphi:::table_exists(con, stg, "medication_orders")) {
+  if (!table_exists(con, stg, "medication_orders")) {
     stop("stg.medication_orders does not exist. Run the ETL first.")
   }
 

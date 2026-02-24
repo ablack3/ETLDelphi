@@ -1,3 +1,15 @@
+# Resolve a schema name from config, with a default fallback.
+# Simplifies the verbose: if (is.null(config) || is.null(config[["schemas"]]) || ...) pattern.
+resolve_schema <- function(config, which = c("stg", "cdm", "src"), default = NULL) {
+  which <- match.arg(which)
+  if (is.null(default)) default <- if (which == "cdm") "main" else which
+  if (!is.null(config) && !is.null(config[["schemas"]]) && !is.null(config[["schemas"]][[which]])) {
+    config[["schemas"]][[which]]
+  } else {
+    default
+  }
+}
+
 # Check if table exists in schema (avoids DBI::Id which can trigger cli progress bar bugs on some setups)
 table_exists <- function(con, schema, table) {
   q <- glue::glue(
@@ -56,7 +68,7 @@ run_sql_scripts <- function(con,
     return(invisible(list(dry_run = TRUE, files = fs::path_rel(files, sql_dir))))
   }
 
-  stg <- config[["schemas"]][["stg"]]; if (is.null(stg)) stg <- "stg"
+  stg <- resolve_schema(config, "stg")
   started_at <- Sys.time()
   if (is.null(run_id)) {
     run_id <- as.integer(as.numeric(Sys.time()))
@@ -77,8 +89,8 @@ run_sql_scripts <- function(con,
     sql <- readLines(f, warn = FALSE)
     sql <- paste(sql, collapse = "\n")
     # Substitute schema placeholders if used
-    cdm <- config[["schemas"]][["cdm"]]; if (is.null(cdm)) cdm <- "main"
-    src <- config[["schemas"]][["src"]]; if (is.null(src)) src <- "src"
+    cdm <- resolve_schema(config, "cdm")
+    src <- resolve_schema(config, "src")
     sql <- gsub("@cdmDatabaseSchema", cdm, sql, fixed = TRUE)
     sql <- gsub("\\{cdm\\}", cdm, sql)
     # Replace literal "cdm." so vocab/CDM tables (e.g. cdm.concept) use the configured schema
