@@ -2,24 +2,40 @@
 % Please edit documentation in R/export_parquet.R
 \name{exportToParquet}
 \alias{exportToParquet}
-\title{Export entire DuckDB database to Parquet files}
+\alias{exportToParquet.DBIConnection}
+\alias{exportToParquet.cdm_reference}
+\title{Export CDM or entire DuckDB database to Parquet files}
 \usage{
-exportToParquet(con, path, include_system = FALSE)
+exportToParquet(x, path = NULL, ...)
+
+\method{exportToParquet}{DBIConnection}(x, path, include_system = FALSE, ...)
+
+\method{exportToParquet}{cdm_reference}(x, path = NULL, ...)
 }
 \arguments{
-\item{con}{DBI connection to DuckDB.}
+\item{x}{A \strong{cdm_reference} object (from CDMConnector) or a \strong{DBI connection}
+(e.g. DuckDB).}
 
 \item{path}{Character. Directory path where Parquet files will be written.
-Created if it does not exist.}
+For a cdm object, created if it does not exist; defaults to
+\code{file.path(getwd(), cdmName(cdm))}. For a connection, required.}
+
+\item{...}{Passed to the method. For the connection method: \code{include_system}.}
 
 \item{include_system}{Logical. If \code{FALSE} (default), tables in
-\code{information_schema} and \code{pg_catalog} are skipped.}
+\code{information_schema} and \code{pg_catalog} are skipped. Only used when \code{x} is a
+DBI connection.}
 }
 \value{
 Invisible character vector of paths to the written Parquet files.
 }
 \description{
-Writes every table in the database to a folder of Parquet files, one file
-per table. Tables from different schemas are named \code{<schema>_<table>.parquet}
-to avoid collisions.
+\strong{When \code{x} is a CDM reference object} (from \code{CDMConnector::cdmFromCon()}):
+Writes each CDM table to a Parquet file in the given folder. Files are named
+\verb{\{table_name\}.parquet}. The folder is created if it does not exist. Default
+folder is \code{cdmName(cdm)} in the current working directory.
+
+\strong{When \code{x} is a DBI connection:} Writes every table in the database to a
+folder of Parquet files, one file per table. Tables from different schemas
+are named \verb{\{schema\}_\{table\}.parquet} to avoid collisions.
 }
