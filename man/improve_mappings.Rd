@@ -56,8 +56,9 @@ env var based on provider.}
 
 \item{force_retry}{Controls retry behaviour for already-processed values.
 \itemize{
-\item \code{FALSE} (default): skip all values already in the log.
-\item \code{"failed"}: retry values where the log has concept_id = 0/NA or confidence below threshold.
+\item \code{FALSE} (default): skip successfully mapped values (concept_id > 0
+AND confidence >= threshold). Failed mappings are automatically retried.
+\item \code{"all"}: skip ALL values already in the log, including failures.
 \item \code{TRUE}: ignore the log entirely — reprocess everything.
 }}
 
