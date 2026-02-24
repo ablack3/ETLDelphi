@@ -2,31 +2,34 @@
 % Please edit documentation in R/run_mapping_quality_app.R
 \name{run_mapping_quality_app}
 \alias{run_mapping_quality_app}
-\title{Launch the mapping quality dashboard}
+\title{Launch the interactive mapping quality Shiny app}
 \usage{
 run_mapping_quality_app(
   results_dir = "mapping_quality_results",
-  port = 0L,
+  port = NULL,
   launch_browser = TRUE
 )
 }
 \arguments{
-\item{results_dir}{Path to the folder containing \code{mapping_quality.json}
+\item{results_dir}{Path to the folder containing mapping quality CSV files
 (written by \code{analyze_mapping_quality()}).
 Defaults to \code{"mapping_quality_results"}.}
 
-\item{port}{Port number for the local HTTP server. Default \code{0L} picks a
-random available port.}
+\item{port}{Port number for the Shiny server. Default \code{NULL} lets Shiny
+pick an available port.}
 
-\item{launch_browser}{If \code{TRUE} (default), open the dashboard in the
-system browser.}
+\item{launch_browser}{If \code{TRUE} (default), open the app in the system
+browser.}
 }
 \value{
-Invisible \code{NULL} (blocks until the server is stopped with
-Ctrl+C or Esc).
+Invisible \code{NULL} (blocks until the app is stopped).
 }
 \description{
-Serves the static HTML mapping quality dashboard using a local HTTP
-server. Run after \code{\link{analyze_mapping_quality}} has written
-\code{mapping_quality.json} into \code{results_dir}.
+Opens the mapping quality dashboard as an interactive Shiny application.
+Run after \code{\link{analyze_mapping_quality}} has written results CSV
+files into \code{results_dir}.
+}
+\details{
+For a lightweight static HTML dashboard (no Shiny dependency), see
+\code{\link{run_mapping_quality_site}}.
 }

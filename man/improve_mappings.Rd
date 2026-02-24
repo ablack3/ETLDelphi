@@ -7,7 +7,8 @@
 improve_mappings(
   con,
   config = NULL,
-  domains = c("condition", "drug", "measurement", "procedure", "observation"),
+  domains = c("condition", "drug", "measurement", "measurement_value", "procedure",
+    "observation"),
   limit = 50L,
   confidence_threshold = 0.7,
   custom_mapping_path = NULL,
