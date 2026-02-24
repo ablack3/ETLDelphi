@@ -500,11 +500,14 @@ anthropic_chat <- function(messages,
       ) |>
       httr2::req_body_json(body, auto_unbox = TRUE) |>
       httr2::req_timeout(120) |>
-      httr2::req_retry(max_tries = 3, backoff = ~ 5) |>
+      httr2::req_retry(
+        max_tries = 3, backoff = ~ 5,
+        is_transient = function(resp) httr2::resp_status(resp) %in% c(429L, 503L, 529L)
+      ) |>
       httr2::req_perform(),
     error = function(e) {
       msg <- conditionMessage(e)
-      if (grepl("429", msg, fixed = TRUE) || grepl("Too Many Requests", msg, fixed = TRUE) ||
+      if (grepl("429|529", msg) || grepl("Too Many Requests", msg, fixed = TRUE) ||
           grepl("rate limit", msg, ignore.case = TRUE) ||
           grepl("overloaded", msg, ignore.case = TRUE)) {
         stop(rate_limit_error(msg))
@@ -551,6 +554,7 @@ anthropic_tool_loop <- function(messages,
 
     # Build assistant message from response content
     content_blocks <- response$content
+    stop_reason <- response$stop_reason %||% "end_turn"
     assistant_msg <- list(role = "assistant", content = content_blocks)
 
     # Append assistant message to conversation
@@ -560,7 +564,7 @@ anthropic_tool_loop <- function(messages,
     tool_uses <- Filter(function(b) identical(b$type, "tool_use"), content_blocks)
 
     # If no tool calls, model is done — extract final text
-    if (length(tool_uses) == 0 || !identical(response$stop_reason, "tool_use")) {
+    if (length(tool_uses) == 0 || !identical(stop_reason, "tool_use")) {
       text_blocks <- Filter(function(b) identical(b$type, "text"), content_blocks)
       final_text <- paste(vapply(text_blocks, function(b) b$text %||% "", character(1)), collapse = "\n")
       return(list(

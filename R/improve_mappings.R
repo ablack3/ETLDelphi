@@ -811,20 +811,29 @@ map_single_value <- function(source_value, domain, record_count,
   }
 
   # Parse the final JSON response
+  final_msg <- result$final_message
+  if (!nzchar(trimws(final_msg))) {
+    cli::cli_alert_warning("  LLM returned empty response after {result$tool_calls_made} tool call(s)")
+    return(list(concept_id = NA_integer_, confidence = 0,
+                reasoning = "LLM returned empty response", tool_calls = result$tool_calls_made))
+  }
+
   parsed <- tryCatch(
-    jsonlite::fromJSON(result$final_message, simplifyVector = FALSE),
+    jsonlite::fromJSON(final_msg, simplifyVector = FALSE),
     error = function(e) {
-      # Try to extract JSON from possible markdown fence
-      m <- regmatches(result$final_message, regexpr("\\{[^{}]*(?:\\{[^{}]*\\}[^{}]*)*\\}", result$final_message, perl = TRUE))
+      # Try to extract JSON from possible markdown fence or surrounding text
+      m <- regmatches(final_msg, regexpr("\\{[^{}]*(?:\\{[^{}]*\\}[^{}]*)*\\}", final_msg, perl = TRUE))
       if (length(m) > 0 && nchar(m[1]) > 2) {
         tryCatch(
           jsonlite::fromJSON(m[1], simplifyVector = FALSE),
           error = function(e2) {
+            cli::cli_alert_warning("  Failed to parse LLM JSON: {substr(final_msg, 1, 120)}")
             list(concept_id = NA_integer_, confidence = 0,
                  reasoning = "Failed to parse LLM response")
           }
         )
       } else {
+        cli::cli_alert_warning("  No JSON in LLM response: {substr(final_msg, 1, 120)}")
         list(concept_id = NA_integer_, confidence = 0,
              reasoning = "Failed to parse LLM response")
       }
