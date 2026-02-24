@@ -1,6 +1,7 @@
-# openai_mapping.R
-# Internal: OpenAI chat completions client with function-calling loop for
-# vocabulary mapping. Not exported; called by improve_mappings().
+# llm_mapping.R
+# Internal: LLM chat completions client with function-calling loop for
+# vocabulary mapping. Supports OpenAI and Anthropic (Claude) APIs.
+# Not exported; called by improve_mappings().
 
 # Single OpenAI chat completion call via httr2.
 # Returns parsed response body (list).
@@ -439,4 +440,193 @@ build_mapping_system_prompt <- function(domain) {
     "- 0.3-0.4: Weak match based on inference, uncertain\n",
     "- 0.0: No mapping found"
   )
+}
+
+# ===========================================================================
+# Anthropic (Claude) API support
+# ===========================================================================
+
+# Convert OpenAI-format tool definitions to Anthropic format.
+# OpenAI: list(type="function", `function`=list(name, description, parameters))
+# Claude: list(name, description, input_schema)
+convert_tools_for_anthropic <- function(openai_tools) {
+  lapply(openai_tools, function(t) {
+    fn <- t$`function`
+    list(
+      name = fn$name,
+      description = fn$description,
+      input_schema = fn$parameters
+    )
+  })
+}
+
+# Single Anthropic Messages API call via httr2.
+# Returns parsed response body (list).
+# Signals a `rate_limit_error` condition on HTTP 429.
+anthropic_chat <- function(messages,
+                           tools = NULL,
+                           model = NULL,
+                           api_key = NULL,
+                           system_prompt = NULL,
+                           temperature = 0.1) {
+  model <- model %||% Sys.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-20250514")
+  api_key <- api_key %||% Sys.getenv("ANTHROPIC_API_KEY")
+
+  if (!nzchar(api_key)) stop("ANTHROPIC_API_KEY not set.", call. = FALSE)
+
+  body <- list(
+    model = model,
+    max_tokens = 4096,
+    messages = messages,
+    temperature = temperature
+  )
+
+  # System prompt goes as a top-level field, not a message
+
+  if (!is.null(system_prompt) && nzchar(system_prompt)) {
+    body$system <- system_prompt
+  }
+
+  if (!is.null(tools) && length(tools) > 0) {
+    body$tools <- convert_tools_for_anthropic(tools)
+  }
+
+  resp <- tryCatch(
+    httr2::request("https://api.anthropic.com/v1/messages") |>
+      httr2::req_headers(
+        `x-api-key` = api_key,
+        `anthropic-version` = "2023-06-01",
+        `content-type` = "application/json"
+      ) |>
+      httr2::req_body_json(body, auto_unbox = TRUE) |>
+      httr2::req_timeout(120) |>
+      httr2::req_retry(max_tries = 3, backoff = ~ 5) |>
+      httr2::req_perform(),
+    error = function(e) {
+      msg <- conditionMessage(e)
+      if (grepl("429", msg, fixed = TRUE) || grepl("Too Many Requests", msg, fixed = TRUE) ||
+          grepl("rate limit", msg, ignore.case = TRUE) ||
+          grepl("overloaded", msg, ignore.case = TRUE)) {
+        stop(rate_limit_error(msg))
+      }
+      stop(e)
+    }
+  )
+
+  httr2::resp_body_json(resp)
+}
+
+# Iterative tool-calling loop for Anthropic Claude.
+# Same interface as openai_tool_loop() but uses Claude's response format.
+# Returns list(final_message, messages, tool_calls_made).
+anthropic_tool_loop <- function(messages,
+                                tools,
+                                tool_handlers,
+                                max_iterations = 10L,
+                                model = NULL,
+                                api_key = NULL,
+                                temperature = 0.1) {
+  total_tool_calls <- 0L
+
+  # Extract system prompt from messages (Claude uses top-level system field)
+  system_prompt <- NULL
+  api_messages <- list()
+  for (msg in messages) {
+    if (identical(msg$role, "system")) {
+      system_prompt <- msg$content
+    } else {
+      api_messages <- c(api_messages, list(msg))
+    }
+  }
+
+  for (iter in seq_len(max_iterations)) {
+    response <- anthropic_chat(
+      messages = api_messages,
+      tools = tools,
+      model = model,
+      api_key = api_key,
+      system_prompt = system_prompt,
+      temperature = temperature
+    )
+
+    # Build assistant message from response content
+    content_blocks <- response$content
+    assistant_msg <- list(role = "assistant", content = content_blocks)
+
+    # Append assistant message to conversation
+    api_messages <- c(api_messages, list(assistant_msg))
+
+    # Extract tool use blocks
+    tool_uses <- Filter(function(b) identical(b$type, "tool_use"), content_blocks)
+
+    # If no tool calls, model is done — extract final text
+    if (length(tool_uses) == 0 || !identical(response$stop_reason, "tool_use")) {
+      text_blocks <- Filter(function(b) identical(b$type, "text"), content_blocks)
+      final_text <- paste(vapply(text_blocks, function(b) b$text %||% "", character(1)), collapse = "\n")
+      return(list(
+        final_message = final_text,
+        messages = api_messages,
+        tool_calls_made = total_tool_calls
+      ))
+    }
+
+    # Process each tool call
+    tool_results <- list()
+    for (tc in tool_uses) {
+      fn_name <- tc$name
+      fn_args <- tc$input  # Already a parsed list (not a JSON string)
+      if (is.null(fn_args)) fn_args <- list()
+
+      handler <- tool_handlers[[fn_name]]
+      if (is.null(handler)) {
+        result_str <- jsonlite::toJSON(
+          list(error = paste("Unknown tool:", fn_name)),
+          auto_unbox = TRUE
+        )
+      } else {
+        result_str <- tryCatch(
+          handler(fn_args),
+          error = function(e) {
+            jsonlite::toJSON(list(error = conditionMessage(e)), auto_unbox = TRUE)
+          }
+        )
+      }
+
+      tool_results <- c(tool_results, list(list(
+        type = "tool_result",
+        tool_use_id = tc$id,
+        content = as.character(result_str)
+      )))
+      total_tool_calls <- total_tool_calls + 1L
+    }
+
+    # Append tool results as a single user message
+    api_messages <- c(api_messages, list(list(
+      role = "user",
+      content = tool_results
+    )))
+  }
+
+  cli::cli_warn("Tool-calling loop reached max iterations ({max_iterations})")
+  text_blocks <- Filter(function(b) identical(b$type, "text"), content_blocks)
+  final_text <- paste(vapply(text_blocks, function(b) b$text %||% "", character(1)), collapse = "\n")
+  list(
+    final_message = final_text,
+    messages = api_messages,
+    tool_calls_made = total_tool_calls
+  )
+}
+
+# ===========================================================================
+# Provider detection
+# ===========================================================================
+
+# Auto-detect LLM provider from environment variables.
+# Prefers Anthropic if both keys are set.
+detect_llm_provider <- function() {
+  has_anthropic <- nzchar(Sys.getenv("ANTHROPIC_API_KEY", ""))
+  has_openai <- nzchar(Sys.getenv("OPENAI_API_KEY", ""))
+  if (has_anthropic) return("anthropic")
+  if (has_openai) return("openai")
+  stop("No LLM API key found. Set ANTHROPIC_API_KEY or OPENAI_API_KEY.", call. = FALSE)
 }

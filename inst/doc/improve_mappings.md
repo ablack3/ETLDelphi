@@ -30,9 +30,9 @@ run_etl(con, from_step = "30_vocab")
 ## Automated Approach: `improve_mappings()`
 
 The `improve_mappings()` function queries staging tables for unmapped source values,
-sends each one to GPT-4 with Hecate (semantic vocabulary search) and OMOPHub (NDC
-code lookup) as tool-calling functions, and writes high-confidence results to the
-custom mapping CSVs.
+sends each one to an LLM (Claude or GPT-4) with Hecate (semantic vocabulary search)
+and OMOPHub (NDC code lookup) as tool-calling functions, and writes high-confidence
+results to the custom mapping CSVs. Supports both Anthropic (Claude) and OpenAI APIs.
 
 ### Parameters
 
@@ -44,16 +44,40 @@ custom mapping CSVs.
 | `confidence_threshold` | 0.7 | Minimum LLM confidence to write to production CSV |
 | `force_retry` | `FALSE` | Retry control (see below) |
 | `dry_run` | `FALSE` | Show what would be processed without calling LLM |
-| `model` | `"gpt-4o"` | OpenAI model (or env var `OPENAI_MODEL`) |
+| `provider` | auto-detect | `"anthropic"` or `"openai"` (auto-detects from API keys) |
+| `model` | per provider | Anthropic: `ANTHROPIC_MODEL` or `claude-sonnet-4-20250514`; OpenAI: `OPENAI_MODEL` or `gpt-4o` |
 | `log_path` | `"mapping_improvement_log.csv"` | Path to detailed log |
 
 ### Environment Variables
 
+Set **one** of the LLM API keys (or both — Anthropic is preferred when both are set):
+
 ```bash
-OPENAI_API_KEY=sk-...          # Required
-OPENAI_MODEL=gpt-4o            # Optional, default gpt-4o
+# Anthropic (Claude) — recommended
+ANTHROPIC_API_KEY=sk-ant-...    # Anthropic API key
+ANTHROPIC_MODEL=claude-sonnet-4-20250514  # Optional, default claude-sonnet-4-20250514
+
+# OpenAI
+OPENAI_API_KEY=sk-...           # OpenAI API key
+OPENAI_MODEL=gpt-4o             # Optional, default gpt-4o
+
+# Vocabulary search (required regardless of LLM provider)
 HECATE_API_KEY=...              # Required for vocabulary search
 OMOPHUB_API_KEY=oh_...          # Optional, enables NDC code lookup for drugs
+```
+
+### Provider Selection
+
+The LLM provider is auto-detected from which API key is set. You can also select
+explicitly:
+
+```r
+# Auto-detect (prefers Anthropic if both keys are set)
+improve_mappings(con, limit = 10)
+
+# Force a specific provider
+improve_mappings(con, limit = 10, provider = "anthropic")
+improve_mappings(con, limit = 10, provider = "openai")
 ```
 
 ### Retry Strategies
@@ -78,9 +102,9 @@ first left off.
 
 ### Rate Limits
 
-If the OpenAI API returns HTTP 429 (rate limit), the loop stops immediately with a
-clear message. Any mappings found before the limit are still saved. Run again later
-to continue from where you left off.
+If the LLM API returns HTTP 429 (rate limit) or an overloaded error, the loop stops
+immediately with a clear message. Any mappings found before the limit are still saved.
+Run again later to continue from where you left off.
 
 ### What Gets Written
 

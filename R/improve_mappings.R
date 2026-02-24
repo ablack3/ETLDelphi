@@ -7,8 +7,8 @@
 #' Improve unmapped concept mappings using an LLM with vocabulary search tools
 #'
 #' Queries DuckDB staging tables for records that failed vocabulary mapping
-#' (concept_id = 0), then for each unmapped source value, uses GPT-4 (or
-#' compatible model) with Hecate semantic search and OMOPHub code lookup tools
+#' (concept_id = 0), then for each unmapped source value, uses an LLM (Claude
+#' or GPT-4) with Hecate semantic search and OMOPHub code lookup tools
 #' to find the best OMOP concept mapping.
 #'
 #' The function provides the LLM with rich context: both the source code AND
@@ -39,8 +39,12 @@
 #' @param custom_mapping_path Path to production custom_concept_mapping.csv.
 #'   Default: from config or package default.
 #' @param log_path Path to detailed log CSV. Default: \code{"mapping_improvement_log.csv"}.
-#' @param model OpenAI model name. Default: env var OPENAI_MODEL or \code{"gpt-4o"}.
-#' @param api_key OpenAI API key. Default: env var OPENAI_API_KEY.
+#' @param provider LLM provider: \code{"anthropic"} or \code{"openai"}. Default:
+#'   auto-detected from API keys (prefers Anthropic if both are set).
+#' @param model Model name. Default: \code{ANTHROPIC_MODEL} / \code{"claude-sonnet-4-20250514"}
+#'   for Anthropic, \code{OPENAI_MODEL} / \code{"gpt-4o"} for OpenAI.
+#' @param api_key API key. Default: from \code{ANTHROPIC_API_KEY} or \code{OPENAI_API_KEY}
+#'   env var based on provider.
 #' @param hecate Hecate client object. Default: created from env vars.
 #' @param omophub OMOPHub client object. Default: created from env vars. Used for NDC lookups.
 #' @param custom_ndc_mapping_path Path to custom NDC mapping CSV. Default: from config or package default.
@@ -61,6 +65,7 @@ improve_mappings <- function(con,
                              custom_mapping_path = NULL,
                              custom_ndc_mapping_path = NULL,
                              log_path = "mapping_improvement_log.csv",
+                             provider = NULL,
                              model = NULL,
                              api_key = NULL,
                              hecate = NULL,
@@ -123,9 +128,21 @@ improve_mappings <- function(con,
     return(invisible(unmapped))
   }
 
+  # Resolve LLM provider
+  provider <- provider %||% detect_llm_provider()
+  provider <- match.arg(provider, c("anthropic", "openai"))
+
+  if (provider == "anthropic") {
+    model <- model %||% Sys.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-20250514")
+    api_key <- api_key %||% Sys.getenv("ANTHROPIC_API_KEY")
+  } else {
+    model <- model %||% Sys.getenv("OPENAI_MODEL", "gpt-4o")
+    api_key <- api_key %||% Sys.getenv("OPENAI_API_KEY")
+  }
+  cli::cli_alert_info("Using LLM provider: {provider} ({model})")
+
   # Initialize clients
   hc <- hecate %||% hecate_client()
-  model <- model %||% Sys.getenv("OPENAI_MODEL", "gpt-4o")
 
   # OMOPHub client for NDC lookups (only used for drug domain)
   has_omophub <- nzchar(Sys.getenv("OMOPHUB_API_KEY", ""))
@@ -183,6 +200,7 @@ improve_mappings <- function(con,
         source_vocab = row$source_vocab,
         tools = tools,
         tool_handlers = handlers,
+        provider = provider,
         model = model,
         api_key = api_key
       ),
@@ -749,12 +767,13 @@ build_mapping_user_message <- function(source_value, domain, record_count,
 }
 
 
-# Map a single source value using the OpenAI tool-calling loop.
+# Map a single source value using the LLM tool-calling loop.
+# Routes to openai_tool_loop() or anthropic_tool_loop() based on provider.
 # Accepts rich context from staging: source_code, source_name, source_vocab.
 # Returns list with concept_id, concept_name, vocabulary_id, confidence, reasoning, tool_calls.
 map_single_value <- function(source_value, domain, record_count,
                              source_code = NA, source_name = NA, source_vocab = NA,
-                             tools, tool_handlers, model, api_key) {
+                             tools, tool_handlers, provider = "openai", model, api_key) {
   system_prompt <- build_mapping_system_prompt(domain)
 
   user_message <- build_mapping_user_message(
@@ -771,14 +790,25 @@ map_single_value <- function(source_value, domain, record_count,
     list(role = "user", content = user_message)
   )
 
-  result <- openai_tool_loop(
-    messages = messages,
-    tools = tools,
-    tool_handlers = tool_handlers,
-    max_iterations = 10L,
-    model = model,
-    api_key = api_key
-  )
+  if (identical(provider, "anthropic")) {
+    result <- anthropic_tool_loop(
+      messages = messages,
+      tools = tools,
+      tool_handlers = tool_handlers,
+      max_iterations = 10L,
+      model = model,
+      api_key = api_key
+    )
+  } else {
+    result <- openai_tool_loop(
+      messages = messages,
+      tools = tools,
+      tool_handlers = tool_handlers,
+      max_iterations = 10L,
+      model = model,
+      api_key = api_key
+    )
+  }
 
   # Parse the final JSON response
   parsed <- tryCatch(
