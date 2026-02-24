@@ -4,6 +4,7 @@
 
 # Single OpenAI chat completion call via httr2.
 # Returns parsed response body (list).
+# Signals a `rate_limit_error` condition on HTTP 429 so callers can stop the loop.
 openai_chat <- function(messages,
                         tools = NULL,
                         model = NULL,
@@ -25,17 +26,35 @@ openai_chat <- function(messages,
     body$tools <- tools
   }
 
-  resp <- httr2::request(paste0(base_url, "/chat/completions")) |>
-    httr2::req_headers(
-      Authorization = paste("Bearer", api_key),
-      `Content-Type` = "application/json"
-    ) |>
-    httr2::req_body_json(body, auto_unbox = TRUE) |>
-    httr2::req_timeout(120) |>
-    httr2::req_retry(max_tries = 3, backoff = ~ 2) |>
-    httr2::req_perform()
+  resp <- tryCatch(
+    httr2::request(paste0(base_url, "/chat/completions")) |>
+      httr2::req_headers(
+        Authorization = paste("Bearer", api_key),
+        `Content-Type` = "application/json"
+      ) |>
+      httr2::req_body_json(body, auto_unbox = TRUE) |>
+      httr2::req_timeout(120) |>
+      httr2::req_retry(max_tries = 3, backoff = ~ 5) |>
+      httr2::req_perform(),
+    error = function(e) {
+      msg <- conditionMessage(e)
+      if (grepl("429", msg, fixed = TRUE) || grepl("Too Many Requests", msg, fixed = TRUE) ||
+          grepl("rate limit", msg, ignore.case = TRUE)) {
+        stop(rate_limit_error(msg))
+      }
+      stop(e)
+    }
+  )
 
   httr2::resp_body_json(resp)
+}
+
+# Custom condition constructor for rate limit errors
+rate_limit_error <- function(message) {
+  structure(
+    class = c("rate_limit_error", "error", "condition"),
+    list(message = message)
+  )
 }
 
 # Iterative function-calling loop. Sends messages to OpenAI, processes tool_calls,

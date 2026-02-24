@@ -170,6 +170,9 @@ improve_mappings <- function(con,
     tools <- mapping_tools(domain = domain)
     handlers <- build_tool_handlers(hc, oh = oh, domain = domain)
 
+    # Track whether we hit a rate limit (used to break the loop)
+    rate_limited <- FALSE
+
     result <- tryCatch(
       map_single_value(
         source_value = row$source_value,
@@ -183,6 +186,12 @@ improve_mappings <- function(con,
         model = model,
         api_key = api_key
       ),
+      rate_limit_error = function(e) {
+        rate_limited <<- TRUE
+        cli::cli_alert_danger("API rate limit reached. Stopping — run again later to continue from where you left off.")
+        cli::cli_alert_info("Processed {i - 1L} of {nrow(unmapped)} values before hitting the limit.")
+        NULL
+      },
       error = function(e) {
         cli::cli_warn("  Error: {conditionMessage(e)}")
         list(
@@ -194,6 +203,9 @@ improve_mappings <- function(con,
         )
       }
     )
+
+    # Stop the loop on rate limit — don't log this item so it retries next run
+    if (rate_limited) break
 
     # Build log row (with new context columns)
     log_row <- data.frame(
@@ -750,4 +762,143 @@ map_single_value <- function(source_value, domain, record_count,
 
   parsed$tool_calls <- result$tool_calls_made
   parsed
+}
+
+
+# --- Manual mapping helpers ---
+
+#' Manually add custom concept mappings
+#'
+#' Adds one or more rows to \code{custom_concept_mapping.csv} (and optionally
+#' \code{custom_ndc_mapping.csv} for drug NDC codes). Existing entries for the
+#' same source_value + domain are updated in place.
+#'
+#' @section Usage:
+#' \preformatted{
+#' # Single mapping
+#' add_custom_mapping("dexamethasone", "drug", 1518254)
+#'
+#' # With NDC
+#' add_custom_mapping("dexamethasone", "drug", 1518254, ndc_code = "47202252901")
+#'
+#' # Batch — vectorized
+#' add_custom_mapping(
+#'   source_value = c("dexamethasone", "valproic acid", "nifedipine"),
+#'   domain      = "drug",
+#'   concept_id  = c(1518254, 789578, 1318137),
+#'   ndc_code    = c("47202252901", "00093063201", "00047007824")
+#' )
+#'
+#' # Non-drug domains
+#' add_custom_mapping("Acute pharyngitis", "condition", 28060)
+#' }
+#'
+#' @param source_value Character. The source value to map. For drugs, this
+#'   should be the drug \strong{name} (not the NDC code), since the CDM load
+#'   SQL joins custom_concept_mapping on drug_name.
+#' @param domain Character. One of "condition", "drug", "measurement",
+#'   "procedure", "observation".
+#' @param concept_id Integer. The OMOP standard concept_id to map to.
+#' @param custom_mapping_path Path to the custom_concept_mapping.csv file.
+#'   Default: from config or package default.
+#' @param ndc_code Optional character. For drugs, also write an entry to
+#'   custom_ndc_mapping.csv with this NDC code.
+#' @param custom_ndc_mapping_path Path to the custom_ndc_mapping.csv file.
+#'   Default: from config or package default.
+#' @return Invisible TRUE on success.
+#' @export
+add_custom_mapping <- function(source_value,
+                               domain,
+                               concept_id,
+                               custom_mapping_path = NULL,
+                               ndc_code = NULL,
+                               custom_ndc_mapping_path = NULL) {
+  # Validate inputs
+  stopifnot(is.character(source_value), length(source_value) >= 1L)
+  stopifnot(is.character(domain))
+  stopifnot(is.numeric(concept_id))
+
+  n <- length(source_value)
+
+  # Recycle domain to match length of source_value
+  if (length(domain) == 1L) domain <- rep(domain, n)
+  stopifnot(length(domain) == n, length(concept_id) == n)
+
+  valid_domains <- c("condition", "drug", "measurement", "procedure", "observation")
+  bad <- setdiff(unique(domain), valid_domains)
+  if (length(bad) > 0) stop("Invalid domain(s): ", paste(bad, collapse = ", "), call. = FALSE)
+
+  # Resolve paths
+  config <- tryCatch(default_etl_config(), error = function(e) list())
+
+  if (is.null(custom_mapping_path)) {
+    custom_mapping_path <- config$custom_mapping_path
+    if (is.null(custom_mapping_path) || !nzchar(trimws(custom_mapping_path))) {
+      custom_mapping_path <- system.file("extdata", "custom_concept_mapping.csv", package = "ETLDelphi")
+    }
+  }
+
+  # Read existing
+  existing <- if (file.exists(custom_mapping_path)) {
+    tryCatch(
+      read.csv(custom_mapping_path, stringsAsFactors = FALSE),
+      error = function(e) data.frame(source_value = character(), domain = character(), concept_id = integer(), stringsAsFactors = FALSE)
+    )
+  } else {
+    data.frame(source_value = character(), domain = character(), concept_id = integer(), stringsAsFactors = FALSE)
+  }
+
+  new_rows <- data.frame(
+    source_value = source_value,
+    domain = domain,
+    concept_id = as.integer(concept_id),
+    stringsAsFactors = FALSE
+  )
+
+  merged <- rbind(existing, new_rows)
+  dup_key <- paste(merged$source_value, merged$domain, sep = "|||")
+  merged <- merged[!duplicated(dup_key, fromLast = TRUE), , drop = FALSE]
+  write.csv(merged, custom_mapping_path, row.names = FALSE)
+
+  cli::cli_alert_success("Added {n} mapping(s) to {custom_mapping_path}")
+
+  # Handle NDC codes
+  if (!is.null(ndc_code)) {
+    if (length(ndc_code) == 1L) ndc_code <- rep(ndc_code, n)
+    stopifnot(length(ndc_code) == n)
+
+    # Only process non-NA NDC entries
+    has_ndc <- !is.na(ndc_code) & nzchar(ndc_code)
+    if (any(has_ndc)) {
+      if (is.null(custom_ndc_mapping_path)) {
+        custom_ndc_mapping_path <- config$custom_ndc_mapping_path
+        if (is.null(custom_ndc_mapping_path) || !nzchar(trimws(custom_ndc_mapping_path))) {
+          custom_ndc_mapping_path <- system.file("extdata", "custom_ndc_mapping.csv", package = "ETLDelphi")
+        }
+      }
+
+      existing_ndc <- if (file.exists(custom_ndc_mapping_path)) {
+        tryCatch(
+          read.csv(custom_ndc_mapping_path, stringsAsFactors = FALSE),
+          error = function(e) data.frame(drug_ndc_normalized = character(), drug_concept_id = integer(), stringsAsFactors = FALSE)
+        )
+      } else {
+        data.frame(drug_ndc_normalized = character(), drug_concept_id = integer(), stringsAsFactors = FALSE)
+      }
+
+      new_ndc <- data.frame(
+        drug_ndc_normalized = ndc_code[has_ndc],
+        drug_concept_id = as.integer(concept_id[has_ndc]),
+        stringsAsFactors = FALSE
+      )
+
+      merged_ndc <- rbind(existing_ndc, new_ndc)
+      merged_ndc <- merged_ndc[!duplicated(merged_ndc$drug_ndc_normalized, fromLast = TRUE), , drop = FALSE]
+      write.csv(merged_ndc, custom_ndc_mapping_path, row.names = FALSE)
+
+      cli::cli_alert_success("Added {sum(has_ndc)} NDC mapping(s) to {custom_ndc_mapping_path}")
+    }
+  }
+
+  invisible(TRUE)
 }
