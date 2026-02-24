@@ -45,6 +45,10 @@ ORDER BY from_table, to_domain;
 -- ============================================================================
 -- Step 1: Route TO condition_occurrence from other tables
 -- ============================================================================
+-- Remove previously routed rows so this step is idempotent on re-run
+DELETE FROM cdm.condition_occurrence
+WHERE condition_occurrence_id >= 910000000 AND condition_occurrence_id < 920000000;
+
 INSERT INTO cdm.condition_occurrence (
     condition_occurrence_id, person_id, condition_concept_id, condition_start_date,
     condition_type_concept_id, visit_occurrence_id, condition_source_value
@@ -81,6 +85,10 @@ FROM to_condition;
 -- ============================================================================
 -- Step 2: Route TO drug_exposure from other tables
 -- ============================================================================
+-- Remove previously routed rows so this step is idempotent on re-run
+DELETE FROM cdm.drug_exposure
+WHERE drug_exposure_id >= 920000000 AND drug_exposure_id < 930000000;
+
 INSERT INTO cdm.drug_exposure (
     drug_exposure_id, person_id, drug_concept_id, drug_exposure_start_date, drug_exposure_end_date,
     drug_type_concept_id, visit_occurrence_id, drug_source_value
@@ -117,6 +125,10 @@ FROM to_drug;
 -- ============================================================================
 -- Step 3: Route TO measurement from other tables
 -- ============================================================================
+-- Remove previously routed rows so this step is idempotent on re-run
+DELETE FROM cdm.measurement
+WHERE measurement_id >= 930000000 AND measurement_id < 940000000;
+
 INSERT INTO cdm.measurement (
     measurement_id, person_id, measurement_concept_id, measurement_date,
     measurement_type_concept_id, visit_occurrence_id, measurement_source_value
@@ -153,6 +165,10 @@ FROM to_measurement;
 -- ============================================================================
 -- Step 4: Route TO observation from other tables
 -- ============================================================================
+-- Remove previously routed rows so this step is idempotent on re-run
+DELETE FROM cdm.observation
+WHERE observation_id >= 940000000 AND observation_id < 950000000;
+
 INSERT INTO cdm.observation (
     observation_id, person_id, observation_concept_id, observation_date,
     observation_type_concept_id, visit_occurrence_id, observation_source_value
@@ -189,6 +205,10 @@ FROM to_observation;
 -- ============================================================================
 -- Step 5: Route TO procedure_occurrence from other tables
 -- ============================================================================
+-- Remove previously routed rows so this step is idempotent on re-run
+DELETE FROM cdm.procedure_occurrence
+WHERE procedure_occurrence_id >= 950000000 AND procedure_occurrence_id < 960000000;
+
 INSERT INTO cdm.procedure_occurrence (
     procedure_occurrence_id, person_id, procedure_concept_id, procedure_date,
     procedure_type_concept_id, visit_occurrence_id, procedure_source_value

@@ -6,3 +6,5 @@
 vocabulary_download_v5/
 delphi.duckdb
 delphi.duckdb.wal
+.claude/
+.vscode/

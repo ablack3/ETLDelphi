@@ -104,54 +104,39 @@ con <- DBI::dbConnect(duckdb::duckdb(), "~/Desktop/delphi.duckdb")
 
 ETLDelphi::run_etl(con = con, config = config)
 
+unlink(here::here("inst/shiny/mapping_quality/mapping_quality_results"), recursive = T)
+ETLDelphi::analyze_mapping_quality(con, output_dir = "inst/shiny/mapping_quality/mapping_quality_results")
+list.files("inst/shiny/mapping_quality/mapping_quality_results")
+run_mapping_quality_app(results_dir = here::here("inst/shiny/mapping_quality/mapping_quality_results"))
 
 
+# Create LLM generated custom mappings
+improve_mappings(
+  con,
+  config = config,
+  # domains = "drug",
+  dry_run = TRUE,
+  limit = 10,
+  confidence_threshold = .7,
+  provider = "openai"
+)
+
+improve_mappings(
+  con,
+  config = config,
+  # domains = "drug",
+  limit = 10,
+  confidence_threshold = .7,
+  provider = "openai"
+)
 
 
-DBI::dbDisconnect(con, shutdown = T)
-
-con <- DBI::dbConnect(duckdb::duckdb(), "~/Desktop/delphi.duckdb")
-
-cdm <- CDMConnector::cdmFromCon(con, "main")
-
-library(dplyr)
-prov <- cdm$provider %>%
-  collect()
-
-readr::write_csv(prov, "prov.csv")
-
-cdm$person
-
-
-DBI::dbListTables(con)
-
-CDMConnector::listTables(con, "main")
 
 # Export unmapped units, measurement values, and drugs for manual mapping (see extras/UNMAPPED_UNITS.md)
 ETLDelphi::export_unmapped_units(con, output_path = "unmapped_units.csv")
 ETLDelphi::export_unmapped_measurement_values(con, output_path = "unmapped_measurement_values.csv")
 ETLDelphi::export_unmapped_drugs(con, output_path = "unmapped_drugs.csv")
 
-unlink(here::here("inst/shiny/mapping_quality/mapping_quality_results"), recursive = T)
-ETLDelphi::analyze_mapping_quality(con, output_dir = "inst/shiny/mapping_quality/mapping_quality_results")
-
-# Launch the mapping quality Shiny app (optional; close the app to continue)
-list.files("inst/shiny/mapping_quality/mapping_quality_results")
-run_mapping_quality_app(results_dir = here::here("inst/shiny/mapping_quality/mapping_quality_results"))
-
-library(CDMConnector)
-library(dplyr)
-
-cdm <- CDMConnector::cdmFromCon(con, "main")
-
-cdm$concept %>%
-  filter(vocabulary_id == "NDC")
-
-cdm$condition_occurrence %>%
-  select(condition_source_value, condition_source_concept_id, condition_concept_id)
-
-cdm$drug_exposure %>%
-  select(drug_source_value, drug_source_concept_id, drug_concept_id )
 
 
 # --- 3. Run Achilles ----------------------------------------------------------

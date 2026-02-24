@@ -1,0 +1,5 @@
+"from_table","to_domain","record_count"
+"measurement","Observation",678661
+"measurement","Procedure",44826
+"observation","Drug",20112
+"procedure_occurrence","Observation",667015
