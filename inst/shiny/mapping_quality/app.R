@@ -39,30 +39,32 @@ severity_hex <- function(pct) {
   "#dc3545"
 }
 
-# DT table factory
-make_dt <- function(df, page_len = 15, ...) {
+# DT table factory — compact, Tufte-style
+make_dt <- function(df, page_len = 20, ...) {
   if (is.null(df) || nrow(df) == 0) return(datatable(data.frame(), options = list(dom = "t")))
   datatable(
     df,
     rownames = FALSE,
-    class = "compact stripe hover",
+    class = "compact stripe hover cell-border",
     options = list(
       pageLength = page_len,
       scrollX = TRUE,
       autoWidth = TRUE,
+      dom = "lftip",
       language = list(emptyTable = "No data available")
     ),
     ...
   )
 }
 
-# Styled base R bar plot
+# Styled base R bar plot — Tufte-inspired: no border, minimal axis chrome
 styled_barplot <- function(values, labels, title = "", xlab = "", col = "#0d6efd",
                            highlight_fn = NULL, ...) {
   if (length(values) == 0) return(invisible(NULL))
   cols <- if (!is.null(highlight_fn)) vapply(values, highlight_fn, character(1)) else rep(col, length(values))
-  left_margin <- max(8, min(18, max(nchar(labels), na.rm = TRUE) * 0.55))
-  op <- par(mar = c(4, left_margin, 2.5, 1.5), family = "sans", bg = "white")
+  left_margin <- max(7, min(16, max(nchar(labels), na.rm = TRUE) * 0.48))
+  op <- par(mar = c(3, left_margin, 1.8, 1), family = "sans", bg = "white",
+            cex.axis = 0.7, cex.lab = 0.72, mgp = c(1.8, 0.4, 0), tcl = -0.2)
   on.exit(par(op))
   bp <- barplot(
     rev(values),
@@ -73,9 +75,9 @@ styled_barplot <- function(values, labels, title = "", xlab = "", col = "#0d6efd
     border = NA,
     main = title,
     xlab = xlab,
-    cex.names = 0.85,
-    cex.main = 1.1,
-    col.main = "#212529",
+    cex.names = 0.68,
+    cex.main = 0.82,
+    col.main = "#495057",
     ...
   )
   invisible(bp)
@@ -92,8 +94,42 @@ ui <- page_navbar(
     "navbar-bg" = "#2c3e50",
     base_font = font_google("Inter"),
     heading_font = font_google("Inter"),
-    font_scale = 0.95
-  ),
+    font_scale = 0.78
+  ) |> bs_add_rules("
+    /* Tufte: maximize data-ink, minimize non-data pixels */
+    .bslib-value-box { --bslib-value-box-border-width-auto-yes: 0; }
+    .bslib-value-box .value-box-area { padding: 0.45rem 0.7rem !important; min-height: 0 !important; }
+    .bslib-value-box .value-box-title { font-size: 0.68rem !important; text-transform: uppercase; letter-spacing: 0.04em; opacity: 0.75; margin-bottom: 0.1rem !important; }
+    .bslib-value-box .value-box-value { font-size: 1.25rem !important; font-weight: 600; line-height: 1.2; }
+    .bslib-value-box .value-box-showcase { padding: 0 0.5rem !important; max-width: 2.2rem !important; }
+    .bslib-value-box .value-box-showcase .fa, .bslib-value-box .value-box-showcase .svg-inline--fa { font-size: 1.1rem !important; }
+    .bslib-value-box p.small { font-size: 0.62rem !important; margin-top: 0.1rem; opacity: 0.7; }
+    .card { border: 1px solid #e9ecef; box-shadow: none; }
+    .card-header { padding: 0.35rem 0.65rem; font-size: 0.74rem; font-weight: 600; background: #f8f9fa; }
+    .card-body { padding: 0.5rem 0.65rem; }
+    .card-body.p-2 { padding: 0.3rem 0.5rem !important; }
+    .card-body.p-3 { padding: 0.4rem 0.6rem !important; }
+    .navbar { padding: 0.25rem 0.75rem; min-height: 0; }
+    .navbar-brand { font-size: 0.82rem; font-weight: 600; }
+    .nav-link { font-size: 0.72rem; padding: 0.3rem 0.6rem !important; }
+    h5, .h5 { font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; color: #495057; }
+    h6, .h6 { font-size: 0.68rem; }
+    h3, .h3 { font-size: 1.1rem; }
+    .progress { height: 3px !important; }
+    .container-fluid.py-2 { padding-top: 0.3rem !important; padding-bottom: 0.3rem !important; }
+    .mt-3 { margin-top: 0.6rem !important; }
+    .mt-4 { margin-top: 0.8rem !important; }
+    .mb-3 { margin-bottom: 0.5rem !important; }
+    .alert { padding: 0.35rem 0.6rem; font-size: 0.72rem; }
+    .badge { font-size: 0.62rem; }
+    .dataTables_wrapper { font-size: 0.72rem; }
+    table.dataTable td, table.dataTable th { padding: 0.25rem 0.5rem !important; }
+    .dataTables_info, .dataTables_length, .dataTables_filter, .dataTables_paginate { font-size: 0.68rem; }
+    .form-control { font-size: 0.72rem; padding: 0.2rem 0.45rem; }
+    .btn-sm { font-size: 0.68rem; padding: 0.2rem 0.55rem; }
+    .text-muted.small, p.small { font-size: 0.65rem !important; }
+    .form-label, label { font-size: 0.68rem; }
+  "),
   fillable = FALSE,
 
   # --- Settings bar below navbar ---
@@ -160,7 +196,7 @@ ui <- page_navbar(
       class = "mt-4",
       card_header("Mapping Coverage by Table"),
       card_body(
-        plotOutput("dashboard_coverage_plot", height = "380px")
+        plotOutput("dashboard_coverage_plot", height = "300px")
       )
     )
   ),
@@ -177,12 +213,12 @@ ui <- page_navbar(
 
       card(
         card_header("Unmapped Records by Table"),
-        card_body(plotOutput("unmapped_count_plot", height = "340px"))
+        card_body(plotOutput("unmapped_count_plot", height = "280px"))
       ),
 
       card(
         card_header("Unmapped Percentage by Table"),
-        card_body(plotOutput("unmapped_pct_plot", height = "340px"))
+        card_body(plotOutput("unmapped_pct_plot", height = "280px"))
       )
     ),
 
@@ -225,7 +261,7 @@ ui <- page_navbar(
     card(
       class = "mt-3",
       card_header("Top Unmapped Source Values"),
-      card_body(plotOutput("top_unmapped_bar", height = "500px"))
+      card_body(plotOutput("top_unmapped_bar", height = "420px"))
     ),
 
     card(
@@ -247,12 +283,12 @@ ui <- page_navbar(
 
       card(
         card_header("Staging Tables"),
-        card_body(plotOutput("stg_counts_plot", height = "400px"))
+        card_body(plotOutput("stg_counts_plot", height = "320px"))
       ),
 
       card(
         card_header("CDM Tables"),
-        card_body(plotOutput("cdm_counts_plot", height = "400px"))
+        card_body(plotOutput("cdm_counts_plot", height = "320px"))
       )
     ),
 
@@ -318,7 +354,7 @@ ui <- page_navbar(
     card(
       class = "mt-3",
       card_header("Domain Conformance by CDM Table"),
-      card_body(plotOutput("domain_conf_plot", height = "340px"))
+      card_body(plotOutput("domain_conf_plot", height = "280px"))
     ),
 
     layout_columns(
@@ -380,7 +416,7 @@ ui <- page_navbar(
       class = "mt-3",
       card_header("Reject Table Details"),
       card_body(
-        plotOutput("reject_plot", height = "380px")
+        plotOutput("reject_plot", height = "300px")
       )
     ),
 
@@ -560,21 +596,22 @@ server <- function(input, output, session) {
       card_body(
         class = "p-3",
         tags$div(
-          class = "d-flex justify-content-between align-items-start",
+          class = "d-flex justify-content-between align-items-center",
           tags$div(
-            tags$h6(class = "text-muted mb-1", domain_label),
-            tags$h3(class = "mb-0", style = paste0("color:", col), fmt_pct(cov_pct))
+            tags$div(style = "font-size:0.62rem; text-transform:uppercase; letter-spacing:0.04em; color:#6c757d;", domain_label),
+            tags$div(style = paste0("font-size:1.05rem; font-weight:600; color:", col, "; line-height:1.3;"), fmt_pct(cov_pct))
           ),
           tags$div(
             class = "text-end",
-            tags$div(class = "small text-muted", paste(fmt_num(row$mapped_count), "mapped")),
-            tags$div(class = "small text-muted", paste(fmt_num(row$unmapped_count), "unmapped")),
-            tags$div(class = "small text-muted", paste(fmt_num(row$total_rows), "total"))
+            style = "font-size:0.6rem; color:#6c757d; line-height:1.5;",
+            tags$span(fmt_num(row$mapped_count), " mapped"), tags$br(),
+            tags$span(fmt_num(row$unmapped_count), " unmapped"), tags$br(),
+            tags$span(fmt_num(row$total_rows), " total")
           )
         ),
         tags$div(
-          class = "progress mt-2",
-          style = "height: 6px;",
+          class = "progress mt-1",
+          style = "height: 3px;",
           tags$div(
             class = paste0("progress-bar bg-", severity_color(cov_pct)),
             role = "progressbar",
@@ -606,21 +643,22 @@ server <- function(input, output, session) {
       card_body(
         class = "p-3",
         tags$div(
-          class = "d-flex justify-content-between align-items-start",
+          class = "d-flex justify-content-between align-items-center",
           tags$div(
-            tags$h6(class = "text-muted mb-1", "Person Integrity"),
-            tags$h3(class = "mb-0", style = paste0("color:", if (match) "#198754" else "#dc3545"),
+            tags$div(style = "font-size:0.62rem; text-transform:uppercase; letter-spacing:0.04em; color:#6c757d;", "Person Integrity"),
+            tags$div(style = paste0("font-size:1.05rem; font-weight:600; color:", if (match) "#198754" else "#dc3545", "; line-height:1.3;"),
                     if (match) "Match" else "Mismatch")
           ),
           tags$div(
             class = "text-end",
-            tags$div(class = "small text-muted", paste(fmt_num(src_count), "source")),
-            tags$div(class = "small text-muted", paste(fmt_num(cdm_count), "CDM"))
+            style = "font-size:0.6rem; color:#6c757d; line-height:1.5;",
+            tags$span(fmt_num(src_count), " source"), tags$br(),
+            tags$span(fmt_num(cdm_count), " CDM")
           )
         ),
         tags$div(
-          class = "progress mt-2",
-          style = "height: 6px;",
+          class = "progress mt-1",
+          style = "height: 3px;",
           tags$div(
             class = paste0("progress-bar bg-", if (match) "success" else "danger"),
             role = "progressbar",
@@ -641,8 +679,9 @@ server <- function(input, output, session) {
     )
     d$mapped_pct <- 100 - d$unmapped_pct
 
-    left_margin <- max(10, max(nchar(d$label), na.rm = TRUE) * 0.55)
-    op <- par(mar = c(4, left_margin, 2, 1), family = "sans", bg = "white")
+    left_margin <- max(9, max(nchar(d$label), na.rm = TRUE) * 0.48)
+    op <- par(mar = c(3, left_margin, 1.2, 1), family = "sans", bg = "white",
+              cex.axis = 0.65, cex.lab = 0.68, mgp = c(1.8, 0.4, 0), tcl = -0.15)
     on.exit(par(op))
 
     n <- nrow(d)
@@ -655,8 +694,8 @@ server <- function(input, output, session) {
       border = NA,
       xlim = c(0, 105),
       xlab = "Mapped %",
-      cex.names = 0.8,
-      cex.main = 1.1
+      cex.names = 0.65,
+      cex.main = 0.82
     )
 
     # Add percentage labels
@@ -665,7 +704,7 @@ server <- function(input, output, session) {
       y = ypos,
       labels = fmt_pct(rev(d$mapped_pct)),
       adj = 0,
-      cex = 0.75,
+      cex = 0.6,
       col = "#495057"
     )
   })
@@ -763,8 +802,9 @@ server <- function(input, output, session) {
       df$source_value
     )
 
-    left_margin <- max(10, max(nchar(lbl), na.rm = TRUE) * 0.52)
-    op <- par(mar = c(4, left_margin, 2.5, 5), family = "sans", bg = "white")
+    left_margin <- max(9, max(nchar(lbl), na.rm = TRUE) * 0.45)
+    op <- par(mar = c(3, left_margin, 1.5, 4.5), family = "sans", bg = "white",
+              cex.axis = 0.6, cex.lab = 0.65, mgp = c(1.8, 0.35, 0), tcl = -0.15)
     on.exit(par(op))
 
     ypos <- barplot(
@@ -775,8 +815,8 @@ server <- function(input, output, session) {
       col = rev(cols),
       border = NA,
       xlab = "Record count",
-      cex.names = 0.7,
-      cex.main = 1.1,
+      cex.names = 0.58,
+      cex.main = 0.78,
       main = paste("Top", n, "unmapped source values")
     )
 
@@ -786,7 +826,7 @@ server <- function(input, output, session) {
       y = ypos,
       labels = fmt_num(rev(df$record_count)),
       adj = -0.15,
-      cex = 0.65,
+      cex = 0.55,
       col = "#495057"
     )
 
@@ -800,7 +840,7 @@ server <- function(input, output, session) {
              fill = present_colors,
              border = NA,
              bty = "n",
-             cex = 0.8)
+             cex = 0.65)
     }
   })
 
