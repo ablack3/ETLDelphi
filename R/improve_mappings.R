@@ -396,6 +396,7 @@ get_unmapped_source_values <- function(con, stg, domains, limit) {
     drug = c("medication_orders", "map_drug_order"),
     condition = c("problem", "map_condition"),
     measurement = c("lab_results", "map_loinc_measurement"),
+    measurement_value = c("lab_results", "map_measurement_value"),
     procedure = c("therapy_orders", "map_therapy"),
     observation = c("allergy")
   )
@@ -547,6 +548,36 @@ build_unmapped_query <- function(domain, stg, limit) {
         'LIMIT {limit}'
       )
     },
+    measurement_value = {
+      # Measurement Value: query lab_results for unmapped categorical result_description values.
+      # Only non-numeric results (numeric_result IS NULL). Joins to map_measurement_value and
+      # custom_concept_mapping with domain='measurement_value'.
+      # source_code = test_loinc (context), source_name = test_name (context).
+      sv <- "TRIM(SUBSTR(lr.result_description, 1, 50))"
+      ne <- not_exists(sv, "measurement_value")
+      glue::glue(
+        'SELECT ',
+        '  {sv} AS source_value, ',
+        '  COUNT(*) AS record_count, ',
+        '  lr.test_loinc AS source_code, ',
+        '  lr.test_name AS source_name, ',
+        '  \'Meas Value\' AS source_vocab, ',
+        '  {sv} AS mapping_key ',
+        'FROM "{stg}".lab_results lr ',
+        'LEFT JOIN "{stg}".map_measurement_value mval ',
+        '  ON mval.result_source_value = LOWER(TRIM(REPLACE(REPLACE(COALESCE(lr.result_description, \'\'), \'[\', \'\'), \']\', \'\'))) ',
+        'LEFT JOIN "{stg}".custom_concept_mapping cust_val ',
+        '  ON cust_val.source_value = TRIM(SUBSTR(lr.result_description, 1, 50)) AND cust_val.domain = \'measurement_value\' ',
+        'WHERE COALESCE(mval.value_as_concept_id, cust_val.concept_id, 0) = 0 ',
+        '  AND lr.result_description IS NOT NULL ',
+        '  AND TRIM(lr.result_description) != \'\' ',
+        '  AND lr.numeric_result IS NULL ',
+        '  {ne} ',
+        'GROUP BY {sv}, lr.test_loinc, lr.test_name ',
+        'ORDER BY record_count DESC ',
+        'LIMIT {limit}'
+      )
+    },
     procedure = {
       # Procedure: query therapy_orders + therapy_actions joined to map_therapy.
       # source_code = code, source_name = name, source_vocab = vocabulary.
@@ -679,6 +710,16 @@ build_mapping_user_message <- function(source_value, domain, record_count,
     } else if (has_name && !has_code) {
       parts <- c(parts, "No LOINC code available. Search by test name in LOINC vocabulary. Use your medical knowledge to identify the correct lab test concept.")
     }
+  } else if (domain == "measurement_value") {
+    parts <- c(parts, paste0("Result Value: \"", source_value, "\""))
+    if (has_code) parts <- c(parts, paste0("Test LOINC (context): \"", source_code, "\""))
+    if (has_name) parts <- c(parts, paste0("Test Name (context): \"", source_name, "\""))
+    parts <- c(parts, paste0(
+      "This is a categorical lab result value (not a test name). ",
+      "Search for OMOP Meas Value concepts or SNOMED clinical findings ",
+      "that represent this result (e.g., 'Normal', 'Positive', 'Pass'). ",
+      "The test context is provided to help understand the meaning of the value."
+    ))
   } else if (domain == "procedure") {
     if (has_code) parts <- c(parts, paste0("Procedure Code: \"", source_code, "\""))
     if (has_name) parts <- c(parts, paste0("Procedure Name: \"", source_name, "\""))
@@ -824,7 +865,7 @@ add_custom_mapping <- function(source_value,
   if (length(domain) == 1L) domain <- rep(domain, n)
   stopifnot(length(domain) == n, length(concept_id) == n)
 
-  valid_domains <- c("condition", "drug", "measurement", "procedure", "observation")
+  valid_domains <- c("condition", "drug", "measurement", "measurement_value", "procedure", "observation")
   bad <- setdiff(unique(domain), valid_domains)
   if (length(bad) > 0) stop("Invalid domain(s): ", paste(bad, collapse = ", "), call. = FALSE)
 

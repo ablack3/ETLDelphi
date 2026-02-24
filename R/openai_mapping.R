@@ -305,6 +305,7 @@ build_mapping_system_prompt <- function(domain) {
     condition = "diagnosis, problem, or medical condition",
     drug = "medication, drug, or immunization",
     measurement = "lab test, vital sign, or clinical measurement",
+    measurement_value = "categorical lab result value (e.g., Positive, Normal, Pass)",
     procedure = "clinical procedure or therapy",
     observation = "clinical observation, allergy, or finding",
     "clinical concept"
@@ -349,6 +350,17 @@ build_mapping_system_prompt <- function(domain) {
       "Use the procedure name to verify or search semantically if code lookup fails.",
       "Use domain_id='Procedure' and standard_concept='S'.",
       "Use your clinical knowledge to interpret procedure names and map to standard concepts."
+    ),
+    measurement_value = paste(
+      "You will receive a categorical lab result value (like 'right ear pass', 'reactive', '20/20').",
+      "Test LOINC and test name are provided as context to help understand the meaning.",
+      "STRATEGY: Search for Meas Value concepts in the 'Meas Value' vocabulary first.",
+      "Common Meas Value concepts: Normal (4069590), Abnormal (4135493), Positive (9191),",
+      "Negative (9189), Present (4181412), Absent (4132135), High (4328749), Low (4267416),",
+      "Pass (4077375), Trace (9192), Reactive (9191), Non-reactive (9190), Equivocal (45877994).",
+      "If no Meas Value concept fits, search SNOMED with domain_id='Meas Value' or 'Observation'.",
+      "The concept should represent the RESULT VALUE, not the test itself.",
+      "Use your clinical knowledge to interpret result descriptions in the context of the test."
     ),
     observation = paste(
       "You will receive an allergen name and/or a drug code with vocabulary when available.",

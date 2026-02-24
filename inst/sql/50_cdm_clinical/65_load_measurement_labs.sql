@@ -23,7 +23,7 @@ SELECT
     32827,
     l.numeric_result,
     CASE WHEN l.numeric_result IS NULL AND l.result_description IS NOT NULL AND TRIM(l.result_description) <> ''
-         THEN COALESCE(mval.value_as_concept_id, 0) ELSE NULL END AS value_as_concept_id,
+         THEN COALESCE(mval.value_as_concept_id, cust_val.concept_id, 0) ELSE NULL END AS value_as_concept_id,
     CASE WHEN l.units IS NOT NULL AND TRIM(l.units) <> '' THEN COALESCE(u.unit_concept_id, 0) ELSE NULL END AS unit_concept_id,
     SUBSTR(l.units, 1, 50),
     l.range_low,
@@ -40,6 +40,7 @@ LEFT JOIN stg.map_units u ON u.unit_source_value = LOWER(TRIM(REPLACE(REPLACE(CO
 LEFT JOIN stg.map_visit mv ON mv.encounter_id_source = l.encounter_id
 LEFT JOIN stg.map_provider mpr ON mpr.provider_id_source = l.provider_id
 LEFT JOIN stg.map_measurement_value mval ON mval.result_source_value = LOWER(TRIM(REPLACE(REPLACE(COALESCE(l.result_description, ''), '[', ''), ']', '')))
+LEFT JOIN stg.custom_concept_mapping cust_val ON cust_val.source_value = TRIM(SUBSTR(l.result_description, 1, 50)) AND cust_val.domain = 'measurement_value'
 WHERE NOT EXISTS (SELECT 1 FROM cdm.measurement m WHERE m.measurement_id = l.measurement_id);
 
 CREATE OR REPLACE TABLE stg.reject_measurement_labs_missing AS
