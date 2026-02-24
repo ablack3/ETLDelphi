@@ -167,12 +167,15 @@ improve_mappings <- function(con,
     data.frame(drug_ndc_normalized = character(), drug_concept_id = integer(), stringsAsFactors = FALSE)
   }
 
-  # Ensure log file has header (with new columns)
+  # Ensure log file has correct 16-column header; repair if outdated
   if (!file.exists(log_path) || file.size(log_path) == 0) {
-    writeLines(
-      "source_value,domain,record_count,source_code,source_name,mapping_key,concept_id,concept_name,vocabulary_id,confidence,reasoning,source_is_ndc,ndc_normalized,tool_calls,timestamp,model",
-      log_path
-    )
+    writeLines(LOG_HEADER_LINE, log_path)
+  } else {
+    current_header <- readLines(log_path, n = 1, warn = FALSE)
+    if (current_header != LOG_HEADER_LINE) {
+      cli::cli_alert_warning("Log file header mismatch \u2014 repairing column alignment...")
+      repair_mapping_log(log_path)
+    }
   }
 
   new_custom_rows <- list()
@@ -247,7 +250,8 @@ improve_mappings <- function(con,
       stringsAsFactors = FALSE
     )
 
-    # Append to log incrementally
+    # Append to log incrementally (explicit column ordering matches header)
+    log_row <- log_row[, LOG_HEADER_COLS, drop = FALSE]
     write.table(log_row, log_path, append = TRUE, sep = ",",
                 row.names = FALSE, col.names = FALSE, quote = TRUE)
 
@@ -327,23 +331,169 @@ improve_mappings <- function(con,
 # --- Internal helpers ---
 
 # Load existing log file, returning empty data.frame if missing/corrupt.
+# Automatically repairs column alignment if the header doesn't match the current schema.
 load_existing_log <- function(log_path) {
-  if (file.exists(log_path) && file.size(log_path) > 0) {
-    tryCatch(
-      read.csv(log_path, stringsAsFactors = FALSE),
-      error = function(e) empty_log_df()
-    )
-  } else {
-    empty_log_df()
+  if (!file.exists(log_path) || file.size(log_path) == 0) {
+    return(empty_log_df())
   }
+
+  # Repair header if needed before reading
+  current_header <- readLines(log_path, n = 1, warn = FALSE)
+  if (current_header != LOG_HEADER_LINE) {
+    tryCatch(
+      repair_mapping_log(log_path),
+      error = function(e) {
+        cli::cli_warn("Failed to repair log: {conditionMessage(e)}")
+      }
+    )
+  }
+
+  tryCatch(
+    read.csv(log_path, stringsAsFactors = FALSE),
+    error = function(e) empty_log_df()
+  )
 }
 
 empty_log_df <- function() {
+
   data.frame(
     source_value = character(), domain = character(),
     concept_id = integer(), confidence = numeric(),
     stringsAsFactors = FALSE
   )
+}
+
+# Canonical 16-column header for the mapping improvement log.
+LOG_HEADER_COLS <- c(
+  "source_value", "domain", "record_count", "source_code", "source_name",
+  "mapping_key", "concept_id", "concept_name", "vocabulary_id", "confidence",
+  "reasoning", "source_is_ndc", "ndc_normalized", "tool_calls", "timestamp", "model"
+)
+
+LOG_HEADER_LINE <- paste(LOG_HEADER_COLS, collapse = ",")
+
+# Repair a mapping improvement log CSV with misaligned columns.
+# The log file may contain rows written by different code versions:
+#   - 11-col (original):  sv, domain, record_count, concept_id, concept_name, vocabulary_id, confidence, reasoning, tool_calls, timestamp, model
+#   - 13-col (v2, added source_is_ndc + ndc_normalized): same as 11 but inserts source_is_ndc, ndc_normalized between reasoning and tool_calls
+#   - 16-col (v3, current): full format with source_code, source_name, mapping_key added between record_count and concept_id
+# This function normalizes all rows to 16-column format and rewrites the file.
+# Handles multi-line quoted fields (e.g., error messages with embedded newlines).
+repair_mapping_log <- function(log_path) {
+  if (!file.exists(log_path) || file.size(log_path) == 0) return(invisible(NULL))
+
+  raw_lines <- readLines(log_path, warn = FALSE)
+  if (length(raw_lines) < 2) return(invisible(NULL))  # header only
+
+  # Step 1: Reassemble multi-line quoted fields into single logical lines.
+  # A line is "incomplete" if it has an odd number of unescaped double quotes,
+  # meaning a quoted field spans into the next physical line.
+  logical_lines <- character()
+  buffer <- ""
+  in_multiline <- FALSE
+
+  for (i in seq(2, length(raw_lines))) {
+    line <- raw_lines[i]
+
+    if (in_multiline) {
+      # Continue assembling multi-line record
+      buffer <- paste0(buffer, "\n", line)
+    } else {
+      buffer <- line
+    }
+
+    # Count unescaped quotes (double-double-quotes "" are escaped)
+    stripped <- gsub('""', "", buffer, fixed = TRUE)
+    n_quotes <- nchar(gsub('[^"]', "", stripped))
+
+    if (n_quotes %% 2 == 0) {
+      # Even quotes = complete CSV record
+      if (nzchar(trimws(buffer))) {
+        logical_lines <- c(logical_lines, buffer)
+      }
+      buffer <- ""
+      in_multiline <- FALSE
+    } else {
+      # Odd quotes = record continues on next line
+      in_multiline <- TRUE
+    }
+  }
+
+  # Step 2: Parse each logical line and normalize column layout
+  repaired <- vector("list", length(logical_lines))
+  n_repaired <- 0L
+
+  for (i in seq_along(logical_lines)) {
+    line <- logical_lines[i]
+
+    parsed <- tryCatch(
+      read.csv(text = line, header = FALSE, stringsAsFactors = FALSE),
+      error = function(e) NULL
+    )
+    if (is.null(parsed)) next
+
+    ncols <- ncol(parsed)
+    row <- as.character(parsed[1, ])
+
+    if (ncols == 11L) {
+      # Original 11-col format
+      # Insert NA for: source_code, source_name, mapping_key, source_is_ndc, ndc_normalized
+      new_row <- c(
+        row[1:3],           # source_value, domain, record_count
+        NA, NA, NA,          # source_code, source_name, mapping_key
+        row[4:8],           # concept_id, concept_name, vocabulary_id, confidence, reasoning
+        NA, NA,              # source_is_ndc, ndc_normalized
+        row[9:11]           # tool_calls, timestamp, model
+      )
+    } else if (ncols == 13L) {
+      # V2 13-col: adds source_is_ndc + ndc_normalized between reasoning and tool_calls
+      # Insert NA for: source_code, source_name, mapping_key
+      new_row <- c(
+        row[1:3],           # source_value, domain, record_count
+        NA, NA, NA,          # source_code, source_name, mapping_key
+        row[4:13]           # concept_id through model
+      )
+    } else if (ncols == 16L) {
+      # Current 16-col: already correct
+      new_row <- row
+    } else {
+      # Unknown format — pad or truncate to 16
+      if (ncols < 16L) {
+        new_row <- c(row, rep(NA, 16L - ncols))
+      } else {
+        new_row <- row[1:16]
+      }
+    }
+
+    n_repaired <- n_repaired + 1L
+    repaired[[n_repaired]] <- new_row
+  }
+
+  if (n_repaired == 0L) return(invisible(NULL))
+
+  # Step 3: Build repaired data.frame
+  repaired_df <- as.data.frame(
+    do.call(rbind, repaired[seq_len(n_repaired)]),
+    stringsAsFactors = FALSE
+  )
+  names(repaired_df) <- LOG_HEADER_COLS
+
+  # Coerce types
+  repaired_df$record_count <- suppressWarnings(as.integer(repaired_df$record_count))
+  repaired_df$concept_id <- suppressWarnings(as.integer(repaired_df$concept_id))
+  repaired_df$confidence <- suppressWarnings(as.numeric(repaired_df$confidence))
+  repaired_df$source_is_ndc <- suppressWarnings(as.logical(repaired_df$source_is_ndc))
+  repaired_df$tool_calls <- suppressWarnings(as.integer(repaired_df$tool_calls))
+
+  # Step 4: Rewrite file atomically
+  tmp <- paste0(log_path, ".repair_tmp")
+  writeLines(LOG_HEADER_LINE, tmp)
+  write.table(repaired_df, tmp, append = TRUE, sep = ",",
+              row.names = FALSE, col.names = FALSE, quote = TRUE, na = "NA")
+  file.rename(tmp, log_path)
+
+  cli::cli_alert_success("Repaired log file: {n_repaired} rows normalized to 16-column format.")
+  invisible(repaired_df)
 }
 
 # Create a DuckDB temp table of already-processed (source_value, domain) pairs.
@@ -1092,6 +1242,15 @@ rebuild_custom_mappings_from_log <- function(
   if (!file.exists(log_path)) {
     cli::cli_alert_warning("Log file not found: {log_path}")
     return(invisible(list(n_concept = 0L, n_ndc = 0L)))
+  }
+
+  # Repair column alignment if header is outdated
+  current_header <- readLines(log_path, n = 1, warn = FALSE)
+  if (current_header != LOG_HEADER_LINE) {
+    cli::cli_alert_warning("Log file header mismatch \u2014 repairing column alignment...")
+    tryCatch(repair_mapping_log(log_path), error = function(e) {
+      cli::cli_warn("Failed to repair log: {conditionMessage(e)}")
+    })
   }
 
   log_df <- tryCatch(
