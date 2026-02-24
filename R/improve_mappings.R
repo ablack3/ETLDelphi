@@ -50,8 +50,9 @@
 #' @param custom_ndc_mapping_path Path to custom NDC mapping CSV. Default: from config or package default.
 #' @param force_retry Controls retry behaviour for already-processed values.
 #'   \itemize{
-#'     \item \code{FALSE} (default): skip all values already in the log.
-#'     \item \code{"failed"}: retry values where the log has concept_id = 0/NA or confidence below threshold.
+#'     \item \code{FALSE} (default): skip successfully mapped values (concept_id > 0
+#'       AND confidence >= threshold). Failed mappings are automatically retried.
+#'     \item \code{"all"}: skip ALL values already in the log, including failures.
 #'     \item \code{TRUE}: ignore the log entirely — reprocess everything.
 #'   }
 #' @param dry_run If TRUE, show what would be processed without calling LLM.
@@ -360,16 +361,21 @@ populate_already_done_table <- function(con, existing_log, force_retry, confiden
   if (nrow(existing_log) == 0) return(invisible(NULL))
 
   # Determine which log entries count as "done"
-  if (identical(force_retry, "failed")) {
-    # Only mark successful entries as done (retry the failures)
+  # Default: only successfully mapped entries are skipped, so failed mappings
+
+  # (concept_id = 0/NA or low confidence) are automatically retried.
+  # force_retry = TRUE: retry everything (skip nothing)
+  # force_retry = "all": skip all logged entries including failures
+  if (identical(force_retry, "all")) {
+    # Mark ALL logged entries as done (even failures won't retry)
+    done_log <- existing_log
+  } else {
+    # Default: only mark successful entries as done (retry the failures)
     keep <- !is.na(existing_log$concept_id) &
       existing_log$concept_id > 0 &
       !is.na(existing_log$confidence) &
       existing_log$confidence >= confidence_threshold
     done_log <- existing_log[keep, , drop = FALSE]
-  } else {
-    # Default: all logged entries are done
-    done_log <- existing_log
   }
 
   if (nrow(done_log) == 0) return(invisible(NULL))
@@ -569,7 +575,8 @@ build_unmapped_query <- function(domain, stg, limit) {
     measurement_value = {
       # Measurement Value: query lab_results for unmapped categorical result_description values.
       # Only non-numeric results (numeric_result IS NULL). Joins to map_measurement_value and
-      # custom_concept_mapping with domain='measurement_value'.
+      # custom_concept_mapping with domain='measurement_value'. Also excludes values handled by
+      # pattern-based fallback in the CDM load SQL (65_load_measurement_labs.sql).
       # source_code = test_loinc (context), source_name = test_name (context).
       sv <- "TRIM(SUBSTR(lr.result_description, 1, 50))"
       ne <- not_exists(sv, "measurement_value")
@@ -590,6 +597,18 @@ build_unmapped_query <- function(domain, stg, limit) {
         '  AND lr.result_description IS NOT NULL ',
         '  AND TRIM(lr.result_description) != \'\' ',
         '  AND lr.numeric_result IS NULL ',
+        '  -- Exclude values handled by pattern-based fallback in CDM load SQL ',
+        '  AND LOWER(lr.result_description) NOT LIKE \'%no abnormal%\' ',
+        '  AND LOWER(lr.result_description) NOT LIKE \'%no lumps%\' ',
+        '  AND LOWER(lr.result_description) NOT LIKE \'%no lump %\' ',
+        '  AND LOWER(lr.result_description) NOT LIKE \'%no polyps%\' ',
+        '  AND LOWER(lr.result_description) NOT LIKE \'%no growth%\' ',
+        '  AND LOWER(lr.result_description) NOT LIKE \'%no pouches%\' ',
+        '  AND LOWER(lr.result_description) NOT LIKE \'%no murmurs%\' ',
+        '  AND LOWER(lr.result_description) NOT LIKE \'%no nasal%\' ',
+        '  AND LOWER(lr.result_description) NOT LIKE \'%are normal%\' ',
+        '  AND LOWER(lr.result_description) NOT LIKE \'%negative for%\' ',
+        '  AND LOWER(lr.result_description) NOT LIKE \'%negative %\' ',
         '  {ne} ',
         'GROUP BY {sv}, lr.test_loinc, lr.test_name ',
         'ORDER BY record_count DESC ',
@@ -1042,4 +1061,159 @@ add_custom_mapping <- function(source_value,
   }
 
   invisible(TRUE)
+}
+
+
+#' Rebuild custom mapping CSVs from the mapping improvement log
+#'
+#' Scans the `mapping_improvement_log.csv` for successfully mapped values
+#' (concept_id > 0 and confidence >= threshold) and writes them to
+#' `custom_concept_mapping.csv` and `custom_ndc_mapping.csv`. Useful when
+#' the custom CSV files have been reset or lost (e.g., by a package reinstall).
+#'
+#' Only the best (latest) mapping per source_value + domain pair is kept.
+#' Existing entries in the CSV files are preserved; log entries take precedence
+#' on conflict.
+#'
+#' @param log_path Path to the mapping improvement log CSV.
+#' @param custom_mapping_path Path to custom_concept_mapping.csv. Default: package default.
+#' @param custom_ndc_mapping_path Path to custom_ndc_mapping.csv. Default: package default.
+#' @param confidence_threshold Minimum confidence to include. Default: 0.7.
+#' @param dry_run If TRUE, show what would be written without modifying files.
+#' @return Invisible list with counts: n_concept, n_ndc.
+#' @export
+rebuild_custom_mappings_from_log <- function(
+    log_path = "mapping_improvement_log.csv",
+    custom_mapping_path = NULL,
+    custom_ndc_mapping_path = NULL,
+    confidence_threshold = 0.7,
+    dry_run = FALSE
+) {
+  if (!file.exists(log_path)) {
+    cli::cli_alert_warning("Log file not found: {log_path}")
+    return(invisible(list(n_concept = 0L, n_ndc = 0L)))
+  }
+
+  log_df <- tryCatch(
+    read.csv(log_path, stringsAsFactors = FALSE),
+    error = function(e) {
+      cli::cli_alert_danger("Failed to read log: {conditionMessage(e)}")
+      return(data.frame())
+    }
+  )
+
+  if (nrow(log_df) == 0) {
+    cli::cli_alert_info("Log file is empty.")
+    return(invisible(list(n_concept = 0L, n_ndc = 0L)))
+  }
+
+  # Filter to successful mappings
+  good <- !is.na(log_df$concept_id) &
+    log_df$concept_id > 0 &
+    !is.na(log_df$confidence) &
+    log_df$confidence >= confidence_threshold
+
+  if (sum(good) == 0) {
+    cli::cli_alert_info("No successful mappings found above confidence threshold {confidence_threshold}.")
+    return(invisible(list(n_concept = 0L, n_ndc = 0L)))
+  }
+
+  good_df <- log_df[good, , drop = FALSE]
+  cli::cli_alert_info("Found {nrow(good_df)} successful mapping(s) in log (confidence >= {confidence_threshold}).")
+
+  # Resolve paths
+  config <- tryCatch(default_etl_config(), error = function(e) list())
+
+  if (is.null(custom_mapping_path)) {
+    custom_mapping_path <- config$custom_mapping_path
+    if (is.null(custom_mapping_path) || !nzchar(trimws(custom_mapping_path))) {
+      custom_mapping_path <- system.file("extdata", "custom_concept_mapping.csv", package = "ETLDelphi")
+    }
+  }
+
+  if (is.null(custom_ndc_mapping_path)) {
+    custom_ndc_mapping_path <- config$custom_ndc_mapping_path
+    if (is.null(custom_ndc_mapping_path) || !nzchar(trimws(custom_ndc_mapping_path))) {
+      custom_ndc_mapping_path <- system.file("extdata", "custom_ndc_mapping.csv", package = "ETLDelphi")
+    }
+  }
+
+  # --- Build concept mappings ---
+  # Use mapping_key if available, otherwise source_value
+  mk_col <- if ("mapping_key" %in% names(good_df)) good_df$mapping_key else good_df$source_value
+  mk_col <- ifelse(is.na(mk_col) | !nzchar(mk_col), good_df$source_value, mk_col)
+
+  concept_rows <- data.frame(
+    source_value = mk_col,
+    domain = good_df$domain,
+    concept_id = as.integer(good_df$concept_id),
+    stringsAsFactors = FALSE
+  )
+
+  # De-duplicate: keep latest (last) per source_value + domain
+  dup_key <- paste(concept_rows$source_value, concept_rows$domain, sep = "|||")
+  concept_rows <- concept_rows[!duplicated(dup_key, fromLast = TRUE), , drop = FALSE]
+
+  # --- Build NDC mappings ---
+  ndc_col <- if ("ndc_normalized" %in% names(good_df)) good_df$ndc_normalized else NA_character_
+  is_ndc <- if ("source_is_ndc" %in% names(good_df)) as.logical(good_df$source_is_ndc) else rep(FALSE, nrow(good_df))
+  is_ndc[is.na(is_ndc)] <- FALSE
+
+  has_ndc <- is_ndc & good_df$domain == "drug" & !is.na(ndc_col) & nzchar(ndc_col)
+  ndc_rows <- if (any(has_ndc)) {
+    data.frame(
+      drug_ndc_normalized = ndc_col[has_ndc],
+      drug_concept_id = as.integer(good_df$concept_id[has_ndc]),
+      stringsAsFactors = FALSE
+    )
+  } else {
+    data.frame(drug_ndc_normalized = character(), drug_concept_id = integer(), stringsAsFactors = FALSE)
+  }
+  ndc_rows <- ndc_rows[!duplicated(ndc_rows$drug_ndc_normalized, fromLast = TRUE), , drop = FALSE]
+
+  # --- Summary ---
+  cli::cli_alert_info("Would write {nrow(concept_rows)} concept mapping(s) and {nrow(ndc_rows)} NDC mapping(s).")
+
+  by_domain <- table(concept_rows$domain)
+  for (d in names(by_domain)) {
+    cli::cli_bullets(c("*" = "{d}: {by_domain[[d]]} mapping(s)"))
+  }
+
+  if (dry_run) {
+    cli::cli_alert_info("Dry run — no files modified.")
+    return(invisible(list(n_concept = nrow(concept_rows), n_ndc = nrow(ndc_rows))))
+  }
+
+  # --- Merge with existing and write ---
+  # Concept mappings
+  existing_concept <- if (file.exists(custom_mapping_path)) {
+    tryCatch(read.csv(custom_mapping_path, stringsAsFactors = FALSE), error = function(e) {
+      data.frame(source_value = character(), domain = character(), concept_id = integer(), stringsAsFactors = FALSE)
+    })
+  } else {
+    data.frame(source_value = character(), domain = character(), concept_id = integer(), stringsAsFactors = FALSE)
+  }
+
+  merged <- rbind(existing_concept, concept_rows)
+  merged_key <- paste(merged$source_value, merged$domain, sep = "|||")
+  merged <- merged[!duplicated(merged_key, fromLast = TRUE), , drop = FALSE]
+  write.csv(merged, custom_mapping_path, row.names = FALSE)
+  cli::cli_alert_success("Wrote {nrow(merged)} concept mapping(s) to {custom_mapping_path}")
+
+  # NDC mappings
+  if (nrow(ndc_rows) > 0) {
+    existing_ndc <- if (file.exists(custom_ndc_mapping_path)) {
+      tryCatch(read.csv(custom_ndc_mapping_path, stringsAsFactors = FALSE), error = function(e) {
+        data.frame(drug_ndc_normalized = character(), drug_concept_id = integer(), stringsAsFactors = FALSE)
+      })
+    } else {
+      data.frame(drug_ndc_normalized = character(), drug_concept_id = integer(), stringsAsFactors = FALSE)
+    }
+    merged_ndc <- rbind(existing_ndc, ndc_rows)
+    merged_ndc <- merged_ndc[!duplicated(merged_ndc$drug_ndc_normalized, fromLast = TRUE), , drop = FALSE]
+    write.csv(merged_ndc, custom_ndc_mapping_path, row.names = FALSE)
+    cli::cli_alert_success("Wrote {nrow(merged_ndc)} NDC mapping(s) to {custom_ndc_mapping_path}")
+  }
+
+  invisible(list(n_concept = nrow(concept_rows), n_ndc = nrow(ndc_rows)))
 }

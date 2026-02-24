@@ -23,7 +23,26 @@ SELECT
     32827,
     l.numeric_result,
     CASE WHEN l.numeric_result IS NULL AND l.result_description IS NOT NULL AND TRIM(l.result_description) <> ''
-         THEN COALESCE(NULLIF(mval.value_as_concept_id, 0), cust_val.concept_id, 0) ELSE NULL END AS value_as_concept_id,
+         THEN COALESCE(
+           NULLIF(mval.value_as_concept_id, 0),
+           cust_val.concept_id,
+           -- Pattern-based fallback for common screening/exam result phrases
+           CASE
+             WHEN LOWER(l.result_description) LIKE '%no abnormal%'       THEN 4069590  -- Normal
+             WHEN LOWER(l.result_description) LIKE '%no lumps%'          THEN 4069590  -- Normal
+             WHEN LOWER(l.result_description) LIKE '%no lump %'          THEN 4069590  -- Normal
+             WHEN LOWER(l.result_description) LIKE '%no polyps%'         THEN 4069590  -- Normal
+             WHEN LOWER(l.result_description) LIKE '%no growth%'         THEN 4069590  -- Normal
+             WHEN LOWER(l.result_description) LIKE '%no pouches%'        THEN 4069590  -- Normal
+             WHEN LOWER(l.result_description) LIKE '%no murmurs%'        THEN 4069590  -- Normal
+             WHEN LOWER(l.result_description) LIKE '%no nasal%'          THEN 4069590  -- Normal
+             WHEN LOWER(l.result_description) LIKE '%are normal%'        THEN 4069590  -- Normal
+             WHEN LOWER(l.result_description) LIKE '%negative for%'      THEN 9189     -- Negative
+             WHEN LOWER(l.result_description) LIKE '%negative %'         THEN 9189     -- Negative
+             ELSE NULL
+           END,
+           0
+         ) ELSE NULL END AS value_as_concept_id,
     CASE WHEN l.units IS NOT NULL AND TRIM(l.units) <> '' THEN COALESCE(u.unit_concept_id, 0) ELSE NULL END AS unit_concept_id,
     SUBSTR(l.units, 1, 50),
     l.range_low,
