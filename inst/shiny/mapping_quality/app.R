@@ -236,25 +236,19 @@ ui <- page_navbar(
     title = "Top Unmapped Values",
     icon = icon("list-ol"),
 
-    layout_columns(
-      col_widths = c(4, 4, 4),
-      card(
-        card_body(
-          class = "p-2",
-          uiOutput("top_domain_selector")
-        )
+    tags$div(
+      class = "d-flex align-items-end gap-3 mb-2",
+      tags$div(
+        style = "min-width: 160px;",
+        uiOutput("top_domain_selector")
       ),
-      card(
-        card_body(
-          class = "p-2",
-          numericInput("top_n", "Show top N", value = 25, min = 5, max = 200, step = 5, width = "100%")
-        )
+      tags$div(
+        style = "min-width: 100px;",
+        numericInput("top_n", "Show top N", value = 25, min = 5, max = 200, step = 5, width = "100%")
       ),
-      card(
-        card_body(
-          class = "p-2",
-          uiOutput("top_unmapped_summary_text")
-        )
+      tags$div(
+        class = "ms-auto",
+        uiOutput("top_unmapped_summary_text")
       )
     ),
 
@@ -760,7 +754,8 @@ server <- function(input, output, session) {
     if (is.null(d) || !"domain" %in% names(d)) return(NULL)
     domains <- sort(unique(d$domain))
     selectInput("top_domain", "Domain", choices = c("All Domains" = "(all)", domains),
-                selected = "(all)", width = "100%")
+                selected = isolate(input$top_domain) %||% "(all)",
+                selectize = FALSE, width = "100%")
   })
 
   top_unmapped_filtered <- reactive({
