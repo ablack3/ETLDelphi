@@ -1,0 +1,626 @@
+---
+title: "Oncology Data Diagnostic"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    theme: cosmo
+    df_print: kable
+vignette: >
+  %\VignetteIndexEntry{Oncology Data Diagnostic}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  fig.width = 10,
+  fig.height = 6
+)
+```
+
+# Overview
+
+This diagnostic evaluates a CDM dataset for suitability in oncology research. We
+examine the presence and depth of cancer-related data across four clinical
+domains: **conditions**, **drugs**, **procedures**, and **measurements**. The
+report also looks for evidence of cancer staging, disease progression, and tumor
+markers -- data elements critical for most oncology study designs.
+
+All concept IDs are hardcoded OMOP standard concepts verified against the OMOP
+Standardized Vocabulary.
+
+# Setup
+
+Connect to the CDM database and load required libraries.
+
+```{r connect}
+library(DBI)
+library(dplyr, warn.conflicts = FALSE)
+library(ggplot2)
+library(CDMConnector)
+
+con <- dbConnect(duckdb::duckdb(), "~/Desktop/delphi.duckdb")
+cdm <- cdmFromCon(con, cdm_schema = "cdm", write_schema = "main")
+```
+
+```{r theme, include=FALSE}
+theme_set(
+  theme_minimal(base_size = 13) +
+    theme(
+      plot.title = element_text(face = "bold"),
+      axis.text.y = element_text(size = 10)
+    )
+)
+
+fmt <- function(x) format(x, big.mark = ",", scientific = FALSE)
+```
+
+# 1. Overall Cancer Prevalence
+
+We start by counting how many persons and condition records are associated with
+any malignant neoplasm. The parent concept **443392** (*Malignant neoplastic
+disease*) captures all cancers via the SNOMED hierarchy and `concept_ancestor`.
+
+```{r cancer-prevalence}
+# 443392 = Malignant neoplastic disease (SNOMED 363346000)
+cancer_descendants <- cdm$concept_ancestor %>%
+  filter(ancestor_concept_id == 443392L) %>%
+  select(descendant_concept_id)
+
+cancer_conditions <- cdm$condition_occurrence %>%
+  inner_join(cancer_descendants,
+             by = c("condition_concept_id" = "descendant_concept_id"))
+
+cancer_summary <- cancer_conditions %>%
+  summarise(
+    cancer_persons = n_distinct(person_id),
+    cancer_records = n()
+  ) %>%
+  collect()
+
+total_persons <- cdm$person %>% tally() %>% pull(n)
+
+cancer_summary <- cancer_summary %>%
+  mutate(
+    total_persons = total_persons,
+    prevalence_pct = round(cancer_persons / total_persons * 100, 2)
+  )
+```
+
+```{r cancer-prevalence-table}
+cancer_summary %>%
+  transmute(
+    `Total Persons in CDM`   = fmt(total_persons),
+    `Persons with Cancer`    = fmt(cancer_persons),
+    `Cancer Prevalence (%)`  = prevalence_pct,
+    `Cancer Condition Records`= fmt(cancer_records)
+  ) %>%
+  knitr::kable(align = "r")
+```
+
+# 2. Top Cancer Subtypes
+
+The table below identifies the most common cancer subtypes by person count. We
+query condition_occurrence against concept_ancestor descendants of the
+malignant neoplasm hierarchy and resolve concept names.
+
+```{r cancer-subtypes}
+cancer_by_type <- cancer_conditions %>%
+  group_by(condition_concept_id) %>%
+  summarise(
+    persons = n_distinct(person_id),
+    records = n(),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(persons)) %>%
+  head(20) %>%
+  left_join(
+    cdm$concept %>% select(concept_id, concept_name),
+    by = c("condition_concept_id" = "concept_id")
+  ) %>%
+  collect()
+```
+
+```{r cancer-subtypes-plot, fig.height=7}
+cancer_by_type %>%
+  mutate(label = paste0(concept_name, " [", condition_concept_id, "]")) %>%
+  mutate(label = reorder(label, persons)) %>%
+  ggplot(aes(x = persons, y = label)) +
+  geom_col(fill = "#2c7fb8") +
+  geom_text(aes(label = fmt(persons)), hjust = -0.1, size = 3.2) +
+  scale_x_continuous(expand = expansion(mult = c(0, 0.25)),
+                     labels = scales::comma) +
+  labs(
+    title = "Top 20 Cancer Subtypes by Person Count",
+    x = "Persons", y = NULL
+  )
+```
+
+We also check against a curated list of common cancer sites to ensure the
+hierarchy-based counts are plausible. These are the top-level SNOMED concepts
+for each major cancer type.
+
+```{r cancer-sites}
+cancer_sites <- tribble(
+  ~concept_id, ~cancer_site,
+  4112853L,    "Breast",
+  443388L,     "Lung",
+  4180790L,    "Colon",
+  4163261L,    "Prostate",
+  141232L,     "Melanoma (skin)",
+  4181351L,    "Ovary",
+  197508L,     "Bladder",
+  4180793L,    "Pancreas",
+  432571L,     "Lymphoma",
+  317510L,     "Leukemia"
+)
+
+site_counts <- cancer_sites %>%
+  rowwise() %>%
+  mutate(
+    descendants = list(
+      cdm$concept_ancestor %>%
+        filter(ancestor_concept_id == concept_id) %>%
+        pull(descendant_concept_id)
+    )
+  ) %>%
+  ungroup() %>%
+  mutate(
+    stats = purrr::map2(concept_id, descendants, function(cid, descs) {
+      ids <- unique(c(cid, descs))
+      cdm$condition_occurrence %>%
+        filter(condition_concept_id %in% ids) %>%
+        summarise(persons = n_distinct(person_id), records = n()) %>%
+        collect()
+    })
+  ) %>%
+  tidyr::unnest(stats) %>%
+  select(cancer_site, concept_id, persons, records) %>%
+  arrange(desc(persons))
+```
+
+```{r cancer-sites-table}
+site_counts %>%
+  mutate(across(c(persons, records), fmt)) %>%
+  knitr::kable(
+    col.names = c("Cancer Site", "Ancestor Concept ID", "Persons", "Records"),
+    align = c("l", "r", "r", "r")
+  )
+```
+
+```{r cancer-sites-plot}
+site_counts %>%
+  filter(persons > 0) %>%
+  mutate(cancer_site = reorder(cancer_site, persons)) %>%
+  ggplot(aes(x = persons, y = cancer_site)) +
+  geom_col(fill = "#d95f0e") +
+  geom_text(aes(label = fmt(persons)), hjust = -0.1, size = 3.5) +
+  scale_x_continuous(expand = expansion(mult = c(0, 0.25)),
+                     labels = scales::comma) +
+  labs(
+    title = "Cancer Persons by Site",
+    x = "Persons", y = NULL
+  )
+```
+
+# 3. Chemotherapy & Antineoplastic Drugs
+
+This section examines drug exposures for common chemotherapy agents. We check
+both traditional cytotoxic drugs and newer targeted/immunotherapy agents. All
+concept IDs below are RxNorm **Ingredient**-level standard concepts; we use
+`concept_ancestor` to capture all formulations and strengths.
+
+```{r chemo-drugs}
+chemo_drugs <- tribble(
+  ~concept_id, ~drug_name,         ~drug_class,
+  1310317L,    "Cyclophosphamide",  "Cytotoxic",
+  1338512L,    "Doxorubicin",       "Cytotoxic",
+  955632L,     "Fluorouracil",      "Cytotoxic",
+  1397599L,    "Cisplatin",         "Cytotoxic",
+  1344905L,    "Carboplatin",       "Cytotoxic",
+  1378382L,    "Paclitaxel",        "Cytotoxic",
+  1315942L,    "Docetaxel",         "Cytotoxic",
+  1314924L,    "Gemcitabine",       "Cytotoxic",
+  1305058L,    "Methotrexate",      "Cytotoxic",
+  45775965L,   "Pembrolizumab",     "Immunotherapy",
+  45892628L,   "Nivolumab",         "Immunotherapy",
+  1387104L,    "Trastuzumab",       "Targeted",
+  1397141L,    "Bevacizumab",       "Targeted",
+  1304107L,    "Imatinib",          "Targeted",
+  1314273L,    "Rituximab",         "Targeted",
+  1436678L,    "Tamoxifen",         "Hormonal",
+  1315946L,    "Letrozole",         "Hormonal"
+)
+
+drug_counts <- chemo_drugs %>%
+  rowwise() %>%
+  mutate(
+    stats = list({
+      descs <- cdm$concept_ancestor %>%
+        filter(ancestor_concept_id == concept_id) %>%
+        pull(descendant_concept_id)
+      ids <- unique(c(concept_id, descs))
+      cdm$drug_exposure %>%
+        filter(drug_concept_id %in% ids) %>%
+        summarise(persons = n_distinct(person_id), records = n()) %>%
+        collect()
+    })
+  ) %>%
+  ungroup() %>%
+  tidyr::unnest(stats) %>%
+  select(drug_name, drug_class, concept_id, persons, records) %>%
+  arrange(desc(persons))
+```
+
+```{r chemo-drugs-table}
+drug_counts %>%
+  mutate(across(c(persons, records), fmt)) %>%
+  knitr::kable(
+    col.names = c("Drug", "Class", "Concept ID", "Persons", "Records"),
+    align = c("l", "l", "r", "r", "r")
+  )
+```
+
+```{r chemo-drugs-plot, fig.height=7}
+drug_counts %>%
+  filter(persons > 0) %>%
+  mutate(drug_label = paste0(drug_name, " (", drug_class, ")")) %>%
+  mutate(drug_label = reorder(drug_label, persons)) %>%
+  ggplot(aes(x = persons, y = drug_label, fill = drug_class)) +
+  geom_col() +
+  geom_text(aes(label = fmt(persons)), hjust = -0.1, size = 3.2) +
+  scale_fill_brewer(palette = "Set2", name = "Drug Class") +
+  scale_x_continuous(expand = expansion(mult = c(0, 0.25)),
+                     labels = scales::comma) +
+  labs(
+    title = "Chemotherapy & Antineoplastic Drug Exposure by Person Count",
+    x = "Persons", y = NULL
+  )
+```
+
+## Drug class summary
+
+```{r drug-class-summary}
+drug_counts %>%
+  group_by(drug_class) %>%
+  summarise(
+    agents = n(),
+    agents_with_data = sum(persons > 0),
+    total_persons = sum(persons),
+    total_records = sum(records),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(total_persons)) %>%
+  mutate(across(c(total_persons, total_records), fmt)) %>%
+  knitr::kable(
+    col.names = c("Drug Class", "Agents Checked", "Agents with Data",
+                   "Total Persons", "Total Records"),
+    align = c("l", "r", "r", "r", "r")
+  )
+```
+
+# 4. Chemotherapy Administration Procedures
+
+Beyond drug exposures, oncology data often records chemotherapy administration
+as procedures. We search for a broad set of procedure concepts related to
+chemotherapy delivery, radiation therapy, and oncologic surgery.
+
+```{r onc-procedures}
+onc_procedures <- tribble(
+  ~concept_id, ~procedure_name,               ~category,
+  4273629L,    "Chemotherapy",                 "Chemotherapy",
+  4163713L,    "Chemotherapy cycle",           "Chemotherapy",
+  4141762L,    "Oral chemotherapy",            "Chemotherapy",
+  44790238L,   "Chemotherapy delivery",        "Chemotherapy",
+  1242725L,    "Radiotherapy",                 "Radiation",
+  4223087L,    "Radiation therapy mgmt",       "Radiation",
+  4311405L,    "Biopsy",                       "Diagnostic",
+  4146053L,    "Manual pelvic examination",    "Diagnostic",
+  4306780L,    "Gynecologic examination",      "Diagnostic"
+)
+
+proc_counts <- onc_procedures %>%
+  rowwise() %>%
+  mutate(
+    stats = list({
+      descs <- cdm$concept_ancestor %>%
+        filter(ancestor_concept_id == concept_id) %>%
+        pull(descendant_concept_id)
+      ids <- unique(c(concept_id, descs))
+      cdm$procedure_occurrence %>%
+        filter(procedure_concept_id %in% ids) %>%
+        summarise(persons = n_distinct(person_id), records = n()) %>%
+        collect()
+    })
+  ) %>%
+  ungroup() %>%
+  tidyr::unnest(stats) %>%
+  select(procedure_name, category, concept_id, persons, records) %>%
+  arrange(desc(persons))
+```
+
+```{r onc-procedures-table}
+proc_counts %>%
+  mutate(across(c(persons, records), fmt)) %>%
+  knitr::kable(
+    col.names = c("Procedure", "Category", "Concept ID", "Persons", "Records"),
+    align = c("l", "l", "r", "r", "r")
+  )
+```
+
+```{r onc-procedures-plot}
+proc_counts %>%
+  filter(persons > 0) %>%
+  mutate(procedure_name = reorder(procedure_name, persons)) %>%
+  ggplot(aes(x = persons, y = procedure_name, fill = category)) +
+  geom_col() +
+  geom_text(aes(label = fmt(persons)), hjust = -0.1, size = 3.2) +
+  scale_fill_brewer(palette = "Set1", name = "Category") +
+  scale_x_continuous(expand = expansion(mult = c(0, 0.25)),
+                     labels = scales::comma) +
+  labs(
+    title = "Oncology-Related Procedures by Person Count",
+    x = "Persons", y = NULL
+  )
+```
+
+# 5. Tumor Markers & Oncology Measurements
+
+Tumor markers are key biomarkers in oncology research. We check for the most
+commonly ordered lab tests: PSA, CA-125, CEA, and general tumor marker
+measurements.
+
+```{r tumor-markers}
+tumor_markers <- tribble(
+  ~concept_id, ~marker_name,
+  3013603L,    "PSA (Prostate Specific Ag)",
+  3037551L,    "CA-125 (Cancer Ag 125)",
+  3003785L,    "CEA (Carcinoembryonic Ag)",
+  3002131L,    "PSA [Units/vol]",
+  4353605L,    "Tumor marker measurement"
+)
+
+marker_counts <- tumor_markers %>%
+  rowwise() %>%
+  mutate(
+    stats = list({
+      descs <- cdm$concept_ancestor %>%
+        filter(ancestor_concept_id == concept_id) %>%
+        pull(descendant_concept_id)
+      ids <- unique(c(concept_id, descs))
+      cdm$measurement %>%
+        filter(measurement_concept_id %in% ids) %>%
+        summarise(
+          persons    = n_distinct(person_id),
+          records    = n(),
+          with_value = sum(!is.na(value_as_number))
+        ) %>%
+        collect()
+    })
+  ) %>%
+  ungroup() %>%
+  tidyr::unnest(stats) %>%
+  select(marker_name, concept_id, persons, records, with_value) %>%
+  arrange(desc(persons))
+```
+
+```{r tumor-markers-table}
+marker_counts %>%
+  mutate(
+    value_pct = ifelse(records > 0, round(with_value / records * 100, 1), NA),
+    across(c(persons, records, with_value), fmt)
+  ) %>%
+  knitr::kable(
+    col.names = c("Marker", "Concept ID", "Persons", "Records",
+                   "With Numeric Value", "Value %"),
+    align = c("l", "r", "r", "r", "r", "r")
+  )
+```
+
+# 6. Cancer Staging
+
+Staging information is essential for oncology studies but is often sparse in
+EHR-derived CDM data. We check for both SNOMED staging concepts and the
+NAACCR-based TNM staging variables.
+
+```{r staging}
+staging_concepts <- tribble(
+  ~concept_id, ~staging_name,                  ~source,
+  4111627L,    "Tumor staging",                "SNOMED",
+  607184L,     "Malignant tumor staging",      "SNOMED",
+  4161178L,    "Tumor stage",                  "SNOMED",
+  4121177L,    "TNM tumor staging",            "SNOMED",
+  35918286L,   "TNM Path Stage Group",         "NAACCR",
+  35918597L,   "TNM Clin Stage Group",         "NAACCR",
+  4300140L,    "Tumor stage finding",          "SNOMED"
+)
+
+staging_meas <- staging_concepts %>%
+  filter(source != "SNOMED" | !staging_name %in% c("Tumor stage finding")) %>%
+  rowwise() %>%
+  mutate(
+    stats = list({
+      descs <- cdm$concept_ancestor %>%
+        filter(ancestor_concept_id == concept_id) %>%
+        pull(descendant_concept_id)
+      ids <- unique(c(concept_id, descs))
+      cdm$measurement %>%
+        filter(measurement_concept_id %in% ids) %>%
+        summarise(persons = n_distinct(person_id), records = n()) %>%
+        collect()
+    })
+  ) %>%
+  ungroup() %>%
+  tidyr::unnest(stats) %>%
+  select(staging_name, source, concept_id, persons, records)
+
+# Also check condition_occurrence for staging findings
+staging_cond <- staging_concepts %>%
+  filter(staging_name == "Tumor stage finding") %>%
+  rowwise() %>%
+  mutate(
+    stats = list({
+      descs <- cdm$concept_ancestor %>%
+        filter(ancestor_concept_id == concept_id) %>%
+        pull(descendant_concept_id)
+      ids <- unique(c(concept_id, descs))
+      cdm$condition_occurrence %>%
+        filter(condition_concept_id %in% ids) %>%
+        summarise(persons = n_distinct(person_id), records = n()) %>%
+        collect()
+    })
+  ) %>%
+  ungroup() %>%
+  tidyr::unnest(stats) %>%
+  mutate(source = "SNOMED (condition)") %>%
+  select(staging_name, source, concept_id, persons, records)
+
+staging_all <- bind_rows(staging_meas, staging_cond) %>%
+  arrange(desc(persons))
+```
+
+```{r staging-table}
+staging_all %>%
+  mutate(across(c(persons, records), fmt)) %>%
+  knitr::kable(
+    col.names = c("Staging Concept", "Source", "Concept ID", "Persons", "Records"),
+    align = c("l", "l", "r", "r", "r")
+  )
+```
+
+```{r staging-note, results='asis'}
+has_staging <- any(staging_all$persons > 0)
+if (has_staging) {
+  cat("> **Staging data is present.** This dataset contains tumor staging",
+      "information, which is valuable for stratifying analyses by disease",
+      "severity.\n")
+} else {
+  cat("> **No staging data found.** This is common in EHR-derived CDM",
+      "datasets where staging is documented in unstructured clinical notes",
+      "rather than discrete fields. Consider supplementing with tumor",
+      "registry data (e.g., NAACCR) if staging is required for your study.\n")
+}
+```
+
+# 7. Disease Progression & Remission
+
+Evidence of disease trajectory is important for longitudinal oncology studies.
+We check for concepts representing cancer recurrence, progression, and
+remission.
+
+```{r progression}
+trajectory_concepts <- tribble(
+  ~concept_id, ~concept_label,                          ~domain,
+  764225L,     "Recurrent malignant neoplastic disease", "Condition",
+  4168352L,    "Tumor progression",                      "Condition",
+  432851L,     "Metastatic malignant neoplasm",          "Condition",
+  37172812L,   "Malignant neoplasm in full remission",   "Condition",
+  37172814L,   "Malignant neoplasm in partial remission", "Condition"
+)
+
+traj_counts <- trajectory_concepts %>%
+  rowwise() %>%
+  mutate(
+    stats = list({
+      descs <- cdm$concept_ancestor %>%
+        filter(ancestor_concept_id == concept_id) %>%
+        pull(descendant_concept_id)
+      ids <- unique(c(concept_id, descs))
+      cdm$condition_occurrence %>%
+        filter(condition_concept_id %in% ids) %>%
+        summarise(persons = n_distinct(person_id), records = n()) %>%
+        collect()
+    })
+  ) %>%
+  ungroup() %>%
+  tidyr::unnest(stats) %>%
+  select(concept_label, concept_id, persons, records) %>%
+  arrange(desc(persons))
+```
+
+```{r progression-table}
+traj_counts %>%
+  mutate(across(c(persons, records), fmt)) %>%
+  knitr::kable(
+    col.names = c("Concept", "Concept ID", "Persons", "Records"),
+    align = c("l", "r", "r", "r")
+  )
+```
+
+```{r progression-plot}
+traj_counts %>%
+  filter(persons > 0) %>%
+  mutate(concept_label = reorder(concept_label, persons)) %>%
+  ggplot(aes(x = persons, y = concept_label)) +
+  geom_col(fill = "#756bb1") +
+  geom_text(aes(label = fmt(persons)), hjust = -0.1, size = 3.5) +
+  scale_x_continuous(expand = expansion(mult = c(0, 0.25)),
+                     labels = scales::comma) +
+  labs(
+    title = "Disease Trajectory Concepts",
+    x = "Persons", y = NULL
+  )
+```
+
+# 8. Summary Scorecard
+
+This scorecard summarizes the oncology readiness of the dataset at a glance.
+
+```{r scorecard}
+scorecard <- tribble(
+  ~dimension,                ~metric,
+  "Total persons in CDM",    total_persons,
+  "Persons with any cancer", cancer_summary$cancer_persons,
+  "Cancer sites with data",  sum(site_counts$persons > 0),
+  "Chemo drugs with data",   sum(drug_counts$persons > 0),
+  "Onc procedures with data",sum(proc_counts$persons > 0),
+  "Tumor markers with data", sum(marker_counts$persons > 0),
+  "Staging concepts found",  sum(staging_all$persons > 0),
+  "Trajectory concepts found", sum(traj_counts$persons > 0)
+)
+
+scorecard %>%
+  mutate(metric = fmt(metric)) %>%
+  knitr::kable(col.names = c("Dimension", "Count"), align = c("l", "r"))
+```
+
+```{r scorecard-assessment, results='asis'}
+n_cancer <- cancer_summary$cancer_persons
+n_drugs  <- sum(drug_counts$persons > 0)
+n_stage  <- sum(staging_all$persons > 0)
+
+cat("## Assessment\n\n")
+
+if (n_cancer == 0) {
+  cat("This dataset contains **no identifiable cancer conditions**. It is",
+      "not suitable for oncology research without supplemental data.\n")
+} else if (n_drugs == 0 && n_stage == 0) {
+  cat("This dataset contains **", fmt(n_cancer), " cancer patients** but",
+      "**lacks chemotherapy drug exposures and staging data**. It may support",
+      "descriptive epidemiology but is limited for treatment or outcomes",
+      "studies.\n")
+} else if (n_stage == 0) {
+  cat("This dataset contains **", fmt(n_cancer), " cancer patients** with",
+      "some treatment data but **no structured staging**. It may support",
+      "treatment pattern analyses but will be limited for stage-stratified",
+      "outcomes research.\n")
+} else {
+  cat("This dataset contains **", fmt(n_cancer), " cancer patients** with",
+      "treatment data and staging information. It has strong potential for",
+      "oncology research including treatment patterns and outcomes studies.\n")
+}
+```
+
+# Disconnect
+
+```{r disconnect}
+cdmDisconnect(cdm)
+```
+
+---
+
+*Report generated `r Sys.time()`*
