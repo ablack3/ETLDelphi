@@ -17,6 +17,7 @@ Imports:
     fs,
     glue,
     httr2,
+    httpuv,
     jsonlite,
     yaml,
     cli,

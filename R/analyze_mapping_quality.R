@@ -3,24 +3,63 @@
 #' Runs quality checks on the ETL mapping: unmapped concepts (concept_id 0),
 #' record and person count comparisons, mapping cardinality (one-to-many,
 #' many-to-one), and data not mapped to OMOP (reject tables, unmapped rows).
-#' Writes one CSV per metric set into \code{output_dir}.
+#' Writes one CSV per metric set into \code{output_dir}, plus a
+#' \code{mapping_quality.json} file consumed by the static HTML dashboard.
 #'
 #' @param con DBI connection to the DuckDB database (stg and cdm schemas must exist).
-#' @param output_dir Directory where CSV files will be written. Created if missing.
+#' @param output_dir Directory where CSV and JSON files will be written. Created if missing.
 #' @param config Optional list with \code{schemas$stg} and \code{schemas$cdm}; if NULL, uses \code{stg} and \code{cdm}.
-#' @return Invisible list of paths to the written CSV files.
+#' @return Invisible list with \code{output_dir} and \code{files} (paths to written CSV and JSON files).
 #' @export
 analyze_mapping_quality <- function(con, output_dir = "mapping_quality_results", config = NULL) {
-  stg <- config[["schemas"]][["stg"]]; if (is.null(stg)) stg <- "stg"
-  cdm <- config[["schemas"]][["cdm"]]; if (is.null(cdm)) cdm <- "main"
-
   if (!dir.exists(output_dir)) {
     dir.create(output_dir, recursive = TRUE)
   }
 
   out_path <- function(name) file.path(output_dir, name)
 
+  # Run all queries via shared internal helper
+
+  data <- run_mapping_quality_queries(con, config)
+
+  # Write each dataset to CSV
+  csv_map <- list(
+    "01_unmapped_concepts_by_table.csv"   = data$unmapped_concepts,
+    "02_top_unmapped_source_values.csv"    = data$top_unmapped_source_values,
+    "03_record_counts_by_table.csv"        = data$record_counts,
+    "04_person_count_comparison.csv"        = data$person_count,
+    "05_one_to_many_mappings.csv"           = data$one_to_many,
+    "06_many_to_one_mappings.csv"           = data$many_to_one,
+    "07_reject_table_row_counts.csv"        = data$reject_counts,
+    "08_data_not_mapped_summary.csv"        = data$summary,
+    "09_domain_conformance.csv"             = data$domain_conformance,
+    "10_domain_routing_log.csv"             = data$routing_log
+  )
+
   written <- character(0)
+  for (fname in names(csv_map)) {
+    p <- out_path(fname)
+    write.csv(csv_map[[fname]], p, row.names = FALSE)
+    written <- c(written, p)
+  }
+
+  # Write JSON for the static HTML dashboard
+  json_path <- out_path("mapping_quality.json")
+  data$generated_at <- format(Sys.time(), "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")
+  json <- jsonlite::toJSON(data, pretty = TRUE, auto_unbox = TRUE, dataframe = "rows")
+  writeLines(json, json_path)
+  written <- c(written, json_path)
+  cli::cli_alert_success("Wrote {json_path}")
+
+  invisible(list(output_dir = output_dir, files = written))
+}
+
+
+# Internal: run all mapping quality queries and return named list of data.frames.
+# Shared by analyze_mapping_quality() (CSV output) and export_mapping_quality_json() (JSON output).
+run_mapping_quality_queries <- function(con, config = NULL) {
+  stg <- config[["schemas"]][["stg"]]; if (is.null(stg)) stg <- "stg"
+  cdm <- config[["schemas"]][["cdm"]]; if (is.null(cdm)) cdm <- "main"
 
   # ----- 1. Unmapped concepts (concept_id = 0) per CDM table -----
   q_unmapped <- list(
@@ -75,8 +114,6 @@ analyze_mapping_quality <- function(con, output_dir = "mapping_quality_results",
     data.frame(cdm_table = character(), concept_column = character(), total_rows = integer(),
                unmapped_count = integer(), unmapped_pct = numeric(), stringsAsFactors = FALSE)
   })
-  write.csv(df_unmapped, out_path("01_unmapped_concepts_by_table.csv"), row.names = FALSE)
-  written <- c(written, out_path("01_unmapped_concepts_by_table.csv"))
 
   # ----- 2. Top source values for unmapped (concept_id = 0) -----
   q_top_unmapped <- list(
@@ -127,8 +164,6 @@ analyze_mapping_quality <- function(con, output_dir = "mapping_quality_results",
   if (is.null(df_top) || nrow(df_top) == 0) {
     df_top <- data.frame(domain = character(), source_value = character(), record_count = integer(), stringsAsFactors = FALSE)
   }
-  write.csv(df_top, out_path("02_top_unmapped_source_values.csv"), row.names = FALSE)
-  written <- c(written, out_path("02_top_unmapped_source_values.csv"))
 
   # ----- 3. Record count comparison: source/stg vs CDM -----
   stg_tables <- c(
@@ -162,8 +197,6 @@ analyze_mapping_quality <- function(con, output_dir = "mapping_quality_results",
     stringsAsFactors = FALSE
   )
   df_record_counts <- rbind(rows_stg, rows_cdm)
-  write.csv(df_record_counts, out_path("03_record_counts_by_table.csv"), row.names = FALSE)
-  written <- c(written, out_path("03_record_counts_by_table.csv"))
 
   # ----- 4. Person count comparison -----
   q_person_stg <- glue::glue(
@@ -178,8 +211,6 @@ analyze_mapping_quality <- function(con, output_dir = "mapping_quality_results",
     count = c(person_stg, person_cdm),
     stringsAsFactors = FALSE
   )
-  write.csv(df_person, out_path("04_person_count_comparison.csv"), row.names = FALSE)
-  written <- c(written, out_path("04_person_count_comparison.csv"))
 
   # ----- 5. One-to-many: one source key maps to multiple concept_ids -----
   one_to_many <- list()
@@ -222,13 +253,8 @@ analyze_mapping_quality <- function(con, output_dir = "mapping_quality_results",
   }
 
   df_one_to_many <- if (length(one_to_many) > 0) do.call(rbind, one_to_many) else NULL
-  if (!is.null(df_one_to_many) && nrow(df_one_to_many) > 0) {
-    write.csv(df_one_to_many, out_path("05_one_to_many_mappings.csv"), row.names = FALSE)
-    written <- c(written, out_path("05_one_to_many_mappings.csv"))
-  } else {
-    df_empty <- data.frame(mapping = character(), source_key = character(), target_count = integer(), stringsAsFactors = FALSE)
-    write.csv(df_empty, out_path("05_one_to_many_mappings.csv"), row.names = FALSE)
-    written <- c(written, out_path("05_one_to_many_mappings.csv"))
+  if (is.null(df_one_to_many) || nrow(df_one_to_many) == 0) {
+    df_one_to_many <- data.frame(mapping = character(), source_key = character(), target_count = integer(), stringsAsFactors = FALSE)
   }
 
   # ----- 6. Many-to-one: multiple source keys map to same concept_id -----
@@ -273,17 +299,12 @@ analyze_mapping_quality <- function(con, output_dir = "mapping_quality_results",
   }
 
   df_many_to_one <- if (length(many_to_one) > 0) do.call(rbind, many_to_one) else NULL
-  if (!is.null(df_many_to_one) && nrow(df_many_to_one) > 0) {
-    write.csv(df_many_to_one, out_path("06_many_to_one_mappings.csv"), row.names = FALSE)
-    written <- c(written, out_path("06_many_to_one_mappings.csv"))
-  } else {
-    df_empty <- data.frame(mapping = character(), concept_id = integer(), source_key_count = integer(), stringsAsFactors = FALSE)
-    write.csv(df_empty, out_path("06_many_to_one_mappings.csv"), row.names = FALSE)
-    written <- c(written, out_path("06_many_to_one_mappings.csv"))
+  if (is.null(df_many_to_one) || nrow(df_many_to_one) == 0) {
+    df_many_to_one <- data.frame(mapping = character(), concept_id = integer(), source_key_count = integer(), stringsAsFactors = FALSE)
   }
 
   # ----- 7. Data not mapped to OMOP: reject tables + summary -----
-  reject_tables <- c(
+  reject_table_names <- c(
     "reject_enrollment_dates", "reject_provider", "reject_encounter", "reject_death", "reject_problem",
     "reject_med_orders", "reject_med_fulfillment", "reject_current_meds", "reject_immunization",
     "reject_lab_orders", "reject_lab_results", "reject_vital_sign", "reject_allergy",
@@ -291,24 +312,22 @@ analyze_mapping_quality <- function(con, output_dir = "mapping_quality_results",
     "reject_condition_missing_person", "reject_measurement_labs_missing", "reject_observation_allergy_missing",
     "reject_procedure_missing", "reject_death_load"
   )
-  reject_counts <- data.frame(
+  df_reject_counts <- data.frame(
     reject_table = character(),
     row_count = integer(),
     stringsAsFactors = FALSE
   )
-  for (tbl in reject_tables) {
+  for (tbl in reject_table_names) {
     if (table_exists(con, stg, tbl)) {
       n <- tryCatch({
         as.integer(DBI::dbGetQuery(con, glue::glue('SELECT COUNT(*) AS n FROM "{stg}"."{tbl}"'))$n)
       }, error = function(e) NA_integer_)
-      reject_counts <- rbind(reject_counts, data.frame(reject_table = tbl, row_count = n, stringsAsFactors = FALSE))
+      df_reject_counts <- rbind(df_reject_counts, data.frame(reject_table = tbl, row_count = n, stringsAsFactors = FALSE))
     }
   }
-  write.csv(reject_counts, out_path("07_reject_table_row_counts.csv"), row.names = FALSE)
-  written <- c(written, out_path("07_reject_table_row_counts.csv"))
 
   # Summary: total unmapped records (concept_id = 0) and total rejected
-  total_rejected <- sum(reject_counts$row_count, na.rm = TRUE)
+  total_rejected <- sum(df_reject_counts$row_count, na.rm = TRUE)
   total_unmapped_cdm <- tryCatch({
     q <- glue::glue(
       "SELECT ",
@@ -325,8 +344,6 @@ analyze_mapping_quality <- function(con, output_dir = "mapping_quality_results",
     value = c(total_rejected, total_unmapped_cdm),
     stringsAsFactors = FALSE
   )
-  write.csv(df_not_mapped_summary, out_path("08_data_not_mapped_summary.csv"), row.names = FALSE)
-  written <- c(written, out_path("08_data_not_mapped_summary.csv"))
 
   # ----- 9. Domain conformance (concept domain_id vs CDM table) -----
   domain_conf_queries <- list(
@@ -378,8 +395,6 @@ analyze_mapping_quality <- function(con, output_dir = "mapping_quality_results",
                record_count = integer(), total_mapped = integer(), conforming = logical(),
                conformance_pct = numeric(), stringsAsFactors = FALSE)
   })
-  write.csv(df_domain_conf, out_path("09_domain_conformance.csv"), row.names = FALSE)
-  written <- c(written, out_path("09_domain_conformance.csv"))
 
   # ----- 10. Domain routing log (records moved between tables) -----
   df_routing_log <- tryCatch({
@@ -391,8 +406,18 @@ analyze_mapping_quality <- function(con, output_dir = "mapping_quality_results",
   }, error = function(e) {
     data.frame(from_table = character(), to_domain = character(), record_count = integer(), stringsAsFactors = FALSE)
   })
-  write.csv(df_routing_log, out_path("10_domain_routing_log.csv"), row.names = FALSE)
-  written <- c(written, out_path("10_domain_routing_log.csv"))
 
-  invisible(list(output_dir = output_dir, files = written))
+  # Return all datasets
+  list(
+    unmapped_concepts          = df_unmapped,
+    top_unmapped_source_values = df_top,
+    record_counts              = df_record_counts,
+    person_count               = df_person,
+    one_to_many                = df_one_to_many,
+    many_to_one                = df_many_to_one,
+    reject_counts              = df_reject_counts,
+    summary                    = df_not_mapped_summary,
+    domain_conformance         = df_domain_conf,
+    routing_log                = df_routing_log
+  )
 }

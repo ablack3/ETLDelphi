@@ -2,21 +2,31 @@
 % Please edit documentation in R/run_mapping_quality_app.R
 \name{run_mapping_quality_app}
 \alias{run_mapping_quality_app}
-\title{Run Shiny app to visualize mapping quality results}
+\title{Launch the mapping quality dashboard}
 \usage{
-run_mapping_quality_app(results_dir = NULL)
+run_mapping_quality_app(
+  results_dir = "mapping_quality_results",
+  port = 0L,
+  launch_browser = TRUE
+)
 }
 \arguments{
-\item{results_dir}{Optional path to the folder containing mapping quality CSV
-files (e.g. \code{01_unmapped_concepts_by_table.csv}, \code{02_top_unmapped_source_values.csv}, etc.).
-If provided, the app opens with this path pre-filled and will auto-load when the directory exists.
-If \code{NULL}, the app uses \code{"mapping_quality_results"} as the default path.}
+\item{results_dir}{Path to the folder containing \code{mapping_quality.json}
+(written by \code{analyze_mapping_quality()}).
+Defaults to \code{"mapping_quality_results"}.}
+
+\item{port}{Port number for the local HTTP server. Default \code{0L} picks a
+random available port.}
+
+\item{launch_browser}{If \code{TRUE} (default), open the dashboard in the
+system browser.}
 }
 \value{
-Invisible NULL (app runs until the user closes it).
+Invisible \code{NULL} (blocks until the server is stopped with
+Ctrl+C or Esc).
 }
 \description{
-Launches the mapping quality Shiny app. Run after
-\code{analyze_mapping_quality(con, output_dir = "mapping_quality_results")}
-and point the app at that directory to view tables and plots.
+Serves the static HTML mapping quality dashboard using a local HTTP
+server. Run after \code{\link{analyze_mapping_quality}} has written
+\code{mapping_quality.json} into \code{results_dir}.
 }

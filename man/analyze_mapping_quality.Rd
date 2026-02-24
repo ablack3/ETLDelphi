@@ -13,16 +13,17 @@ analyze_mapping_quality(
 \arguments{
 \item{con}{DBI connection to the DuckDB database (stg and cdm schemas must exist).}
 
-\item{output_dir}{Directory where CSV files will be written. Created if missing.}
+\item{output_dir}{Directory where CSV and JSON files will be written. Created if missing.}
 
 \item{config}{Optional list with \code{schemas$stg} and \code{schemas$cdm}; if NULL, uses \code{stg} and \code{cdm}.}
 }
 \value{
-Invisible list of paths to the written CSV files.
+Invisible list with \code{output_dir} and \code{files} (paths to written CSV and JSON files).
 }
 \description{
 Runs quality checks on the ETL mapping: unmapped concepts (concept_id 0),
 record and person count comparisons, mapping cardinality (one-to-many,
 many-to-one), and data not mapped to OMOP (reject tables, unmapped rows).
-Writes one CSV per metric set into \code{output_dir}.
+Writes one CSV per metric set into \code{output_dir}, plus a
+\code{mapping_quality.json} file consumed by the static HTML dashboard.
 }
