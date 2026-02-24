@@ -292,21 +292,52 @@ build_mapping_system_prompt <- function(domain) {
   )
 
   domain_hints <- switch(domain,
-    condition = "Search SNOMED with domain_id='Condition' and standard_concept='S'. If the source looks like an ICD code, search for it by code first.",
-    drug = paste(
-      "IMPORTANT: Many unmapped drug values are NDC (National Drug Code) codes with formatting issues.",
-      "If the source value is mostly digits (with optional hyphens, asterisks, or dots), it is almost certainly an NDC code.",
-      "Use lookup_ndc FIRST for any NDC-like value - it automatically tries multiple normalizations.",
-      "Common NDC issues in this data: * used instead of hyphens, missing hyphens entirely, leading zeros stripped.",
-      "NDC codes are 10 digits in 5-4-1, 5-3-2, or 4-4-2 format (e.g. 00944-2620-01).",
-      "If lookup_ndc finds the NDC, it returns both the NDC concept and the standard RxNorm concept.",
-      "If lookup_ndc fails, try search_ndc with the digits, or search_concepts with RxNorm.",
-      "If the source value is a drug NAME (not a code), search RxNorm with domain_id='Drug' and standard_concept='S'.",
-      "Prefer Ingredient-level RxNorm concepts. If source is a brand name, find the generic ingredient."
+    condition = paste(
+      "You will receive both a problem code AND a text description when available.",
+      "STRATEGY: Search by code first - it may be an ICD-10-CM, ICD-9-CM, or SNOMED code.",
+      "Use search_concepts with the code and the appropriate vocabulary_id filter.",
+      "Use the text description to verify your match or disambiguate between candidates.",
+      "If the code search fails, search semantically by the problem description in SNOMED",
+      "with domain_id='Condition' and standard_concept='S'.",
+      "Use your medical knowledge to infer the correct SNOMED standard concept.",
+      "For ICD codes, find the 'Maps to' standard SNOMED concept via get_concept_relationships."
     ),
-    measurement = "Search LOINC or SNOMED with domain_id='Measurement' and standard_concept='S'. For lab tests, LOINC is preferred.",
-    procedure = "Search SNOMED, CPT4, or HCPCS with domain_id='Procedure' and standard_concept='S'.",
-    observation = "Search SNOMED with domain_id='Observation' and standard_concept='S'.",
+    drug = paste(
+      "You will receive BOTH a drug name AND an NDC code when available.",
+      "STRATEGY: Use lookup_ndc with the NDC code FIRST - it automatically tries multiple",
+      "normalizations (digits-only, 11-digit padded, 5-4-1, 5-3-2, 4-4-2 hyphenation).",
+      "Common NDC issues in this data: * used instead of hyphens, missing hyphens, leading zeros stripped.",
+      "If lookup_ndc finds the NDC, verify the result by checking that the returned drug concept",
+      "matches the drug name provided. This cross-check ensures accuracy.",
+      "If lookup_ndc fails, search by drug name in RxNorm with domain_id='Drug', standard_concept='S'.",
+      "Prefer Ingredient-level RxNorm concepts. If the source is a brand name, find the generic ingredient.",
+      "Use your pharmacological knowledge to identify drug classes, brand/generic equivalences,",
+      "and common drug name variants (e.g., 'OMS' = oral morphine sulfate)."
+    ),
+    measurement = paste(
+      "You will receive both a LOINC code AND a test name when available.",
+      "STRATEGY: Search by LOINC code first using search_concepts with vocabulary_id='LOINC'.",
+      "Use the test name to verify your match.",
+      "If no LOINC code is available, search semantically by test name in LOINC vocabulary.",
+      "Use domain_id='Measurement' and standard_concept='S'.",
+      "Use your clinical laboratory knowledge to interpret test names and find the correct",
+      "LOINC concept (e.g., 'CBC' maps to specific LOINC panel codes)."
+    ),
+    procedure = paste(
+      "You will receive a procedure code, name, and source vocabulary when available.",
+      "STRATEGY: Search by code in the specified vocabulary first (e.g., CPT4, HCPCS, SNOMED).",
+      "Use search_concepts with vocabulary_id filter matching the source vocabulary.",
+      "Use the procedure name to verify or search semantically if code lookup fails.",
+      "Use domain_id='Procedure' and standard_concept='S'.",
+      "Use your clinical knowledge to interpret procedure names and map to standard concepts."
+    ),
+    observation = paste(
+      "You will receive an allergen name and/or a drug code with vocabulary when available.",
+      "STRATEGY: Search by allergen name in SNOMED with domain_id='Observation', standard_concept='S'.",
+      "If a drug code and vocabulary are provided (CVX, NDC), search by code first.",
+      "Use your clinical knowledge to map allergy descriptions to SNOMED standard concepts.",
+      "Allergies to drugs should map to SNOMED allergy concepts, not drug concepts."
+    ),
     "Search with standard_concept='S'."
   )
 
@@ -329,27 +360,35 @@ build_mapping_system_prompt <- function(domain) {
       "## Your Tools\n",
       "You have access to the Hecate OMOP vocabulary search API:\n",
       "- search_concepts: Search by text across all OMOP vocabularies\n",
+      "  (supports filters: vocabulary_id, domain_id, standard_concept, limit)\n",
       "- get_concept: Look up a specific concept by ID\n",
       "- get_concept_relationships: Find related concepts (Maps to, Is a, etc.)\n"
     )
   }
 
   paste0(
-    "You are an OMOP CDM vocabulary mapping specialist. Your task is to find the best ",
-    "standard OMOP concept_id for a given source value from a clinical data system.\n\n",
+    "You are an OMOP CDM vocabulary mapping specialist with deep clinical coding knowledge. ",
+    "Your task is to find the best standard OMOP concept_id for a given source value from ",
+    "a clinical data system.\n\n",
     "## Context\n",
     "- The source value comes from the \"", domain, "\" domain of a healthcare ETL\n",
-    "- It represents a ", domain_desc, " that could not be automatically mapped\n\n",
+    "- It represents a ", domain_desc, " that could not be automatically mapped\n",
+    "- You are given rich context (code + name + vocabulary) when available\n\n",
     tools_desc, "\n",
     "## Instructions\n",
-    "1. Analyze the source value to understand what clinical concept it represents\n",
+    "1. Analyze ALL provided context (code, name, description, vocabulary) to understand ",
+    "what clinical concept this represents\n",
     "2. ", domain_hints, "\n",
     "3. If the first search yields no good results, try alternative terms, synonyms, ",
-    "or broader/narrower terms\n",
-    "4. Verify your chosen concept with get_concept to confirm it is Standard ",
+    "abbreviations, brand/generic names, or broader/narrower terms\n",
+    "4. Use your medical coding knowledge to make inferences when the source value is ",
+    "ambiguous or abbreviated\n",
+    "5. Verify your chosen concept with get_concept to confirm it is Standard ",
     "(standard_concept='S') and in the correct domain\n",
-    "5. If the concept is non-standard, use get_concept_relationships to find the ",
-    "'Maps to' standard concept\n\n",
+    "6. If the concept is non-standard, use get_concept_relationships to find the ",
+    "'Maps to' standard concept\n",
+    "7. When both code and name are available, cross-check: the mapped concept should ",
+    "be consistent with both pieces of information\n\n",
     "## Required Output Format\n",
     "Respond with EXACTLY this JSON (no markdown, no extra text):\n",
     "{\n",
@@ -362,11 +401,11 @@ build_mapping_system_prompt <- function(domain) {
     "  \"ndc_normalized\": \"<the normalized NDC code if source_is_ndc is true, else null>\"\n",
     "}\n\n",
     "## Confidence Guidelines\n",
-    "- 1.0: Exact code match (source code directly maps to OMOP concept)\n",
-    "- 0.9: Very high confidence name/code match with confirmed standard concept\n",
-    "- 0.7-0.8: Good semantic match, correct domain and vocabulary\n",
-    "- 0.5-0.6: Partial match, may be broader/narrower than ideal\n",
-    "- 0.3-0.4: Weak match, uncertain\n",
+    "- 1.0: Exact code match verified against name (both code and name confirm the same concept)\n",
+    "- 0.9: Very high confidence - code or name matches with confirmed standard concept\n",
+    "- 0.7-0.8: Good semantic match from name/description, correct domain and vocabulary\n",
+    "- 0.5-0.6: Partial match, may be broader/narrower than ideal, or only name OR code matched\n",
+    "- 0.3-0.4: Weak match based on inference, uncertain\n",
     "- 0.0: No mapping found"
   )
 }
