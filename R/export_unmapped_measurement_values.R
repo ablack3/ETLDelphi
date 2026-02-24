@@ -11,9 +11,9 @@
 #' @return Invisible path to the written file.
 #' @export
 export_unmapped_measurement_values <- function(con, output_path = "unmapped_measurement_values.csv", config = NULL) {
-  cdm <- if (is.null(config) || is.null(config[["schemas"]]) || is.null(config[["schemas"]][["cdm"]])) "main" else config[["schemas"]][["cdm"]]
+  cdm <- resolve_schema(config, "cdm")
 
-  if (!ETLDelphi:::table_exists(con, cdm, "measurement")) {
+  if (!table_exists(con, cdm, "measurement")) {
     stop("cdm.measurement does not exist. Run the ETL first.")
   }
 

@@ -26,48 +26,8 @@ omophub_client <- function(
   )
 }
 
-# Build an httr2 request for an OMOPHub endpoint.
-omophub_request <- function(client, path, query = NULL) {
-  url <- paste0(client$base_url, "/", sub("^/+", "", path))
-
-  req <- httr2::request(url) |>
-    httr2::req_timeout(client$timeout_ms / 1000) |>
-    httr2::req_retry(max_tries = 3, backoff = ~ 2)
-
-  if (nzchar(client$api_key)) {
-    req <- httr2::req_headers(req, Authorization = paste("Bearer", client$api_key))
-  }
-
-  if (!is.null(query)) {
-    query <- Filter(Negate(is.null), query)
-    req <- httr2::req_url_query(req, !!!query)
-  }
-
-  req
-}
-
-# Perform an OMOPHub request with error handling. Returns parsed list.
-omophub_perform <- function(req) {
-  resp <- tryCatch(httr2::req_perform(req), error = function(e) e)
-
-  if (inherits(resp, "error")) {
-    return(list(error = "request_failed", message = conditionMessage(resp)))
-  }
-
-  status <- httr2::resp_status(resp)
-  body_txt <- httr2::resp_body_string(resp)
-  parsed <- tryCatch(jsonlite::fromJSON(body_txt, simplifyVector = FALSE), error = function(e) NULL)
-
-  if (status >= 400) {
-    return(list(
-      error = "api_error",
-      status = status,
-      body = parsed %||% body_txt
-    ))
-  }
-
-  parsed %||% list(raw = body_txt)
-}
+# OMOPHub uses shared api_build_request() / api_perform() from api_utils.R
+# OMOPHub requests use retry = TRUE for resilience against transient failures.
 
 # --- Exported wrappers ---
 
@@ -86,8 +46,8 @@ omophub_get_by_code <- function(vocabulary_id, concept_code, client = NULL) {
   if (!nzchar(client$api_key)) stop("OMOPHUB_API_KEY not set.", call. = FALSE)
 
   path <- paste0("concepts/by-code/", vocabulary_id, "/", concept_code)
-  req <- omophub_request(client, path)
-  omophub_perform(req)
+  req <- api_build_request(client, path, retry = TRUE)
+  api_perform(req)
 }
 
 #' Search OMOPHub concepts
@@ -106,7 +66,7 @@ omophub_search <- function(query, vocabulary_ids = NULL, domain_ids = NULL,
   client <- client %||% omophub_client()
   if (!nzchar(client$api_key)) stop("OMOPHUB_API_KEY not set.", call. = FALSE)
 
-  req <- omophub_request(
+  req <- api_build_request(
     client,
     path = "search/concepts",
     query = list(
@@ -114,9 +74,10 @@ omophub_search <- function(query, vocabulary_ids = NULL, domain_ids = NULL,
       vocabulary_ids = vocabulary_ids,
       domain_ids = domain_ids,
       page_size = page_size
-    )
+    ),
+    retry = TRUE
   )
-  omophub_perform(req)
+  api_perform(req)
 }
 
 #' Map source codes to a target vocabulary via OMOPHub
@@ -138,15 +99,8 @@ omophub_map_codes <- function(source_codes, target_vocabulary = "RxNorm", client
     source_codes = source_codes
   )
 
-  url <- paste0(client$base_url, "/concepts/map")
-  req <- httr2::request(url) |>
-    httr2::req_timeout(client$timeout_ms / 1000) |>
-    httr2::req_retry(max_tries = 3, backoff = ~ 2) |>
+  req <- api_build_request(client, path = "concepts/map", retry = TRUE) |>
     httr2::req_body_json(body, auto_unbox = TRUE)
 
-  if (nzchar(client$api_key)) {
-    req <- httr2::req_headers(req, Authorization = paste("Bearer", client$api_key))
-  }
-
-  omophub_perform(req)
+  api_perform(req)
 }

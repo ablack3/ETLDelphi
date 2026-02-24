@@ -25,47 +25,7 @@ hecate_client <- function(
   )
 }
 
-# Build an httr2 request for a Hecate endpoint.
-hecate_request <- function(client, path, query = NULL) {
-  url <- paste0(client$base_url, "/", sub("^/+", "", path))
-
-  req <- httr2::request(url) |>
-    httr2::req_timeout(client$timeout_ms / 1000)
-
-  if (nzchar(client$api_key)) {
-    req <- httr2::req_headers(req, Authorization = paste("Bearer", client$api_key))
-  }
-
-  if (!is.null(query)) {
-    query <- Filter(Negate(is.null), query)
-    req <- httr2::req_url_query(req, !!!query)
-  }
-
-  req
-}
-
-# Perform a Hecate request with error handling. Returns parsed list.
-hecate_perform <- function(req) {
-  resp <- tryCatch(httr2::req_perform(req), error = function(e) e)
-
-  if (inherits(resp, "error")) {
-    return(list(error = "request_failed", message = conditionMessage(resp)))
-  }
-
-  status <- httr2::resp_status(resp)
-  body_txt <- httr2::resp_body_string(resp)
-  parsed <- tryCatch(jsonlite::fromJSON(body_txt, simplifyVector = FALSE), error = function(e) NULL)
-
-  if (status >= 400) {
-    return(list(
-      error = "api_error",
-      status = status,
-      body = parsed %||% body_txt
-    ))
-  }
-
-  parsed %||% list(raw = body_txt)
-}
+# Hecate uses shared api_build_request() / api_perform() from api_utils.R
 
 # --- Exported wrappers (return parsed R lists) ---
 
@@ -93,7 +53,7 @@ hecate_search <- function(query,
     stop("`query` must be a non-empty string.")
   }
 
-  req <- hecate_request(
+  req <- api_build_request(
     client,
     path = "search",
     query = list(
@@ -106,7 +66,7 @@ hecate_search <- function(query,
     )
   )
 
-  hecate_perform(req)
+  api_perform(req)
 }
 
 #' Get a concept by ID from Hecate
@@ -120,8 +80,8 @@ hecate_get_concept <- function(concept_id, client = NULL) {
   concept_id <- as.integer(concept_id)
   if (is.na(concept_id) || concept_id < 1) stop("`concept_id` must be a positive integer.")
 
-  req <- hecate_request(client, path = paste0("concepts/", concept_id))
-  res <- hecate_perform(req)
+  req <- api_build_request(client, path = paste0("concepts/", concept_id))
+  res <- api_perform(req)
 
   # API may return an array; extract first element
   if (is.list(res) && is.null(res$error) && length(res) >= 1 && is.list(res[[1]])) {
@@ -142,6 +102,6 @@ hecate_get_relationships <- function(concept_id, client = NULL) {
   concept_id <- as.integer(concept_id)
   if (is.na(concept_id) || concept_id < 1) stop("`concept_id` must be a positive integer.")
 
-  req <- hecate_request(client, path = paste0("concepts/", concept_id, "/relationships"))
-  hecate_perform(req)
+  req <- api_build_request(client, path = paste0("concepts/", concept_id, "/relationships"))
+  api_perform(req)
 }

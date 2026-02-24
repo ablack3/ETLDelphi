@@ -10,13 +10,13 @@
 #' @return Invisible path to the written file.
 #' @export
 export_unmapped_units <- function(con, output_path = "unmapped_units.csv", config = NULL) {
-  stg <- if (is.null(config) || is.null(config[["schemas"]]) || is.null(config[["schemas"]][["stg"]])) "stg" else config[["schemas"]][["stg"]]
-  cdm <- if (is.null(config) || is.null(config[["schemas"]]) || is.null(config[["schemas"]][["cdm"]])) "main" else config[["schemas"]][["cdm"]]
+  stg <- resolve_schema(config, "stg")
+  cdm <- resolve_schema(config, "cdm")
 
-  if (!ETLDelphi:::table_exists(con, stg, "map_units")) {
+  if (!table_exists(con, stg, "map_units")) {
     stop("stg.map_units does not exist. Run the ETL first.")
   }
-  if (!ETLDelphi:::table_exists(con, cdm, "measurement")) {
+  if (!table_exists(con, cdm, "measurement")) {
     stop("cdm.measurement does not exist. Run the ETL first.")
   }
 

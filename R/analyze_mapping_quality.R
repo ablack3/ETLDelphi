@@ -58,8 +58,8 @@ analyze_mapping_quality <- function(con, output_dir = "mapping_quality_results",
 # Internal: run all mapping quality queries and return named list of data.frames.
 # Shared by analyze_mapping_quality() (CSV output) and export_mapping_quality_json() (JSON output).
 run_mapping_quality_queries <- function(con, config = NULL) {
-  stg <- config[["schemas"]][["stg"]]; if (is.null(stg)) stg <- "stg"
-  cdm <- config[["schemas"]][["cdm"]]; if (is.null(cdm)) cdm <- "main"
+  stg <- resolve_schema(config, "stg")
+  cdm <- resolve_schema(config, "cdm")
 
   # ----- 1. Unmapped concepts (concept_id = 0) per CDM table -----
   q_unmapped <- list(

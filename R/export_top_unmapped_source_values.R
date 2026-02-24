@@ -17,7 +17,7 @@ export_top_unmapped_source_values <- function(con,
                                               limit = 500L,
                                               config = NULL,
                                               template_for_custom_mapping = FALSE) {
-  cdm <- if (is.null(config) || is.null(config[["schemas"]]) || is.null(config[["schemas"]][["cdm"]])) "main" else config[["schemas"]][["cdm"]]
+  cdm <- resolve_schema(config, "cdm")
 
   queries <- list(
     condition_occurrence = list(
@@ -65,7 +65,7 @@ export_top_unmapped_source_values <- function(con,
   out <- list()
   for (tbl in names(queries)) {
     q <- queries[[tbl]]
-    if (!ETLDelphi:::table_exists(con, cdm, tbl)) next
+    if (!table_exists(con, cdm, tbl)) next
     res <- tryCatch({
       df <- DBI::dbGetQuery(con, q$sql)
       if (nrow(df) > 0) {

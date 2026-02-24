@@ -200,7 +200,9 @@ SELECT
     MIN(drug_sub_exposure_start_date) AS drug_era_start_date,
     drug_era_end_date,
     SUM(drug_exposure_count) AS drug_exposure_count,
-    DATE_DIFF('day', MIN(drug_sub_exposure_start_date), drug_era_end_date) - SUM(days_exposed) AS gap_days
+    -- gap_days = total non-exposed days within the era. Capped at 0 because overlapping
+    -- sub-exposures can cause SUM(days_exposed) to exceed the era span (standard OHDSI behavior).
+    GREATEST(DATE_DIFF('day', MIN(drug_sub_exposure_start_date), drug_era_end_date) - SUM(days_exposed), 0) AS gap_days
 FROM cte_drug_era_ends
 GROUP BY
     person_id,

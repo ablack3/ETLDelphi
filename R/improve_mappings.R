@@ -55,6 +55,7 @@
 #'     \item \code{"all"}: skip ALL values already in the log, including failures.
 #'     \item \code{TRUE}: ignore the log entirely — reprocess everything.
 #'   }
+#' @param delay Seconds to wait between LLM API calls (rate limiting). Default: 0.5.
 #' @param dry_run If TRUE, show what would be processed without calling LLM.
 #' @return Invisible data.frame of all log results.
 #' @export
@@ -72,6 +73,7 @@ improve_mappings <- function(con,
                              hecate = NULL,
                              omophub = NULL,
                              force_retry = FALSE,
+                             delay = 0.5,
                              dry_run = FALSE) {
   config <- config %||% default_etl_config()
   stg <- config$schemas$stg %||% "stg"
@@ -293,7 +295,7 @@ improve_mappings <- function(con,
       cli::cli_alert_warning("  -> No mapping (confidence={round(conf, 2)})")
     }
 
-    Sys.sleep(0.5)
+    Sys.sleep(delay)
   }
 
   # Merge new custom mappings into production CSV
@@ -355,7 +357,6 @@ load_existing_log <- function(log_path) {
 }
 
 empty_log_df <- function() {
-
   data.frame(
     source_value = character(), domain = character(),
     concept_id = integer(), confidence = numeric(),
