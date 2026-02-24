@@ -12,7 +12,7 @@ WITH a AS (
 SELECT
     a.observation_id,
     mp.person_id,
-    COALESCE(ma_code.observation_concept_id, ma.observation_concept_id, cust.concept_id, 0),
+    COALESCE(NULLIF(COALESCE(ma_code.observation_concept_id, ma.observation_concept_id), 0), cust.concept_id, 0),
     a.onset_date,
     32859,
     SUBSTR(a.reaction, 1, 60),

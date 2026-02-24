@@ -21,7 +21,7 @@ with_id AS (
 SELECT
     w.procedure_occurrence_id,
     mp.person_id,
-    COALESCE(mt.procedure_concept_id, cust.concept_id, 0),
+    COALESCE(NULLIF(mt.procedure_concept_id, 0), cust.concept_id, 0),
     w.encounter_date,
     38000268,
     mv.visit_occurrence_id,

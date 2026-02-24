@@ -43,7 +43,7 @@ FROM (
     SELECT
         r.condition_occurrence_id,
         mp.person_id,
-        COALESCE(mc.condition_concept_id, cust.concept_id, 0) AS condition_concept_id,
+        COALESCE(NULLIF(mc.condition_concept_id, 0), cust.concept_id, 0) AS condition_concept_id,
         COALESCE(r.onset_date, r.fallback_start_date) AS condition_start_date,
         NULL AS condition_start_datetime,
         r.resolution_date AS condition_end_date,

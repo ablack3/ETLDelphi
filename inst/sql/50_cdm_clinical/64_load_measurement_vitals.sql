@@ -25,7 +25,7 @@ with_id AS (
 SELECT
     w.measurement_id,
     mp.person_id,
-    COALESCE(mv.measurement_concept_id, cust.concept_id, 0),
+    COALESCE(NULLIF(mv.measurement_concept_id, 0), cust.concept_id, 0),
     w.encounter_date,
     w.encounter_datetime,
     32817,

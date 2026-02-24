@@ -15,7 +15,7 @@ WITH imm AS (
 SELECT
     i.drug_exposure_id,
     mp.person_id,
-    COALESCE(mi.drug_concept_id, cust.concept_id, 0),
+    COALESCE(NULLIF(mi.drug_concept_id, 0), cust.concept_id, 0),
     i.vaccination_date,
     i.vaccination_date,
     38000280,

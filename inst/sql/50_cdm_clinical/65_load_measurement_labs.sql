@@ -16,14 +16,14 @@ WITH lab AS (
 SELECT
     l.measurement_id,
     mp.person_id,
-    COALESCE(lm.measurement_concept_id, cust.concept_id, 0),
+    COALESCE(NULLIF(lm.measurement_concept_id, 0), cust.concept_id, 0),
     CASE WHEN lm.loinc_code IS NOT NULL THEN COALESCE(lm.measurement_source_concept_id, 0) ELSE NULL END,
     COALESCE(l.date_resulted, l.date_collected),
     COALESCE(l.date_resulted_datetime, l.date_collected_datetime),
     32827,
     l.numeric_result,
     CASE WHEN l.numeric_result IS NULL AND l.result_description IS NOT NULL AND TRIM(l.result_description) <> ''
-         THEN COALESCE(mval.value_as_concept_id, cust_val.concept_id, 0) ELSE NULL END AS value_as_concept_id,
+         THEN COALESCE(NULLIF(mval.value_as_concept_id, 0), cust_val.concept_id, 0) ELSE NULL END AS value_as_concept_id,
     CASE WHEN l.units IS NOT NULL AND TRIM(l.units) <> '' THEN COALESCE(u.unit_concept_id, 0) ELSE NULL END AS unit_concept_id,
     SUBSTR(l.units, 1, 50),
     l.range_low,
