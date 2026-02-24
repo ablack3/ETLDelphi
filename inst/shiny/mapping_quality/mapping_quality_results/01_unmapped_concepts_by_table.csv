@@ -1,8 +1,8 @@
 "cdm_table","concept_column","total_rows","unmapped_count","unmapped_pct"
 "main.condition_occurrence","condition_concept_id",39306,0,0
-"main.drug_exposure","drug_concept_id",940216,230595,24.5257472750942
-"main.measurement","measurement_concept_id",13360601,16437,0.123025902801828
-"main.procedure_occurrence","procedure_concept_id",1434911,842,0.0586795975499526
-"main.observation","observation_concept_id",47217,27105,57.4051718660652
-"main.measurement","unit_concept_id",11918474,1544575,12.9595030370499
-"main.measurement","value_as_concept_id",1446348,1082669,74.8553598442422
+"main.drug_exposure","drug_concept_id",960328,222832,23.2037387226031
+"main.measurement","measurement_concept_id",12637114,16437,0.130069254736485
+"main.procedure_occurrence","procedure_concept_id",812722,842,0.103602461850424
+"main.observation","observation_concept_id",1372781,27105,1.97445914534074
+"main.measurement","unit_concept_id",11918474,5303,0.0444939511551563
+"main.measurement","value_as_concept_id",722861,359182,49.6889443475302

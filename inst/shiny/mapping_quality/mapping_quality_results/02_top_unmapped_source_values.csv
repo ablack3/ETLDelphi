@@ -1,5 +1,4 @@
 "domain","source_value","record_count"
-"drug","00078053815",7763
 "drug","59630*70248",7153
 "drug","00944262001",5186
 "drug","33413005004",4984
@@ -20,8 +19,8 @@
 "drug","00093002601",2999
 "drug","00722521201",2778
 "drug","17236096101",2755
-"drug","00186423962",2715
 "drug","00102343001",2715
+"drug","00186423962",2715
 "drug","66267*63300",2644
 "drug","67544*21030",2533
 "drug","66435020209",2458
@@ -95,8 +94,8 @@
 "drug","64980*30912",777
 "drug","13613023004",728
 "drug","53258011913",723
-"drug","545696137*0",713
 "drug","00641146535",713
+"drug","545696137*0",713
 "drug","00074779462",705
 "drug","23490624902",685
 "drug","545691754*0",651
@@ -136,11 +135,11 @@
 "drug","545695291*0",384
 "drug","10019*08202",377
 "drug","00088216203",369
-"drug","00349844010",367
 "drug","00088177190",367
+"drug","00349844010",367
 "drug","00093022419",367
-"drug","00054413025",364
 "drug","59743*02601",364
+"drug","00054413025",364
 "drug","00187200605",363
 "drug","00173063535",356
 "drug","65271000130",353
@@ -151,20 +150,20 @@
 "drug","51285*44102",342
 "drug","545694102*0",338
 "drug","16590084660",328
-"drug","55390*23110",327
-"drug","00013745686",327
-"drug","18837008230",327
 "drug","545695133*0",327
+"drug","55390*23110",327
+"drug","18837008230",327
+"drug","00013745686",327
 "drug","545694048*1",321
 "drug","00641627215",317
 "drug","58016*78100",316
 "drug","42549*59230",308
 "drug","00004201709",306
 "drug","65243*00603",305
-"drug","55390*80610",298
-"drug","00093517119",298
-"drug","55390*14301",298
 "drug","00409485605",298
+"drug","00093517119",298
+"drug","55390*80610",298
+"drug","55390*14301",298
 "drug","545690032*5",296
 "drug","00182101601",294
 "drug","59911588801",294
@@ -173,11 +172,11 @@
 "drug","00004150603",283
 "drug","00093723619",274
 "drug","00085087905",250
-"drug","16590*45730",249
 "drug","00115704401",249
+"drug","16590*45730",249
 "drug","545694720*0",234
-"drug","545695360*0",222
 "drug","597728840*1",222
+"drug","545695360*0",222
 "drug","545695972*0",217
 "drug","00093067006",216
 "drug","548681290*1",213
@@ -186,8 +185,8 @@
 "drug","00024059010",179
 "drug","00944099601",175
 "drug","545694538*0",168
-"drug","545694089*0",163
 "drug","00009022501",163
+"drug","545694089*0",163
 "drug","66336038607",159
 "drug","00039007811",156
 "drug","545694934*0",152
@@ -214,13 +213,13 @@
 "drug","545693788*0",58
 "drug","12280016315",49
 "drug","68115074610",49
+"drug","00169643910",48
 "drug","548685192*0",48
 "drug","00186115102",48
-"drug","00169643910",48
 "drug","00044108501",43
 "drug","00172375396",42
-"drug","00904183160",41
 "drug","00047095524",41
+"drug","00904183160",41
 "drug","00015307220",39
 "drug","00228271711",38
 "drug","42549*50830",37
@@ -235,8 +234,8 @@
 "drug","50242*05656",18
 "drug","00024059240",17
 "drug","61703035991",17
-"drug","55084011612",16
 "drug","00085173302",16
+"drug","55084011612",16
 "drug","00093022001",15
 "drug","00056034208",15
 "drug","00641246045",14
@@ -246,22 +245,22 @@
 "drug","53506098704",12
 "drug","63323*16610",10
 "drug","62086*14630",9
-"drug","50222*34208",8
-"drug","52152*34102",8
 "drug","67544*40130",8
 "drug","00590012770",8
+"drug","50222*34208",8
+"drug","52152*34102",8
 "drug","24430100101",7
 "drug","00131326732",7
 "drug","55513*82310",6
 "drug","00005317543",6
-"drug","44206*41501",5
 "drug","63323*54401",5
+"drug","44206*41501",5
 "drug","24477*04001",4
 "drug","55390*30405",4
 "drug","66758*04301",3
-"drug","00781311963",2
 "drug","35470053701",2
 "drug","00007323002",2
+"drug","00781311963",2
 "measurement","0",6011
 "measurement","21189-7",5122
 "measurement","24627-2",1938
@@ -291,55 +290,36 @@
 "observation","Aspirin",2444
 "observation","Penicillin",2393
 "observation","Insulin",2360
-"measurement_unit","in",769636
-"measurement_unit","lbs",769636
 "measurement_unit","]",5285
 "measurement_unit","ng/mL per year",18
-"measurement_value","20/20, left eye",368373
-"measurement_value","right ear pass, left ear pass",291414
 "measurement_value","no abnormal skin or mole present",70549
 "measurement_value","no lumps noted",69582
 "measurement_value","no lumps noticed",38357
 "measurement_value","uterus and ovaries are normal in size and location",35321
 "measurement_value","no abnormal cervical cells",35320
 "measurement_value","negative for HPV 16 & 18",21633
-"measurement_value","no hostile behavior toward the interviewer, good e",13611
-"measurement_value","no mass seen on B/L breast",9826
 "measurement_value","Platelet count = 200,000/uL",6979
 "measurement_value","Otoacoustic emissions (OAE)",6031
 "measurement_value","normal hemoglobin is present",6030
 "measurement_value","Straw",6030
 "measurement_value","no lump noted",5657
 "measurement_value","Plts=245,000/uL",4374
-"measurement_value","no mass lession found on ovaries and endometrium",3825
 "measurement_value","Bone have a normal density at hip and spine that i",2771
 "measurement_value","no polyps or growth in rectum and  lower colon",2351
 "measurement_value","Severe portal inflammation, lymphocytic bridging n",1966
-"measurement_value","no polyps or pouches in upper and lower colon",1888
 "measurement_value","sinus bradycardia",1721
 "measurement_value","shows nodular aggregates of basalioma cells are pr",1683
-"measurement_value","Clinically Paranoid",1650
-"measurement_value","shows Lt atrial enlargement",1635
-"measurement_value","no mass or nodule seen",1628
 "measurement_value","no polyps or cancerous growth in upper and lower c",1564
 "measurement_value","normal rate and rhythm",1563
 "measurement_value","absence of hearing loss",1454
 "measurement_value","Plts=260,000 /uL",1409
 "measurement_value","NSR",1300
-"measurement_value","enlargement of cardiac silhouette, clear lung fiel",1294
 "measurement_value","4.8",1269
-"measurement_value","shows smaller than normal kidneys",1246
-"measurement_value","Transvaginal U/S shows single 28 mm gestational sa",1172
-"measurement_value","Transvaginal U/S shows single 32 mm gestational sa",1164
-"measurement_value","Transvaginal U/S shows single 14 mm gestational sa",1163
-"measurement_value","Transvaginal U/S shows single 4 mm gestational sac",1140
-"measurement_value","Transvaginal U/S shows single 30 mm gestational sa",1132
-"measurement_value","soft tissue sweeling",1127
 "measurement_value","1.21 LIV(+)",1091
 "measurement_value","no sores or red and white patches",1064
-"measurement_value","(+) findings of cause for joint pain",951
 "measurement_value","lens opacity seen",930
 "measurement_value","Plts=425,000 /uL",817
+"measurement_value","no mass or nodule seen",814
 "measurement_value","Plts=163,000 /uL",804
 "measurement_value","Plts=325,000 /uL",803
 "measurement_value","Plts=407,000 /uL",802
@@ -354,353 +334,166 @@
 "measurement_value","Plts=300,000 /uL",722
 "measurement_value","Plts=310,000 /uL",719
 "measurement_value","Plts=400,000 /uL",705
-"measurement_value","(+) Loss of Visual Field",700
 "measurement_value","Plts=360,000 /uL",699
 "measurement_value","6.0",676
 "measurement_value","RSV (+)",619
-"measurement_value","(+) mid-peripheral scotomata",617
 "measurement_value","(+) for astigmatism in affected eye(s)",609
 "measurement_value","shows joint narrowing, osteophyte formation, and s",599
-"measurement_value","shows a femoral DVT in right femoral vein",581
 "measurement_value","shows sensorineural hearing loss",571
 "measurement_value","sinus tachycardia",556
-"measurement_value","shows a very large complex disk herniation in the ",528
-"measurement_value","shows progressively smaller in comparison to previ",525
-"measurement_value","bilateral medial femorotibial compartment narrowin",487
-"measurement_value","diffuse slowing with generalized spike and wave pa",472
-"measurement_value","shows multiple periventricular white matter lessio",460
 "measurement_value","(+) presence of H. pylori",445
 "measurement_value","3.6",422
 "measurement_value","ring enhancing lession in the left parietal lobe",411
-"measurement_value","shows no ureteral dilation or enlargement of the k",403
 "measurement_value","IgM anti-HAV (+)",382
-"measurement_value","nodular infiltrate",379
-"measurement_value","left mesial temoral sclerosis, hippocampal calcifi",378
-"measurement_value","shows lower lobe consolidation",377
 "measurement_value","(+) presence of Borrellia burgdorferi",371
-"measurement_value","PTSD",363
 "measurement_value","Upper Lobe Solitary nodules on Imaging",360
-"measurement_value","shows cirrhosis, no ascites or gall stones",354
-"measurement_value","normal appearing chest",349
-"measurement_value","Obstructing Kidney/Ureter Stones(+)",346
 "measurement_value","Cavity or Centrilobular Lesions of the Lung",345
-"measurement_value","shows interstitial infilterates in the left lower ",344
 "measurement_value","7.3",334
-"measurement_value","large clot in iliofemoral veins",334
 "measurement_value","shows S1Q3T3 pattern with RIGHT ventricular strain",333
-"measurement_value","shows left lobe consolidation",328
-"measurement_value","shows patch consolidation",327
-"measurement_value","(+) area of increased perfusion",317
 "measurement_value","cell-wall deficient organisms (+)",316
 "measurement_value","Lymphocytic infiltration, moderate degrees of infl",305
 "measurement_value","polymorphs without any bacteria",301
 "measurement_value","10",297
 "measurement_value","cytology (+) for leptomeningeal carcinomatosis",291
-"measurement_value","(+) findings of nerve dysfunction, decreased ampli",271
 "measurement_value","(9-22) bcr-abl (+)",271
-"measurement_value","showed no abnormality",266
 "measurement_value","shows hypercellularity with elevated myeloid to er",264
-"measurement_value","Clinically Depressed or Manic Findings",258
 "measurement_value","fasiculations and evidence of denervation in upper",258
 "measurement_value","causative organism (+)",253
 "measurement_value","(+) fragile X syndrome noted",244
-"measurement_value","punched-out ulcer base with whitish fibrinoid exud",232
 "measurement_value","decreased tone of LES and reduced esophageal body ",225
-"measurement_value","shows a new vertebral fracture",220
 "measurement_value","-2.5",220
-"measurement_value","Kidney mass (+), edema(+)",218
 "measurement_value","WBC present with gram positive diplococci",215
-"measurement_value","no expansion of aorta, aorta size",209
-"measurement_value","shows dilation of calyces and renal pelvis with ri",207
-"measurement_value","shows mildly enlarge kidney B/L",201
-"measurement_value","shows periarticuler sclerosis with blurred sacroil",198
 "measurement_value","cocaine (-), PCP (+),TCAs serum concenteration (-)",198
 "measurement_value","4.0",196
-"measurement_value","reveals ischemic areas with perfusion-weighted ima",196
-"measurement_value","shows right lower lobe infiltrate and abcess forma",194
-"measurement_value","shows punched out lession in the skull",193
 "measurement_value","reveals gram (-) bacilli",193
 "measurement_value","7.0",193
 "measurement_value","(+) findings of vascular deformity in area of migr",187
-"measurement_value","shows narrowing, osteophytes, and subchondral cyst",181
-"measurement_value","2 cm retroperitoneal soft tissue mass obscuring th",181
-"measurement_value","shows esophagitis with a massive gastric ulcer ext",181
-"measurement_value","Blood Flow (+)Normal to Kidneys",181
 "measurement_value","shows stenosis at L4 and L5",178
-"measurement_value","shows a small area of gastric fundal mucosa has lo",175
-"measurement_value","shows degenrative changes in the L5 vertebrae",174
 "measurement_value","prolong in the right eye",171
 "measurement_value","(+) oligoclonal bands",170
-"measurement_value","cocaine (+), PCP (+)",167
 "measurement_value","sinus rhythm with LVH",167
+"measurement_value","cocaine (+), PCP (+)",167
 "measurement_value","shows cortical hemorrhage in left frontal lobe",167
 "measurement_value","(+) lymphocytes proliferation (T cells)",163
 "measurement_value","(+) findings on evaluation",162
 "measurement_value","(+) perivascular infiltration of lymphocytes (pred",161
 "measurement_value","4.3",157
-"measurement_value","shows a heterogeneously enhancing proximal jejunal",155
 "measurement_value","Mitral valvular leaflet length abnormality",155
-"measurement_value","no vasculer abnormalities",154
-"measurement_value","absence of lymphatic vessels",154
-"measurement_value","revealed thickening of the skin overlying the mass",153
-"measurement_value","showed bilateral pleural thickening more marked on",153
 "measurement_value","confirmed the diagnosis of lymphangiosarcoma",153
-"measurement_value","shows right lower lobe opacity",149
+"measurement_value","revealed thickening of the skin overlying the mass",153
 "measurement_value","shows cavitation and air-fluid level",149
 "measurement_value","cocaine (-), PCP (-),TCAs serum concenteration (+)",148
 "measurement_value","4",144
-"measurement_value","Grade III esophagitis (Circular confluent erosions",144
-"measurement_value","shows a shrunken left kidney",136
-"measurement_value","thickened duodenal ulcers with mild bleeding prese",135
-"measurement_value","(+) findings of posterior fossa lesion noted",135
 "measurement_value","shows hemorrhage in frontal lobe",133
 "measurement_value","atrial fibrillation with rapid ventricular respons",131
-"measurement_value","Obstructing Kidney/Ureter Stones(-)",130
-"measurement_value","shows effusion and soft tissue swelling",130
-"measurement_value","Kidney mass (-), edema(+)",130
-"measurement_value","Kidney masses (+)",129
-"measurement_value","enlarge, flabby and pale with edema",128
-"measurement_value","stool positive for blood",128
-"measurement_value","shows soft tissue mass occupying the medial side o",128
 "measurement_value","shows complete occlusion of the left renal artery,",128
-"measurement_value","showing a thoracic syrinx",124
-"measurement_value","occlusion  or obstruction of posterior circulation",122
-"measurement_value","shows obstruction  sentinel lymph node",122
+"measurement_value","stool positive for blood",128
 "measurement_value","16",121
-"measurement_value","shows hyperinflated lung",121
-"measurement_value","showed lymphoedema of the arm, mass measuring 13 m",120
-"measurement_value","shows multiple kidney cysts",120
-"measurement_value","(+) bowel obstruction",120
-"measurement_value","(+) inflammatory findings and/or H. pylori on biop",118
 "measurement_value","(+) fiber grouping and/or grouped atropy",116
 "measurement_value","presence of cerebellar intraparenchymal hemorrhage",115
-"measurement_value","free air under diaphragm",113
 "measurement_value","(+) findings consistent with conductive hearing lo",113
 "measurement_value","presence of nystagmus elicited",111
-"measurement_value","Evidence of aortic dissection",111
-"measurement_value","shows the right kidney is 2.5 cm smaller in size",110
 "measurement_value","showed EF 60%, stage 1 diastolic dysfunction and a",110
-"measurement_value","showed high grade stenosis of an inferior accessor",110
-"measurement_value","(+) findings consistent with sensorineural hearing",109
 "measurement_value","(+) Corneal Thickness on evaluation",109
-"measurement_value","Hyperinflation, depressed diaphragms, increased re",108
-"measurement_value","shows no obstruction",107
-"measurement_value","shows B/L renal artery stenosis > 50%",107
-"measurement_value","shows obliteration of mastoid air cells on right s",106
-"measurement_value","shows subchondral sclerosis and subchondral cysts",103
-"measurement_value","kidney mass (+)",103
+"measurement_value","(+) findings consistent with sensorineural hearing",109
 "measurement_value","presence of spontaneous or induced nystagmus on te",103
-"measurement_value","a saccular right renal artery aneurysm (6 mm x 1.5",101
-"measurement_value","shows three areas of ventlation perfusion mismatch",101
-"measurement_value","LVH",99
-"measurement_value","presence of infarction in the posterior fossa",99
 "measurement_value","shows left Ventricular Hypertrophy",99
-"measurement_value","shows sternoclavicular joint synovitis",97
-"measurement_value","shows inflamed synovium overlying the metacarpal a",96
-"measurement_value","shows strings of beads appearance of the right ren",94
+"measurement_value","LVH",99
 "measurement_value","shows invasion of dermis by sheets and islands of ",93
-"measurement_value","shows renal artery stenosis > 80%",90
 "measurement_value","0.70",86
 "measurement_value","studies typically normal, if findings show stool w",85
 "measurement_value","0.88",82
 "measurement_value","(+) red cell galactokinase/urine amino acids after",81
-"measurement_value","shows increased radiotracer accumulation at the ba",79
-"measurement_value","patchy gastritis in the gastric fundus and in the ",79
-"measurement_value","shown an elongated renal pelvis with low lying ute",76
 "measurement_value","darkening of the red reflex",76
-"measurement_value","showed moderately to poorly differentiated metasta",75
-"measurement_value","showed increased uptake in the proximal phalanx of",75
 "measurement_value","shows a presence of a right upper lobe mass, along",75
-"measurement_value","showed a thickened scrotal wall but the scrotal co",74
-"measurement_value","studies typically normal,if findings (+) then rule",72
-"measurement_value","(+) findings of arterial lesion(s)",69
-"measurement_value","shows splenomegaly and gallstones",68
+"measurement_value","showed moderately to poorly differentiated metasta",75
 "measurement_value","shows diffuse infiltration by mature lymphocytes",68
 "measurement_value","shows calcified aortic valve",65
 "measurement_value","elevated",62
 "measurement_value","granular casts !",61
-"measurement_value","(+) findings of venous lesion(s)",59
-"measurement_value","shows 2 enhancing cerebral metastases of lung canc",59
-"measurement_value","4.6 x 5.1 x 4.6 cm mass in the aortopulmonary wind",59
 "measurement_value","2 mm superior displacement of the mitral leaflets ",56
-"measurement_value","shows shrunken and iregular liver with a regenerti",55
-"measurement_value","shows B/L hydoureter and hydronephrosis",54
-"measurement_value","shows subtotal infarction of right kidney",52
-"measurement_value","shows splenomegaly",51
 "measurement_value","ST Depression (Ischemic changes)",49
-"measurement_value","(+) clonality of circulating B lymphocytes",48
 "measurement_value","(+) findings consistent with glaucoma on imaging",48
-"measurement_value","no mediastinal mass",44
+"measurement_value","(+) clonality of circulating B lymphocytes",48
 "measurement_value","large, irregular lobulated mass is present in the ",44
-"measurement_value","Blood Flow reduced to Kidneys",43
-"measurement_value","Radiographic evidence of NL Kidney Fcn",43
 "measurement_value","(+) findings for Sickle Cell",42
-"measurement_value","shows multiple small and medium-sized arterial occ",41
 "measurement_value","Premature ventricular contractions and Ejection Fr",40
-"measurement_value","(+) degeneration and loss of terminal nerve twigs",39
-"measurement_value","severe arteriosclerosis involving the right and le",39
-"measurement_value","ST elevation in leads 11, 111, and aVF",39
 "measurement_value","ST Elevation (STEMI)",39
+"measurement_value","(+) degeneration and loss of terminal nerve twigs",39
+"measurement_value","ST elevation in leads 11, 111, and aVF",39
 "measurement_value","New S-T elevation",38
 "measurement_value","Pathologic Q-wave",37
-"measurement_value","shows a 18-mm sessile polyp in the sigmoid colon s",36
-"measurement_value","shows 1 cm mass in the head of the pancreas adjace",36
-"measurement_value","moderate calcified atherosclerotic plaque of the r",36
-"measurement_value","0.55",36
-"measurement_value","PAA with a diameter of 40x34 mm",36
 "measurement_value","0.16",36
+"measurement_value","0.55",36
 "measurement_value","shows a distal common bile duct stricture with pro",35
-"measurement_value","large hyperintense plaque of demyelination at C5 l",34
 "measurement_value","shows mild to moderate aortic valve stenosis but r",34
-"measurement_value","revealed widely patent vessels until the level of ",34
-"measurement_value","shows enlargement of the hilar vasculature",32
-"measurement_value","shows a large focal hypermetabolic area on the rig",32
 "measurement_value","ST elevation in leads V1, V2, V3, Inversion of T w",32
-"measurement_value","shows evidence of ascites, hepatic nodularity, inc",32
 "measurement_value","shows Ventricular Septal Rupture",32
 "measurement_value","shows pericardial effusion, regional Wall Motion A",32
 "measurement_value","0.39",31
 "measurement_value","narrowing of femoral arteries",31
-"measurement_value","affected area revealed positive pulses at the dist",31
-"measurement_value","Displacement of the mitral valve leaflets into the",31
 "measurement_value","obscuration of ocular fundus detail",31
 "measurement_value","LEFT Ventricular Hypertrophy",30
 "measurement_value","(+) Multifocal deficiencies of maculae on ERG",29
 "measurement_value","shows a B/L solid nodular masses on both ovaries",28
 "measurement_value","shows calcification of the aortic valve",26
-"measurement_value","fungating and ulcerating mass in the lower third o",26
-"measurement_value","visualized acute myocardial infarction",26
 "measurement_value","heme (+) stool",26
-"measurement_value","shows Grade IV esophagitis with Barrett esophagus",26
-"measurement_value","shows a mass located at the head of pancreas measu",26
-"measurement_value","shows right MCA infarct along with multiple foci o",25
-"measurement_value","fungating and ulcerating mass  in the lower third ",25
 "measurement_value","findings of acute hemorrhage of hyperdense focal c",25
+"measurement_value","shows right MCA infarct along with multiple foci o",25
 "measurement_value","atrial fibrillation with controlled ventricular ra",25
-"measurement_value","shows a large thrombus in the superficial femoral ",25
-"measurement_value","76% stenosis in left common carotid, 50% stenosis ",25
 "measurement_value","nearly extinguished signal in both eye",24
-"measurement_value","shows shrunken liver, massive ascites and dilated ",24
-"measurement_value","shows varicose veins in inner mid thigh",24
 "measurement_value","(+) evidence of bony impingement on spinal nerve r",23
-"measurement_value","shows a large 7cm, ulcerated bulge was visualized ",22
 "measurement_value","peripheral palisading, clefting and a sclerotic st",22
-"measurement_value","blockage in femoral and tibial arteries",22
-"measurement_value","periventiculer white matter disease",22
 "measurement_value","0.24",22
-"measurement_value","shows 2 cm stricture touching the gastroesophageal",21
-"measurement_value","shows multiple occluded segments of small and medi",21
 "measurement_value","loss of contrast sensitivity on testing",21
 "measurement_value","scrapes off abnormal tissue which shows loss of no",20
-"measurement_value","shows increased anteroposterior (AP) diameter, inc",20
-"measurement_value","showing Renal Artery Stenosis",20
-"measurement_value","increased uptake in the right upper neck with a SU",20
-"measurement_value","no distant metastasis",20
-"measurement_value","shows a 1.7 X 2.0 X 3.2 cm lymph node at the parot",20
 "measurement_value","Non-recordable (extinguished) ERG",19
-"measurement_value","shows thrombi occluding right common femoral and p",19
-"measurement_value","normal skin with changes in the subcutaneous tissu",18
-"measurement_value","opacities seen in red reflex",18
-"measurement_value","corkscrew appearance of arteries to the leg",18
 "measurement_value","show seven 1.5 cm polyp in left descending colon",18
-"measurement_value","(+) findings of bony abnormality inpinging on neur",17
+"measurement_value","opacities seen in red reflex",18
+"measurement_value","normal skin with changes in the subcutaneous tissu",18
 "measurement_value","(+) loss of rod and/or cone sensitivity on testing",17
+"measurement_value","(+) findings of bony abnormality inpinging on neur",17
 "measurement_value","positive for HPV 16",16
-"measurement_value","shows multiple site of bleeding within the small i",16
-"measurement_value","shows thrombophlebitis in the greater saphenous ve",16
 "measurement_value","shows a polypod mass filling part of ascending col",16
 "measurement_value","myopic shift noted",15
-"measurement_value","shows increase frontal atrophy",15
 "measurement_value","no relationship between p and QRS waves",14
-"measurement_value","shows an abscess noted in left kidney",14
 "measurement_value","shows monoclonal M spike",13
-"measurement_value","revealed a Gleason score 6 (3 + 3) adenocarcinoma ",13
-"measurement_value","shows an enhancing mass in rectus sheath from meta",13
-"measurement_value","showed complete obliteration of the varicose vein",13
 "measurement_value","demonstrates areas of centriacinar emphysema",13
 "measurement_value","shows large bullae in both inferior lobes due to u",13
-"measurement_value","shows pulmonary metastases from colon cancer",13
+"measurement_value","revealed a Gleason score 6 (3 + 3) adenocarcinoma ",13
 "measurement_value","shows exaggerated plasma renin activity",12
 "measurement_value","reveals fungating mass showing back to back glands",12
-"measurement_value","shows hyperinflation of both lung field",12
 "measurement_value","LEFT and RIGHT Ventricular Enlargement (4 chamber ",11
-"measurement_value","shows a round circumscribed mass with sharply defi",11
-"measurement_value","shows destruction and collapse of T6 vertebra",10
-"measurement_value","Soft tissue swelling with periosteal new-bone form",10
-"measurement_value","shows loss of normal orientation of squamous cells",10
 "measurement_value","distant metastasis to lung (pleural effusion)",10
 "measurement_value","mild dysplasia",10
-"measurement_value","shows the aorta of 2 cm diameter contains mural th",9
-"measurement_value","shows several low-density metastases from the colo",9
-"measurement_value","shows a the right lobe of the liver showing large ",9
-"measurement_value","shows a 2.2-cm pancreatic adenocarcinoma of the he",8
+"measurement_value","shows loss of normal orientation of squamous cells",10
 "measurement_value","reveals a suspicious area from which biopsy is tak",8
-"measurement_value","shows an irregular mass with a spiculated margin i",8
-"measurement_value","shows a mass lession compressing the spinal cord i",8
 "measurement_value","revealed a moderately to poorly differentiated ade",8
-"measurement_value","shows significant small bowel congestion with necr",7
-"measurement_value","T2-weighted with findings of acute hemorrhage of h",7
-"measurement_value","14 by 9 mm enhancing nodule in the super lateral q",7
+"measurement_value","shows a 2.2-cm pancreatic adenocarcinoma of the he",8
 "measurement_value","(+) evidence of denervation with absence of muscle",7
-"measurement_value","shows a lesion of the pancreatic tail with associa",7
-"measurement_value","shows invasive ductal carcinoma, high grade with t",7
-"measurement_value","distant metastasis to abdomen and lung",6
-"measurement_value","widened mediastinum, a shadow to the right of the ",6
-"measurement_value","findings of aortic, atrial, atrial septal deficien",6
+"measurement_value","shows significant small bowel congestion with necr",7
 "measurement_value","atypical squamous cells of unknown significance",6
-"measurement_value","no evidence of venous reflux or proximal dilation",6
-"measurement_value","no extracapsular extension",6
+"measurement_value","absence of other pathology causing symptoms",6
 "measurement_value","shows poorly differentiated squamous cell carinoma",6
 "measurement_value","negative for orthostatic hypotension to rule out a",6
-"measurement_value","shows no lymphadenopathy",6
-"measurement_value","absence of other pathology causing symptoms",6
-"measurement_value","shows cephalic vein varicosities with saccular enl",6
-"measurement_value","shows a 5 mm gastric ulcer with symmetrical, radia",5
+"measurement_value","findings of aortic, atrial, atrial septal deficien",6
 "measurement_value","shows a 7 cm heterogeneous solid cystic mass repla",5
 "measurement_value","negative for psychologic etiology for physical fin",5
-"measurement_value","shows a clot in the right femoral vein",5
-"measurement_value","indicated clotted blood within the false lumen",4
-"measurement_value","shows a 5 cm large intraluminal clot within the ab",4
-"measurement_value","Calculi (stone) seen + in distal ureter, Renal Cal",4
+"measurement_value","shows a 5 mm gastric ulcer with symmetrical, radia",5
 "measurement_value","NSR with left axis deviation",4
-"measurement_value","ER staining was strongly positive, PR staining was",3
-"measurement_value","shows popliteal vein thrombosis with abnormal comp",3
-"measurement_value","shows a 2cm hypoechoic mass in the upper outer qua",3
-"measurement_value","shows infrarenal AAA expanding to aortic bifurcati",3
-"measurement_value","shows a nonocclusive chronic thrombus.The superfic",3
-"measurement_value","showed a poorly differentiated pseudopapillary tum",3
-"measurement_value","shows 2 lession at cervical intraepithelial juncti",3
+"measurement_value","indicated clotted blood within the false lumen",4
 "measurement_value","shows slower refilling at the distal limb and mid ",3
-"measurement_value","shows B/L staghorn calculi seen in the pelvis of e",3
-"measurement_value","shows 60 x 55 mm round heterogenous mass with necr",3
-"measurement_value","shows an ill defined mass in the right breast with",3
-"measurement_value","shows two masses in the left breast, one with thin",3
+"measurement_value","showed a poorly differentiated pseudopapillary tum",3
 "measurement_value","showed a cystic tumor arising from the superior bo",3
-"measurement_value","shows a mass in small bowel, mesenteric metastases",2
-"measurement_value","shows dilated aorta with irregular calcified wall",2
-"measurement_value","(+) findings for vestibular schwannoma (acoustic n",2
-"measurement_value","1.5 cm hypoechoic mass in the Right upper outer qu",2
-"measurement_value","calcification of aneursym wall",2
-"measurement_value","shows cerebellopontine angle tumor",2
+"measurement_value","ER staining was strongly positive, PR staining was",3
+"measurement_value","shows 2 lession at cervical intraepithelial juncti",3
 "measurement_value","no mass, no shift, no hemorrhage",2
-"measurement_value","shows AAA rupture with left retroperitoneal hemato",2
-"measurement_value","shows an attenuating calculus at the right uretero",1
-"measurement_value","shows psammoma bodies and right ovary mass adjacen",1
-"measurement_value","widened mediastinum, cardiomegaly, large aortic kn",1
-"measurement_value","aortic incompetence, left ventricular hypertrophy ",1
-"measurement_value","shows focal mural thickening of the wall in the le",1
-"measurement_value","shows calcification filling the left collecting sy",1
-"measurement_value","tree bark calcification of ascending aorta and arc",1
-"measurement_value","shows a Leaking aneurysm",1
-"measurement_value","abnormal findings in peripheral stimulation of sen",1
-"measurement_value","intimal flap separates true from false lumen",1
-"measurement_value","shows breast parenchyma wiht large lactiferous duc",1
-"measurement_value","absence of vision problem",1
-"measurement_value","shows a large hilar tumor on the right side, with ",1
-"measurement_value","shows bilateral renal calculi, right hydronephrosi",1
-"measurement_value","shows a large left lung and a 2.5 x 2.1 cm hilar m",1
-"measurement_value","conductive hearing loss, absent stapedial reflex",1
-"measurement_value","Calculi (stone) seen + in distal ureter",1
-"measurement_value","visible kidney stone marked with arrow",1
-"measurement_value","left ileofemoral region demonstrating extensive co",1
+"measurement_value","shows cerebellopontine angle tumor",2
 "measurement_value","showed a 6cm by 4cm solid, grey white, smooth surf",1
+"measurement_value","aortic incompetence, left ventricular hypertrophy ",1
+"measurement_value","shows a large hilar tumor on the right side, with ",1
+"measurement_value","absence of vision problem",1
+"measurement_value","shows a Leaking aneurysm",1
+"measurement_value","shows a large left lung and a 2.5 x 2.1 cm hilar m",1
+"measurement_value","intimal flap separates true from false lumen",1
+"measurement_value","abnormal findings in peripheral stimulation of sen",1
