@@ -20,6 +20,7 @@ improve_mappings(
   hecate = NULL,
   omophub = NULL,
   force_retry = FALSE,
+  delay = 0.5,
   dry_run = FALSE
 )
 }
@@ -61,6 +62,8 @@ AND confidence >= threshold). Failed mappings are automatically retried.
 \item \code{"all"}: skip ALL values already in the log, including failures.
 \item \code{TRUE}: ignore the log entirely — reprocess everything.
 }}
+
+\item{delay}{Seconds to wait between LLM API calls (rate limiting). Default: 0.5.}
 
 \item{dry_run}{If TRUE, show what would be processed without calling LLM.}
 }
