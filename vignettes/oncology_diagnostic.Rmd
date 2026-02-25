@@ -43,8 +43,8 @@ library(dplyr, warn.conflicts = FALSE)
 library(ggplot2)
 library(CDMConnector)
 
-con <- dbConnect(duckdb::duckdb(), "~/Desktop/delphi.duckdb")
-cdm <- cdmFromCon(con, cdm_schema = "cdm", write_schema = "main")
+con <- dbConnect(duckdb::duckdb(), eunomiaDir("delphi-100k"))
+cdm <- cdmFromCon(con, cdmSchema = "main", writeSchema = "main", achillesSchema = "main")
 ```
 
 ```{r theme, include=FALSE}
@@ -492,7 +492,7 @@ staging_all %>%
   )
 ```
 
-```{r staging-note, results='asis'}
+```{r staging-note, results='asis', echo=FALSE}
 has_staging <- any(staging_all$persons > 0)
 if (has_staging) {
   cat("> **Staging data is present.** This dataset contains tumor staging",
@@ -588,7 +588,7 @@ scorecard %>%
   knitr::kable(col.names = c("Dimension", "Count"), align = c("l", "r"))
 ```
 
-```{r scorecard-assessment, results='asis'}
+```{r scorecard-assessment, results='asis', echo=FALSE}
 n_cancer <- cancer_summary$cancer_persons
 n_drugs  <- sum(drug_counts$persons > 0)
 n_stage  <- sum(staging_all$persons > 0)
