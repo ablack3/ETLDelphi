@@ -236,9 +236,9 @@ DBI::dbListTables(con)
 
 # cdm$source_to_concept_map
 
-unlink("~/Desktop/delphi100k")
-dir.exists("~/Desktop/delphi100k")
-exportToParquet(cdm, "~/Desktop/delphi100k")
+unlink("~/Desktop/delphi-100k")
+dir.exists("~/Desktop/delphi-100k")
+exportToParquet(cdm, "~/Desktop/delphi-100k")
 
 
 CDMConnector::cdmDisconnect(cdm)

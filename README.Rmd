@@ -11,124 +11,76 @@ knitr::opts_chunk$set(
 )
 ```
 
-# ETL-Delphi
+# ETLDelphi
 
-<!-- badges: start -->
-<!-- badges: end -->
+**ETLDelphi** transforms Delphi synthetic health data into the OMOP Common Data Model (CDM) v5.4 in DuckDB. It provides a full ETL pipeline (source → staging → CDM), configurable type concept IDs, and mapping-quality tooling.
 
-The goal of ETL-Delphi is to implement and document the process of mapping the synthetic Delphi dataset to the OMOP CDM format and make it available to the OHDSI community. This document with both describe and implment the ETL.
+## What is Delphi synthetic data?
 
-When I use ETL I will simply mean the process of transforming the raw data to the OMOP CDM format. If you are not familiar with the OMOP Common Data Model you should spend some time familiarizing yourself with it before reading this ETL.
+[Delphi](https://github.com/gerstung-lab/Delphi) is a modified GPT-2 model that learns disease progression from electronic health records and can **generate synthetic patient trajectories**. [Delphi-2M](https://www.nature.com/articles/s41586-025-09529-3) was trained on ~400K UK Biobank participants and predicts rates of 1,000+ diseases conditional on past diagnoses; it can also **sample** future trajectories (e.g. for ages 60–80). The synthetic data preserve statistical patterns of multi-morbidity and event timing without disclosing real individuals, and are used here as a Delphi-shaped **source schema** (enrollment, encounter, problem, medication_orders, lab_results, etc.) that this package maps to OMOP CDM.
 
-For the purposes of standardization we need to map the raw data into a predefined set of "standard concepts". Standard concepts are simply codes that have been designated by the OHDSI community as the standard representation for a particular clinical concept. While a discussion of the standardized vocabulary is outside the scope of this exercise, the intent behind the standardized vocabulary is to have one single unique representation of each clinical concept. Now deciding when two medical codes represent "the same" clinical concept requires medical and informatics expertise. Assuming this work has been done to a standard we are ok adopting we can use the mappings in the vocabulary to transform out raw electronic health record data into the OMOP Common Data Model. 
+Reference: Shmatko et al., *Learning the natural history of human disease with generative transformers*, Nature **647**, 248–256 (2025), <https://doi.org/10.1038/s41586-025-09529-3>.
 
-In addition to standardizing the representation of the medical data we are also standardizing the format of the data. It is stored as a relational database (several related tables). Table and field names are standardized.
+## Using the Delphi CDM dataset
 
-Once we have the data in a standard format we can then use OHDSI tools on the data.
+If you have a pre-built Delphi CDM DuckDB (e.g. from running the ETL below or from a prepared download), connect with **CDMConnector** and use the `cdm` object as usual:
 
-
-# Investigate the Source Data
-
-The first thing we should do is some investigation of the source data. We should look for the various code systems used in the source data and evaluate how much custom mapping we will need to do. Custom code mapping is one of the hardest parts of doing ETL because it requires someone with clinical knowledge to decide which standard concept is "the same" as the new code.
-
-
-The data is saved in the `delphi100k` folder.
-```{r}
-list.files("delphi100k/")
-
-cat(readr::read_file("delphi100k/delphi.ddl"))
-
-```
-
-
-```{r}
-library(dplyr)
-
-filenames <- list.files("delphi100k/", pattern = ".csv$")
-filenames
-tablenames <- stringr::str_remove_all(filenames, ".csv$")
-tablenames
-
-src <- purrr::map(filenames, ~readr::read_csv(glue::glue("delphi100k/{.}"), show_col_types = FALSE)) %>% 
-  purrr::set_names(tablenames)
-
-
-names(src)
-```
-
-
-```{r}
-src <- purrr::map(src, ~dplyr::rename_all(., tolower))
-src
-names(src)
-
-# purrr::walk(src, skimr::skim)
-
-skimr::skim(src$allergy)
-```
-
-
-
-To ETL to the cdm it is helpful to take a look at an example cdm.
-
-```{r}
+```{r, eval = FALSE}
 library(CDMConnector)
+con <- DBI::dbConnect(duckdb::duckdb(), eunomiaDir("delphi-100k"))
+cdm <- cdmFromCon(con, cdmSchema = "main", writeSchema = "main", achillesSchema = "main")
 
+# Use cdm with dplyr and OHDSI tools
+cdm$person
+cdm$condition_occurrence
+cdm$drug_exposure
+```
+
+Replace `eunomiaDir("delphi-100k")` with the path to your DuckDB file if you built it locally (e.g. `"~/Desktop/delphi.duckdb"`).
+
+### Deploying the Delphi CDM to another database
+
+Use **CDMConnector::copyCdmTo()** to copy the CDM from DuckDB to another database (e.g. PostgreSQL, SQL Server):
+
+```{r, eval = FALSE}
 library(CDMConnector)
-example_datasets()
-con <- DBI::dbConnect(duckdb::duckdb(), eunomia_dir())
-cdm <- cdmFromCon(con, cdm_schema = "main", write_schema = "main")
+library(DBI)
 
+# Source: Delphi CDM in DuckDB
+con_src <- DBI::dbConnect(duckdb::duckdb(), "~/Desktop/delphi.duckdb")
+cdm <- cdmFromCon(con_src, cdmSchema = "main", writeSchema = "main")
 
-cdm
+# Target: your database (example: PostgreSQL)
+con_tgt <- DBI::dbConnect(RPostgres::Postgres(), host = "...", dbname = "...", user = "...", password = "...")
+
+# Copy CDM tables to the target (creates tables in writeSchema)
+cdm_tgt <- CDMConnector::copyCdmTo(
+  con = con_tgt,
+  cdm = cdm,
+  cdmSchema = "main",      # schema on target for CDM tables
+  writeSchema = "main"     # schema on target for any write operations
+)
+
+DBI::dbDisconnect(con_src)
+DBI::dbDisconnect(con_tgt)
 ```
 
-```{r}
-cdm$person
-```
+Adjust `cdmSchema` and `writeSchema` to match your target database. The target connection must have write access; vocabulary and clinical tables will be copied.
 
-We need to empty all the person data out of the example cdm but leave the vocabulary in tact.
+## How to run the ETL
 
+1. **Download the full OMOP vocabulary** from [Athena](https://athena.ohdsi.org/) and unzip to a folder (e.g. `vocabulary_download_v5`).
+2. **Download the Delphi source data** from [link to be inserted] and unzip to a folder (e.g. `delphi100k`).
+3. Open **`extras/codeToRun.R`**, set `vocabulary_dir`, `delphi_source_dir`, and `duckdb_path`, then **source the file** (or run it in R). It will:
+   - Create the DuckDB database and load the vocabulary
+   - Create the `src` schema and load the Delphi CSVs
+   - Run the full ETL into the CDM
 
-```{r}
-tbl_group("clinical")
+No other steps required; the script uses default config (schemas, type concept IDs). Override `config` in the script or pass a YAML path if needed.
 
-for (tbl in tbl_group("clinical")) {
-  DBI::dbExecute(con, glue::glue("delete from {tbl};"))
-}
+## More information
 
-cdm$person
-
-```
-
-
-The patient data has been removed from the example cdm. We will populate it with the delphi data.
-
-
-
-
-Upload the delphi source data to the cdm database. But before we do that let's do some date fixing in R.
-
-```{r}
-
-src$allergy$onset_date <- ifelse(is.character(src$allergy$onset_date), 
-                                 lubridate::mdy(src$allergy$onset_date), 
-                                 src$allergy$onset_date)
-
-
-src$allergy
-```
-
-
-
-
-# Person and obervation period tables
-
-```{r}
-src$enrollment
-```
-
-
-
-
-
+- **How to run**: `vignette("how_to_run", package = "ETLDelphi")` — prerequisites and step-by-step run.
+- **ETL design**: `vignette("etl", package = "ETLDelphi")` — workflow, tables, and design choices.
+- **Run steps in detail**: `vignette("run_etl_steps", package = "ETLDelphi")` — what each ETL step does.
+- **Package website (vignettes and reference)**: build with `pkgdown::build_site()` or see the deployed site if available.
