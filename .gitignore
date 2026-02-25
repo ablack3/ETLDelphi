@@ -8,3 +8,4 @@ delphi.duckdb
 delphi.duckdb.wal
 .claude/
 .vscode/
+*errorReportSql.txt

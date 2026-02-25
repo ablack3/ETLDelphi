@@ -5,6 +5,11 @@
 #' and record counts. Use for custom mapping (e.g. ingredient-level) when NDC
 #' is missing, wildcard, or ambiguous. Run after ETL.
 #'
+#' The same set of unmapped drugs (from \code{stg.map_drug_order}) is processed
+#' by \code{improve_mappings(..., domains = "drug")} when \code{force_retry} is
+#' \code{FALSE} (default). Use \code{force_retry = "fail"} only to retry
+#' previously failed log entries; that list comes from the log file, not the DB.
+#'
 #' @param con DBI connection to the DuckDB database.
 #' @param output_path Path to the output CSV file. Default: \code{unmapped_drugs.csv} in current directory.
 #' @param config Optional list with \code{schemas$stg}; if NULL, uses \code{stg}.

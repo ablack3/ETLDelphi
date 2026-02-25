@@ -11,33 +11,33 @@
     {
       "cdm_table": "main.drug_exposure",
       "concept_column": "drug_concept_id",
-      "total_rows": 960328,
-      "unmapped_count": 222832,
-      "unmapped_pct": 23.2037,
+      "total_rows": 962858,
+      "unmapped_count": 0,
+      "unmapped_pct": 0,
       "_row": "drug_exposure"
     },
     {
       "cdm_table": "main.measurement",
       "concept_column": "measurement_concept_id",
-      "total_rows": 12637114,
-      "unmapped_count": 16437,
-      "unmapped_pct": 0.1301,
+      "total_rows": 12634407,
+      "unmapped_count": 21,
+      "unmapped_pct": 0.0002,
       "_row": "measurement"
     },
     {
       "cdm_table": "main.procedure_occurrence",
       "concept_column": "procedure_concept_id",
-      "total_rows": 812722,
-      "unmapped_count": 842,
-      "unmapped_pct": 0.1036,
+      "total_rows": 815429,
+      "unmapped_count": 0,
+      "unmapped_pct": 0,
       "_row": "procedure_occurrence"
     },
     {
       "cdm_table": "main.observation",
       "concept_column": "observation_concept_id",
-      "total_rows": 1372781,
-      "unmapped_count": 27105,
-      "unmapped_pct": 1.9745,
+      "total_rows": 1370251,
+      "unmapped_count": 0,
+      "unmapped_pct": 0,
       "_row": "observation"
     },
     {
@@ -51,1758 +51,24 @@
     {
       "cdm_table": "main.measurement",
       "concept_column": "value_as_concept_id",
-      "total_rows": 722861,
-      "unmapped_count": 359182,
-      "unmapped_pct": 49.6889,
+      "total_rows": 720154,
+      "unmapped_count": 22502,
+      "unmapped_pct": 3.1246,
       "_row": "measurement_value_as_concept"
     }
   ],
   "top_unmapped_source_values": [
     {
-      "domain": "drug",
-      "source_value": "59630*70248",
-      "record_count": 7153,
-      "_row": "drug.1"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00944262001",
-      "record_count": 5186,
-      "_row": "drug.2"
-    },
-    {
-      "domain": "drug",
-      "source_value": "33413005004",
-      "record_count": 4984,
-      "_row": "drug.3"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00026440005",
-      "record_count": 4978,
-      "_row": "drug.4"
-    },
-    {
-      "domain": "drug",
-      "source_value": "52959*39115",
-      "record_count": 4505,
-      "_row": "drug.5"
-    },
-    {
-      "domain": "drug",
-      "source_value": "545693787*0",
-      "record_count": 4408,
-      "_row": "drug.6"
-    },
-    {
-      "domain": "drug",
-      "source_value": "545695435*0",
-      "record_count": 4281,
-      "_row": "drug.7"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00047007824",
-      "record_count": 4175,
-      "_row": "drug.8"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00068050861",
-      "record_count": 4168,
-      "_row": "drug.9"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00264400155",
-      "record_count": 3799,
-      "_row": "drug.10"
-    },
-    {
-      "domain": "drug",
-      "source_value": "24385013778",
-      "record_count": 3779,
-      "_row": "drug.11"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00517010125",
-      "record_count": 3771,
-      "_row": "drug.12"
-    },
-    {
-      "domain": "drug",
-      "source_value": "548686054*0",
-      "record_count": 3670,
-      "_row": "drug.13"
-    },
-    {
-      "domain": "drug",
-      "source_value": "49884*46901",
-      "record_count": 3427,
-      "_row": "drug.14"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00087277231",
-      "record_count": 3412,
-      "_row": "drug.15"
-    },
-    {
-      "domain": "drug",
-      "source_value": "67544*13430",
-      "record_count": 3237,
-      "_row": "drug.16"
-    },
-    {
-      "domain": "drug",
-      "source_value": "682583012*1",
-      "record_count": 3098,
-      "_row": "drug.17"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00093002601",
-      "record_count": 2999,
-      "_row": "drug.18"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00722521201",
-      "record_count": 2778,
-      "_row": "drug.19"
-    },
-    {
-      "domain": "drug",
-      "source_value": "17236096101",
-      "record_count": 2755,
-      "_row": "drug.20"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00102343001",
-      "record_count": 2715,
-      "_row": "drug.21"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00186423962",
-      "record_count": 2715,
-      "_row": "drug.22"
-    },
-    {
-      "domain": "drug",
-      "source_value": "66267*63300",
-      "record_count": 2644,
-      "_row": "drug.23"
-    },
-    {
-      "domain": "drug",
-      "source_value": "67544*21030",
-      "record_count": 2533,
-      "_row": "drug.24"
-    },
-    {
-      "domain": "drug",
-      "source_value": "66435020209",
-      "record_count": 2458,
-      "_row": "drug.25"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00364724812",
-      "record_count": 2397,
-      "_row": "drug.26"
-    },
-    {
-      "domain": "drug",
-      "source_value": "58914*01310",
-      "record_count": 2207,
-      "_row": "drug.27"
-    },
-    {
-      "domain": "drug",
-      "source_value": "21695009215",
-      "record_count": 2011,
-      "_row": "drug.28"
-    },
-    {
-      "domain": "drug",
-      "source_value": "54569560400",
-      "record_count": 1982,
-      "_row": "drug.29"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00781508801",
-      "record_count": 1955,
-      "_row": "drug.30"
-    },
-    {
-      "domain": "drug",
-      "source_value": "50383*17708",
-      "record_count": 1907,
-      "_row": "drug.31"
-    },
-    {
-      "domain": "drug",
-      "source_value": "66758004403",
-      "record_count": 1760,
-      "_row": "drug.32"
-    },
-    {
-      "domain": "drug",
-      "source_value": "51432034206",
-      "record_count": 1750,
-      "_row": "drug.33"
-    },
-    {
-      "domain": "drug",
-      "source_value": "47202252901",
-      "record_count": 1649,
-      "_row": "drug.34"
-    },
-    {
-      "domain": "drug",
-      "source_value": "545691818*0",
-      "record_count": 1626,
-      "_row": "drug.35"
-    },
-    {
-      "domain": "drug",
-      "source_value": "64376*50101",
-      "record_count": 1617,
-      "_row": "drug.36"
-    },
-    {
-      "domain": "drug",
-      "source_value": "42549*51800",
-      "record_count": 1612,
-      "_row": "drug.37"
-    },
-    {
-      "domain": "drug",
-      "source_value": "17478028912",
-      "record_count": 1602,
-      "_row": "drug.38"
-    },
-    {
-      "domain": "drug",
-      "source_value": "545690014*1",
-      "record_count": 1594,
-      "_row": "drug.39"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00013105694",
-      "record_count": 1576,
-      "_row": "drug.40"
-    },
-    {
-      "domain": "drug",
-      "source_value": "545696062*0",
-      "record_count": 1557,
-      "_row": "drug.41"
-    },
-    {
-      "domain": "drug",
-      "source_value": "545691519*0",
-      "record_count": 1546,
-      "_row": "drug.42"
-    },
-    {
-      "domain": "drug",
-      "source_value": "545695757*0",
-      "record_count": 1524,
-      "_row": "drug.43"
-    },
-    {
-      "domain": "drug",
-      "source_value": "545690332*3",
-      "record_count": 1520,
-      "_row": "drug.44"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00182269015",
-      "record_count": 1485,
-      "_row": "drug.45"
-    },
-    {
-      "domain": "drug",
-      "source_value": "545695574*0",
-      "record_count": 1466,
-      "_row": "drug.46"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00719129513",
-      "record_count": 1465,
-      "_row": "drug.47"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00045152550",
-      "record_count": 1439,
-      "_row": "drug.48"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00013113691",
-      "record_count": 1433,
-      "_row": "drug.49"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00093063201",
-      "record_count": 1430,
-      "_row": "drug.50"
-    },
-    {
-      "domain": "drug",
-      "source_value": "545694272*0",
-      "record_count": 1429,
-      "_row": "drug.51"
-    },
-    {
-      "domain": "drug",
-      "source_value": "53905005301",
-      "record_count": 1399,
-      "_row": "drug.52"
-    },
-    {
-      "domain": "drug",
-      "source_value": "65162*18010",
-      "record_count": 1398,
-      "_row": "drug.53"
-    },
-    {
-      "domain": "drug",
-      "source_value": "545692942*0",
-      "record_count": 1390,
-      "_row": "drug.54"
-    },
-    {
-      "domain": "drug",
-      "source_value": "54569547900",
-      "record_count": 1383,
-      "_row": "drug.55"
-    },
-    {
-      "domain": "drug",
-      "source_value": "61748001409",
-      "record_count": 1365,
-      "_row": "drug.56"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00093089701",
-      "record_count": 1357,
-      "_row": "drug.57"
-    },
-    {
-      "domain": "drug",
-      "source_value": "46703*06803",
-      "record_count": 1328,
-      "_row": "drug.58"
-    },
-    {
-      "domain": "drug",
-      "source_value": "10754085801",
-      "record_count": 1327,
-      "_row": "drug.59"
-    },
-    {
-      "domain": "drug",
-      "source_value": "545693335*2",
-      "record_count": 1303,
-      "_row": "drug.60"
-    },
-    {
-      "domain": "drug",
-      "source_value": "545695671*0",
-      "record_count": 1280,
-      "_row": "drug.61"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00093725601",
-      "record_count": 1265,
-      "_row": "drug.62"
-    },
-    {
-      "domain": "drug",
-      "source_value": "46703*10401",
-      "record_count": 1239,
-      "_row": "drug.63"
-    },
-    {
-      "domain": "drug",
-      "source_value": "545693335*0",
-      "record_count": 1238,
-      "_row": "drug.64"
-    },
-    {
-      "domain": "drug",
-      "source_value": "545693335*1",
-      "record_count": 1199,
-      "_row": "drug.65"
-    },
-    {
-      "domain": "drug",
-      "source_value": "68115070815",
-      "record_count": 1152,
-      "_row": "drug.66"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00005312223",
-      "record_count": 1135,
-      "_row": "drug.67"
-    },
-    {
-      "domain": "drug",
-      "source_value": "545695482*0",
-      "record_count": 1059,
-      "_row": "drug.68"
-    },
-    {
-      "domain": "drug",
-      "source_value": "545695777*0",
-      "record_count": 1050,
-      "_row": "drug.69"
-    },
-    {
-      "domain": "drug",
-      "source_value": "16590046730",
-      "record_count": 1015,
-      "_row": "drug.70"
-    },
-    {
-      "domain": "drug",
-      "source_value": "545693900*0",
-      "record_count": 1014,
-      "_row": "drug.71"
-    },
-    {
-      "domain": "drug",
-      "source_value": "21695*45530",
-      "record_count": 976,
-      "_row": "drug.72"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00052078216",
-      "record_count": 931,
-      "_row": "drug.73"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00487990102",
-      "record_count": 914,
-      "_row": "drug.74"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00049211066",
-      "record_count": 893,
-      "_row": "drug.75"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00339651399",
-      "record_count": 892,
-      "_row": "drug.76"
-    },
-    {
-      "domain": "drug",
-      "source_value": "62584*14301",
-      "record_count": 879,
-      "_row": "drug.77"
-    },
-    {
-      "domain": "drug",
-      "source_value": "38779214905",
-      "record_count": 877,
-      "_row": "drug.78"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00093092619",
-      "record_count": 865,
-      "_row": "drug.79"
-    },
-    {
-      "domain": "drug",
-      "source_value": "545695688*0",
-      "record_count": 856,
-      "_row": "drug.80"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00054009820",
-      "record_count": 842,
-      "_row": "drug.81"
-    },
-    {
-      "domain": "drug",
-      "source_value": "55390011501",
-      "record_count": 836,
-      "_row": "drug.82"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00172443149",
-      "record_count": 832,
-      "_row": "drug.83"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00071036524",
-      "record_count": 831,
-      "_row": "drug.84"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00028007101",
-      "record_count": 830,
-      "_row": "drug.85"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00172248560",
-      "record_count": 830,
-      "_row": "drug.86"
-    },
-    {
-      "domain": "drug",
-      "source_value": "545696138*0",
-      "record_count": 824,
-      "_row": "drug.87"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00083400041",
-      "record_count": 824,
-      "_row": "drug.88"
-    },
-    {
-      "domain": "drug",
-      "source_value": "42549*51302",
-      "record_count": 803,
-      "_row": "drug.89"
-    },
-    {
-      "domain": "drug",
-      "source_value": "68084*23501",
-      "record_count": 800,
-      "_row": "drug.90"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00409302401",
-      "record_count": 793,
-      "_row": "drug.91"
-    },
-    {
-      "domain": "drug",
-      "source_value": "55390*60020",
-      "record_count": 791,
-      "_row": "drug.92"
-    },
-    {
-      "domain": "drug",
-      "source_value": "64980*30912",
-      "record_count": 777,
-      "_row": "drug.93"
-    },
-    {
-      "domain": "drug",
-      "source_value": "13613023004",
-      "record_count": 728,
-      "_row": "drug.94"
-    },
-    {
-      "domain": "drug",
-      "source_value": "53258011913",
-      "record_count": 723,
-      "_row": "drug.95"
-    },
-    {
-      "domain": "drug",
-      "source_value": "545696137*0",
-      "record_count": 713,
-      "_row": "drug.96"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00641146535",
-      "record_count": 713,
-      "_row": "drug.97"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00074779462",
-      "record_count": 705,
-      "_row": "drug.98"
-    },
-    {
-      "domain": "drug",
-      "source_value": "23490624902",
-      "record_count": 685,
-      "_row": "drug.99"
-    },
-    {
-      "domain": "drug",
-      "source_value": "545691754*0",
-      "record_count": 651,
-      "_row": "drug.100"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00143988125",
-      "record_count": 649,
-      "_row": "drug.101"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00007550040",
-      "record_count": 641,
-      "_row": "drug.102"
-    },
-    {
-      "domain": "drug",
-      "source_value": "44514*95518",
-      "record_count": 638,
-      "_row": "drug.103"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00258361005",
-      "record_count": 634,
-      "_row": "drug.104"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00056017070",
-      "record_count": 611,
-      "_row": "drug.105"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00186602001",
-      "record_count": 609,
-      "_row": "drug.106"
-    },
-    {
-      "domain": "drug",
-      "source_value": "545694446*0",
-      "record_count": 598,
-      "_row": "drug.107"
-    },
-    {
-      "domain": "drug",
-      "source_value": "66758*04801",
-      "record_count": 591,
-      "_row": "drug.108"
-    },
-    {
-      "domain": "drug",
-      "source_value": "545695758*0",
-      "record_count": 585,
-      "_row": "drug.109"
-    },
-    {
-      "domain": "drug",
-      "source_value": "545692173*0",
-      "record_count": 584,
-      "_row": "drug.110"
-    },
-    {
-      "domain": "drug",
-      "source_value": "16590050928",
-      "record_count": 582,
-      "_row": "drug.111"
-    },
-    {
-      "domain": "drug",
-      "source_value": "18837*37630",
-      "record_count": 569,
-      "_row": "drug.112"
-    },
-    {
-      "domain": "drug",
-      "source_value": "548685440*0",
-      "record_count": 566,
-      "_row": "drug.113"
-    },
-    {
-      "domain": "drug",
-      "source_value": "550451642*1",
-      "record_count": 552,
-      "_row": "drug.114"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00349873501",
-      "record_count": 536,
-      "_row": "drug.115"
-    },
-    {
-      "domain": "drug",
-      "source_value": "55390*05301",
-      "record_count": 530,
-      "_row": "drug.116"
-    },
-    {
-      "domain": "drug",
-      "source_value": "35356*01256",
-      "record_count": 524,
-      "_row": "drug.117"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00007440701",
-      "record_count": 516,
-      "_row": "drug.118"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00093474101",
-      "record_count": 506,
-      "_row": "drug.119"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00052083011",
-      "record_count": 501,
-      "_row": "drug.120"
-    },
-    {
-      "domain": "drug",
-      "source_value": "59075*73015",
-      "record_count": 484,
-      "_row": "drug.121"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00228266650",
-      "record_count": 482,
-      "_row": "drug.122"
-    },
-    {
-      "domain": "drug",
-      "source_value": "545691224*0",
-      "record_count": 476,
-      "_row": "drug.123"
-    },
-    {
-      "domain": "drug",
-      "source_value": "545694663*1",
-      "record_count": 470,
-      "_row": "drug.124"
-    },
-    {
-      "domain": "drug",
-      "source_value": "63874*30130",
-      "record_count": 466,
-      "_row": "drug.125"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00677193601",
-      "record_count": 453,
-      "_row": "drug.126"
-    },
-    {
-      "domain": "drug",
-      "source_value": "66794*00230",
-      "record_count": 448,
-      "_row": "drug.127"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00065075212",
-      "record_count": 438,
-      "_row": "drug.128"
-    },
-    {
-      "domain": "drug",
-      "source_value": "548685772*0",
-      "record_count": 417,
-      "_row": "drug.129"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00054002413",
-      "record_count": 416,
-      "_row": "drug.130"
-    },
-    {
-      "domain": "drug",
-      "source_value": "545694507*0",
-      "record_count": 411,
-      "_row": "drug.131"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00088222052",
-      "record_count": 399,
-      "_row": "drug.132"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00781328275",
-      "record_count": 385,
-      "_row": "drug.133"
-    },
-    {
-      "domain": "drug",
-      "source_value": "545695291*0",
-      "record_count": 384,
-      "_row": "drug.134"
-    },
-    {
-      "domain": "drug",
-      "source_value": "10019*08202",
-      "record_count": 377,
-      "_row": "drug.135"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00088216203",
-      "record_count": 369,
-      "_row": "drug.136"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00349844010",
-      "record_count": 367,
-      "_row": "drug.137"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00093022419",
-      "record_count": 367,
-      "_row": "drug.138"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00088177190",
-      "record_count": 367,
-      "_row": "drug.139"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00054413025",
-      "record_count": 364,
-      "_row": "drug.140"
-    },
-    {
-      "domain": "drug",
-      "source_value": "59743*02601",
-      "record_count": 364,
-      "_row": "drug.141"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00187200605",
-      "record_count": 363,
-      "_row": "drug.142"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00173063535",
-      "record_count": 356,
-      "_row": "drug.143"
-    },
-    {
-      "domain": "drug",
-      "source_value": "65271000130",
-      "record_count": 353,
-      "_row": "drug.144"
-    },
-    {
-      "domain": "drug",
-      "source_value": "51309022720",
-      "record_count": 350,
-      "_row": "drug.145"
-    },
-    {
-      "domain": "drug",
-      "source_value": "05024005121",
-      "record_count": 346,
-      "_row": "drug.146"
-    },
-    {
-      "domain": "drug",
-      "source_value": "545690332*5",
-      "record_count": 345,
-      "_row": "drug.147"
-    },
-    {
-      "domain": "drug",
-      "source_value": "545695818*1",
-      "record_count": 345,
-      "_row": "drug.148"
-    },
-    {
-      "domain": "drug",
-      "source_value": "51285*44102",
-      "record_count": 342,
-      "_row": "drug.149"
-    },
-    {
-      "domain": "drug",
-      "source_value": "545694102*0",
-      "record_count": 338,
-      "_row": "drug.150"
-    },
-    {
-      "domain": "drug",
-      "source_value": "16590084660",
-      "record_count": 328,
-      "_row": "drug.151"
-    },
-    {
-      "domain": "drug",
-      "source_value": "18837008230",
-      "record_count": 327,
-      "_row": "drug.152"
-    },
-    {
-      "domain": "drug",
-      "source_value": "55390*23110",
-      "record_count": 327,
-      "_row": "drug.153"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00013745686",
-      "record_count": 327,
-      "_row": "drug.154"
-    },
-    {
-      "domain": "drug",
-      "source_value": "545695133*0",
-      "record_count": 327,
-      "_row": "drug.155"
-    },
-    {
-      "domain": "drug",
-      "source_value": "545694048*1",
-      "record_count": 321,
-      "_row": "drug.156"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00641627215",
-      "record_count": 317,
-      "_row": "drug.157"
-    },
-    {
-      "domain": "drug",
-      "source_value": "58016*78100",
-      "record_count": 316,
-      "_row": "drug.158"
-    },
-    {
-      "domain": "drug",
-      "source_value": "42549*59230",
-      "record_count": 308,
-      "_row": "drug.159"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00004201709",
-      "record_count": 306,
-      "_row": "drug.160"
-    },
-    {
-      "domain": "drug",
-      "source_value": "65243*00603",
-      "record_count": 305,
-      "_row": "drug.161"
-    },
-    {
-      "domain": "drug",
-      "source_value": "55390*80610",
-      "record_count": 298,
-      "_row": "drug.162"
-    },
-    {
-      "domain": "drug",
-      "source_value": "55390*14301",
-      "record_count": 298,
-      "_row": "drug.163"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00093517119",
-      "record_count": 298,
-      "_row": "drug.164"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00409485605",
-      "record_count": 298,
-      "_row": "drug.165"
-    },
-    {
-      "domain": "drug",
-      "source_value": "545690032*5",
-      "record_count": 296,
-      "_row": "drug.166"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00182101601",
-      "record_count": 294,
-      "_row": "drug.167"
-    },
-    {
-      "domain": "drug",
-      "source_value": "59911588801",
-      "record_count": 294,
-      "_row": "drug.168"
-    },
-    {
-      "domain": "drug",
-      "source_value": "548681616*1",
-      "record_count": 293,
-      "_row": "drug.169"
-    },
-    {
-      "domain": "drug",
-      "source_value": "545690277*1",
-      "record_count": 287,
-      "_row": "drug.170"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00004150603",
-      "record_count": 283,
-      "_row": "drug.171"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00093723619",
-      "record_count": 274,
-      "_row": "drug.172"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00085087905",
-      "record_count": 250,
-      "_row": "drug.173"
-    },
-    {
-      "domain": "drug",
-      "source_value": "16590*45730",
-      "record_count": 249,
-      "_row": "drug.174"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00115704401",
-      "record_count": 249,
-      "_row": "drug.175"
-    },
-    {
-      "domain": "drug",
-      "source_value": "545694720*0",
-      "record_count": 234,
-      "_row": "drug.176"
-    },
-    {
-      "domain": "drug",
-      "source_value": "545695360*0",
-      "record_count": 222,
-      "_row": "drug.177"
-    },
-    {
-      "domain": "drug",
-      "source_value": "597728840*1",
-      "record_count": 222,
-      "_row": "drug.178"
-    },
-    {
-      "domain": "drug",
-      "source_value": "545695972*0",
-      "record_count": 217,
-      "_row": "drug.179"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00093067006",
-      "record_count": 216,
-      "_row": "drug.180"
-    },
-    {
-      "domain": "drug",
-      "source_value": "548681290*1",
-      "record_count": 213,
-      "_row": "drug.181"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00406112101",
-      "record_count": 201,
-      "_row": "drug.182"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00085123501",
-      "record_count": 190,
-      "_row": "drug.183"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00024059010",
-      "record_count": 179,
-      "_row": "drug.184"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00944099601",
-      "record_count": 175,
-      "_row": "drug.185"
-    },
-    {
-      "domain": "drug",
-      "source_value": "545694538*0",
-      "record_count": 168,
-      "_row": "drug.186"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00009022501",
-      "record_count": 163,
-      "_row": "drug.187"
-    },
-    {
-      "domain": "drug",
-      "source_value": "545694089*0",
-      "record_count": 163,
-      "_row": "drug.188"
-    },
-    {
-      "domain": "drug",
-      "source_value": "66336038607",
-      "record_count": 159,
-      "_row": "drug.189"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00039007811",
-      "record_count": 156,
-      "_row": "drug.190"
-    },
-    {
-      "domain": "drug",
-      "source_value": "545694934*0",
-      "record_count": 152,
-      "_row": "drug.191"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00093079301",
-      "record_count": 146,
-      "_row": "drug.192"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00245002711",
-      "record_count": 144,
-      "_row": "drug.193"
-    },
-    {
-      "domain": "drug",
-      "source_value": "12280006200",
-      "record_count": 140,
-      "_row": "drug.194"
-    },
-    {
-      "domain": "drug",
-      "source_value": "49999*54260",
-      "record_count": 130,
-      "_row": "drug.195"
-    },
-    {
-      "domain": "drug",
-      "source_value": "54868526009",
-      "record_count": 125,
-      "_row": "drug.196"
-    },
-    {
-      "domain": "drug",
-      "source_value": "54569571700",
-      "record_count": 125,
-      "_row": "drug.197"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00093715510",
-      "record_count": 123,
-      "_row": "drug.198"
-    },
-    {
-      "domain": "drug",
-      "source_value": "59148*00216",
-      "record_count": 123,
-      "_row": "drug.199"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00047019624",
-      "record_count": 119,
-      "_row": "drug.200"
-    },
-    {
-      "domain": "drug",
-      "source_value": "18837026190",
-      "record_count": 112,
-      "_row": "drug.201"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00074779361",
-      "record_count": 108,
-      "_row": "drug.202"
-    },
-    {
-      "domain": "drug",
-      "source_value": "545693841*0",
-      "record_count": 97,
-      "_row": "drug.203"
-    },
-    {
-      "domain": "drug",
-      "source_value": "548685782*0",
-      "record_count": 96,
-      "_row": "drug.204"
-    },
-    {
-      "domain": "drug",
-      "source_value": "545695669*0",
-      "record_count": 96,
-      "_row": "drug.205"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00517405025",
-      "record_count": 95,
-      "_row": "drug.206"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00007323601",
-      "record_count": 92,
-      "_row": "drug.207"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00007420101",
-      "record_count": 88,
-      "_row": "drug.208"
-    },
-    {
-      "domain": "drug",
-      "source_value": "58016*48900",
-      "record_count": 83,
-      "_row": "drug.209"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00173052000",
-      "record_count": 76,
-      "_row": "drug.210"
-    },
-    {
-      "domain": "drug",
-      "source_value": "54569488100",
-      "record_count": 73,
-      "_row": "drug.211"
-    },
-    {
-      "domain": "drug",
-      "source_value": "545693788*0",
-      "record_count": 58,
-      "_row": "drug.212"
-    },
-    {
-      "domain": "drug",
-      "source_value": "12280016315",
-      "record_count": 49,
-      "_row": "drug.213"
-    },
-    {
-      "domain": "drug",
-      "source_value": "68115074610",
-      "record_count": 49,
-      "_row": "drug.214"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00186115102",
-      "record_count": 48,
-      "_row": "drug.215"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00169643910",
-      "record_count": 48,
-      "_row": "drug.216"
-    },
-    {
-      "domain": "drug",
-      "source_value": "548685192*0",
-      "record_count": 48,
-      "_row": "drug.217"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00044108501",
-      "record_count": 43,
-      "_row": "drug.218"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00172375396",
-      "record_count": 42,
-      "_row": "drug.219"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00047095524",
-      "record_count": 41,
-      "_row": "drug.220"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00904183160",
-      "record_count": 41,
-      "_row": "drug.221"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00015307220",
-      "record_count": 39,
-      "_row": "drug.222"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00228271711",
-      "record_count": 38,
-      "_row": "drug.223"
-    },
-    {
-      "domain": "drug",
-      "source_value": "58016*28900",
-      "record_count": 37,
-      "_row": "drug.224"
-    },
-    {
-      "domain": "drug",
-      "source_value": "42549*50830",
-      "record_count": 37,
-      "_row": "drug.225"
-    },
-    {
-      "domain": "drug",
-      "source_value": "545690916*0",
-      "record_count": 34,
-      "_row": "drug.226"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00403077450",
-      "record_count": 31,
-      "_row": "drug.227"
-    },
-    {
-      "domain": "drug",
-      "source_value": "54868608902",
-      "record_count": 30,
-      "_row": "drug.228"
-    },
-    {
-      "domain": "drug",
-      "source_value": "10019*02518",
-      "record_count": 29,
-      "_row": "drug.229"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00555090401",
-      "record_count": 27,
-      "_row": "drug.230"
-    },
-    {
-      "domain": "drug",
-      "source_value": "545690347*3",
-      "record_count": 26,
-      "_row": "drug.231"
-    },
-    {
-      "domain": "drug",
-      "source_value": "63323*26801",
-      "record_count": 24,
-      "_row": "drug.232"
-    },
-    {
-      "domain": "drug",
-      "source_value": "50242*05656",
-      "record_count": 18,
-      "_row": "drug.233"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00024059240",
-      "record_count": 17,
-      "_row": "drug.234"
-    },
-    {
-      "domain": "drug",
-      "source_value": "61703035991",
-      "record_count": 17,
-      "_row": "drug.235"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00085173302",
-      "record_count": 16,
-      "_row": "drug.236"
-    },
-    {
-      "domain": "drug",
-      "source_value": "55084011612",
-      "record_count": 16,
-      "_row": "drug.237"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00093022001",
-      "record_count": 15,
-      "_row": "drug.238"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00056034208",
-      "record_count": 15,
-      "_row": "drug.239"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00641246045",
-      "record_count": 14,
-      "_row": "drug.240"
-    },
-    {
-      "domain": "drug",
-      "source_value": "57480042506",
-      "record_count": 13,
-      "_row": "drug.241"
-    },
-    {
-      "domain": "drug",
-      "source_value": "58063060050",
-      "record_count": 12,
-      "_row": "drug.242"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00781311964",
-      "record_count": 12,
-      "_row": "drug.243"
-    },
-    {
-      "domain": "drug",
-      "source_value": "53506098704",
-      "record_count": 12,
-      "_row": "drug.244"
-    },
-    {
-      "domain": "drug",
-      "source_value": "63323*16610",
-      "record_count": 10,
-      "_row": "drug.245"
-    },
-    {
-      "domain": "drug",
-      "source_value": "62086*14630",
-      "record_count": 9,
-      "_row": "drug.246"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00590012770",
-      "record_count": 8,
-      "_row": "drug.247"
-    },
-    {
-      "domain": "drug",
-      "source_value": "67544*40130",
-      "record_count": 8,
-      "_row": "drug.248"
-    },
-    {
-      "domain": "drug",
-      "source_value": "52152*34102",
-      "record_count": 8,
-      "_row": "drug.249"
-    },
-    {
-      "domain": "drug",
-      "source_value": "50222*34208",
-      "record_count": 8,
-      "_row": "drug.250"
-    },
-    {
-      "domain": "drug",
-      "source_value": "24430100101",
-      "record_count": 7,
-      "_row": "drug.251"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00131326732",
-      "record_count": 7,
-      "_row": "drug.252"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00005317543",
-      "record_count": 6,
-      "_row": "drug.253"
-    },
-    {
-      "domain": "drug",
-      "source_value": "55513*82310",
-      "record_count": 6,
-      "_row": "drug.254"
-    },
-    {
-      "domain": "drug",
-      "source_value": "44206*41501",
-      "record_count": 5,
-      "_row": "drug.255"
-    },
-    {
-      "domain": "drug",
-      "source_value": "63323*54401",
-      "record_count": 5,
-      "_row": "drug.256"
-    },
-    {
-      "domain": "drug",
-      "source_value": "24477*04001",
-      "record_count": 4,
-      "_row": "drug.257"
-    },
-    {
-      "domain": "drug",
-      "source_value": "55390*30405",
-      "record_count": 4,
-      "_row": "drug.258"
-    },
-    {
-      "domain": "drug",
-      "source_value": "66758*04301",
-      "record_count": 3,
-      "_row": "drug.259"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00781311963",
-      "record_count": 2,
-      "_row": "drug.260"
-    },
-    {
-      "domain": "drug",
-      "source_value": "00007323002",
-      "record_count": 2,
-      "_row": "drug.261"
-    },
-    {
-      "domain": "drug",
-      "source_value": "35470053701",
-      "record_count": 2,
-      "_row": "drug.262"
-    },
-    {
-      "domain": "measurement",
-      "source_value": "0",
-      "record_count": 6011,
-      "_row": "measurement.1"
-    },
-    {
-      "domain": "measurement",
-      "source_value": "21189-7",
-      "record_count": 5122,
-      "_row": "measurement.2"
-    },
-    {
-      "domain": "measurement",
-      "source_value": "24627-2",
-      "record_count": 1938,
-      "_row": "measurement.3"
-    },
-    {
-      "domain": "measurement",
-      "source_value": "24725-4",
-      "record_count": 1084,
-      "_row": "measurement.4"
-    },
-    {
-      "domain": "measurement",
-      "source_value": "44616-1",
-      "record_count": 788,
-      "_row": "measurement.5"
-    },
-    {
-      "domain": "measurement",
-      "source_value": "36014-9",
-      "record_count": 599,
-      "_row": "measurement.6"
-    },
-    {
-      "domain": "measurement",
-      "source_value": "9408-5",
-      "record_count": 319,
-      "_row": "measurement.7"
-    },
-    {
-      "domain": "measurement",
-      "source_value": "9785-7",
-      "record_count": 298,
-      "_row": "measurement.8"
-    },
-    {
-      "domain": "measurement",
-      "source_value": "11522-0",
-      "record_count": 144,
-      "_row": "measurement.9"
-    },
-    {
-      "domain": "measurement",
-      "source_value": "24869-0",
-      "record_count": 33,
-      "_row": "measurement.10"
-    },
-    {
-      "domain": "measurement",
-      "source_value": "30806-4",
-      "record_count": 31,
-      "_row": "measurement.11"
-    },
-    {
-      "domain": "measurement",
-      "source_value": "58744-4",
-      "record_count": 26,
-      "_row": "measurement.12"
-    },
-    {
-      "domain": "measurement",
-      "source_value": "28566-8",
-      "record_count": 23,
-      "_row": "measurement.13"
-    },
-    {
       "domain": "measurement",
       "source_value": "44120-4",
       "record_count": 16,
-      "_row": "measurement.14"
+      "_row": "measurement.1"
     },
     {
       "domain": "measurement",
       "source_value": "39059-1",
       "record_count": 5,
-      "_row": "measurement.15"
-    },
-    {
-      "domain": "procedure",
-      "source_value": "38.7",
-      "record_count": 400,
-      "_row": "procedure.1"
-    },
-    {
-      "domain": "procedure",
-      "source_value": "44.04",
-      "record_count": 242,
-      "_row": "procedure.2"
-    },
-    {
-      "domain": "procedure",
-      "source_value": "32.52",
-      "record_count": 200,
-      "_row": "procedure.3"
-    },
-    {
-      "domain": "observation",
-      "source_value": "cefuroxime",
-      "record_count": 2530,
-      "_row": "observation.1"
-    },
-    {
-      "domain": "observation",
-      "source_value": "Anticonvulsants",
-      "record_count": 2504,
-      "_row": "observation.2"
-    },
-    {
-      "domain": "observation",
-      "source_value": "Sulfa Drugs",
-      "record_count": 2501,
-      "_row": "observation.3"
-    },
-    {
-      "domain": "observation",
-      "source_value": "ampicillin",
-      "record_count": 2488,
-      "_row": "observation.4"
-    },
-    {
-      "domain": "observation",
-      "source_value": "cephalexin",
-      "record_count": 2481,
-      "_row": "observation.5"
-    },
-    {
-      "domain": "observation",
-      "source_value": "Barbiturates",
-      "record_count": 2479,
-      "_row": "observation.6"
-    },
-    {
-      "domain": "observation",
-      "source_value": "Iodine",
-      "record_count": 2477,
-      "_row": "observation.7"
-    },
-    {
-      "domain": "observation",
-      "source_value": "amoxicillin",
-      "record_count": 2448,
-      "_row": "observation.8"
-    },
-    {
-      "domain": "observation",
-      "source_value": "Aspirin",
-      "record_count": 2444,
-      "_row": "observation.9"
-    },
-    {
-      "domain": "observation",
-      "source_value": "Penicillin",
-      "record_count": 2393,
-      "_row": "observation.10"
-    },
-    {
-      "domain": "observation",
-      "source_value": "Insulin",
-      "record_count": 2360,
-      "_row": "observation.11"
+      "_row": "measurement.2"
     },
     {
       "domain": "measurement_unit",
@@ -1818,1233 +84,813 @@
     },
     {
       "domain": "measurement_value",
-      "source_value": "no abnormal skin or mole present",
-      "record_count": 70549,
-      "_row": "measurement_value.1"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "no lumps noted",
-      "record_count": 69582,
-      "_row": "measurement_value.2"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "no lumps noticed",
-      "record_count": 38357,
-      "_row": "measurement_value.3"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "uterus and ovaries are normal in size and location",
-      "record_count": 35321,
-      "_row": "measurement_value.4"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "no abnormal cervical cells",
-      "record_count": 35320,
-      "_row": "measurement_value.5"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "negative for HPV 16 & 18",
-      "record_count": 21633,
-      "_row": "measurement_value.6"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "Platelet count = 200,000/uL",
-      "record_count": 6979,
-      "_row": "measurement_value.7"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "Otoacoustic emissions (OAE)",
-      "record_count": 6031,
-      "_row": "measurement_value.8"
-    },
-    {
-      "domain": "measurement_value",
       "source_value": "Straw",
       "record_count": 6030,
-      "_row": "measurement_value.9"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "normal hemoglobin is present",
-      "record_count": 6030,
-      "_row": "measurement_value.10"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "no lump noted",
-      "record_count": 5657,
-      "_row": "measurement_value.11"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "Plts=245,000/uL",
-      "record_count": 4374,
-      "_row": "measurement_value.12"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "Bone have a normal density at hip and spine that i",
-      "record_count": 2771,
-      "_row": "measurement_value.13"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "no polyps or growth in rectum and  lower colon",
-      "record_count": 2351,
-      "_row": "measurement_value.14"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "Severe portal inflammation, lymphocytic bridging n",
-      "record_count": 1966,
-      "_row": "measurement_value.15"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "sinus bradycardia",
-      "record_count": 1721,
-      "_row": "measurement_value.16"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "shows nodular aggregates of basalioma cells are pr",
-      "record_count": 1683,
-      "_row": "measurement_value.17"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "no polyps or cancerous growth in upper and lower c",
-      "record_count": 1564,
-      "_row": "measurement_value.18"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "normal rate and rhythm",
-      "record_count": 1563,
-      "_row": "measurement_value.19"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "absence of hearing loss",
-      "record_count": 1454,
-      "_row": "measurement_value.20"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "Plts=260,000 /uL",
-      "record_count": 1409,
-      "_row": "measurement_value.21"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "NSR",
-      "record_count": 1300,
-      "_row": "measurement_value.22"
+      "_row": "measurement_value.1"
     },
     {
       "domain": "measurement_value",
       "source_value": "4.8",
       "record_count": 1269,
-      "_row": "measurement_value.23"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "1.21 LIV(+)",
-      "record_count": 1091,
-      "_row": "measurement_value.24"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "no sores or red and white patches",
-      "record_count": 1064,
-      "_row": "measurement_value.25"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "lens opacity seen",
-      "record_count": 930,
-      "_row": "measurement_value.26"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "Plts=425,000 /uL",
-      "record_count": 817,
-      "_row": "measurement_value.27"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "no mass or nodule seen",
-      "record_count": 814,
-      "_row": "measurement_value.28"
+      "_row": "measurement_value.2"
     },
     {
       "domain": "measurement_value",
       "source_value": "Plts=163,000 /uL",
       "record_count": 804,
-      "_row": "measurement_value.29"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "Plts=325,000 /uL",
-      "record_count": 803,
-      "_row": "measurement_value.30"
+      "_row": "measurement_value.3"
     },
     {
       "domain": "measurement_value",
       "source_value": "Plts=407,000 /uL",
       "record_count": 802,
-      "_row": "measurement_value.31"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "grew greater than 100,000 colonies of proteus",
-      "record_count": 790,
-      "_row": "measurement_value.32"
+      "_row": "measurement_value.4"
     },
     {
       "domain": "measurement_value",
       "source_value": "7.4",
       "record_count": 766,
-      "_row": "measurement_value.33"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "Plts=345,000 /uL",
-      "record_count": 761,
-      "_row": "measurement_value.34"
+      "_row": "measurement_value.5"
     },
     {
       "domain": "measurement_value",
       "source_value": "Plts=315,000 /uL",
       "record_count": 755,
-      "_row": "measurement_value.35"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "grew greater than 100,000 colonies of EColi",
-      "record_count": 751,
-      "_row": "measurement_value.36"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "grew greater than 100,000 colonies of Klebsiella",
-      "record_count": 744,
-      "_row": "measurement_value.37"
+      "_row": "measurement_value.6"
     },
     {
       "domain": "measurement_value",
       "source_value": "Plts=280,000 /uL",
       "record_count": 740,
-      "_row": "measurement_value.38"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "Plts=235,000 /uL",
-      "record_count": 734,
-      "_row": "measurement_value.39"
+      "_row": "measurement_value.7"
     },
     {
       "domain": "measurement_value",
       "source_value": "Plts=300,000 /uL",
       "record_count": 722,
-      "_row": "measurement_value.40"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "Plts=310,000 /uL",
-      "record_count": 719,
-      "_row": "measurement_value.41"
+      "_row": "measurement_value.8"
     },
     {
       "domain": "measurement_value",
       "source_value": "Plts=400,000 /uL",
       "record_count": 705,
-      "_row": "measurement_value.42"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "Plts=360,000 /uL",
-      "record_count": 699,
-      "_row": "measurement_value.43"
+      "_row": "measurement_value.9"
     },
     {
       "domain": "measurement_value",
       "source_value": "6.0",
       "record_count": 676,
-      "_row": "measurement_value.44"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "RSV (+)",
-      "record_count": 619,
-      "_row": "measurement_value.45"
+      "_row": "measurement_value.10"
     },
     {
       "domain": "measurement_value",
       "source_value": "(+) for astigmatism in affected eye(s)",
       "record_count": 609,
-      "_row": "measurement_value.46"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "shows joint narrowing, osteophyte formation, and s",
-      "record_count": 599,
-      "_row": "measurement_value.47"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "shows sensorineural hearing loss",
-      "record_count": 571,
-      "_row": "measurement_value.48"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "sinus tachycardia",
-      "record_count": 556,
-      "_row": "measurement_value.49"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "(+) presence of H. pylori",
-      "record_count": 445,
-      "_row": "measurement_value.50"
+      "_row": "measurement_value.11"
     },
     {
       "domain": "measurement_value",
       "source_value": "3.6",
       "record_count": 422,
-      "_row": "measurement_value.51"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "ring enhancing lession in the left parietal lobe",
-      "record_count": 411,
-      "_row": "measurement_value.52"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "IgM anti-HAV (+)",
-      "record_count": 382,
-      "_row": "measurement_value.53"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "(+) presence of Borrellia burgdorferi",
-      "record_count": 371,
-      "_row": "measurement_value.54"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "Upper Lobe Solitary nodules on Imaging",
-      "record_count": 360,
-      "_row": "measurement_value.55"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "Cavity or Centrilobular Lesions of the Lung",
-      "record_count": 345,
-      "_row": "measurement_value.56"
+      "_row": "measurement_value.12"
     },
     {
       "domain": "measurement_value",
       "source_value": "7.3",
       "record_count": 334,
-      "_row": "measurement_value.57"
+      "_row": "measurement_value.13"
     },
     {
       "domain": "measurement_value",
       "source_value": "shows S1Q3T3 pattern with RIGHT ventricular strain",
       "record_count": 333,
-      "_row": "measurement_value.58"
+      "_row": "measurement_value.14"
     },
     {
       "domain": "measurement_value",
       "source_value": "cell-wall deficient organisms (+)",
       "record_count": 316,
-      "_row": "measurement_value.59"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "Lymphocytic infiltration, moderate degrees of infl",
-      "record_count": 305,
-      "_row": "measurement_value.60"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "polymorphs without any bacteria",
-      "record_count": 301,
-      "_row": "measurement_value.61"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "10",
-      "record_count": 297,
-      "_row": "measurement_value.62"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "cytology (+) for leptomeningeal carcinomatosis",
-      "record_count": 291,
-      "_row": "measurement_value.63"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "(9-22) bcr-abl (+)",
-      "record_count": 271,
-      "_row": "measurement_value.64"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "shows hypercellularity with elevated myeloid to er",
-      "record_count": 264,
-      "_row": "measurement_value.65"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "fasiculations and evidence of denervation in upper",
-      "record_count": 258,
-      "_row": "measurement_value.66"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "causative organism (+)",
-      "record_count": 253,
-      "_row": "measurement_value.67"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "(+) fragile X syndrome noted",
-      "record_count": 244,
-      "_row": "measurement_value.68"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "decreased tone of LES and reduced esophageal body ",
-      "record_count": 225,
-      "_row": "measurement_value.69"
+      "_row": "measurement_value.15"
     },
     {
       "domain": "measurement_value",
       "source_value": "-2.5",
       "record_count": 220,
-      "_row": "measurement_value.70"
+      "_row": "measurement_value.16"
     },
     {
       "domain": "measurement_value",
       "source_value": "WBC present with gram positive diplococci",
       "record_count": 215,
-      "_row": "measurement_value.71"
+      "_row": "measurement_value.17"
     },
     {
       "domain": "measurement_value",
       "source_value": "cocaine (-), PCP (+),TCAs serum concenteration (-)",
       "record_count": 198,
-      "_row": "measurement_value.72"
+      "_row": "measurement_value.18"
     },
     {
       "domain": "measurement_value",
       "source_value": "4.0",
       "record_count": 196,
-      "_row": "measurement_value.73"
+      "_row": "measurement_value.19"
     },
     {
       "domain": "measurement_value",
       "source_value": "7.0",
       "record_count": 193,
-      "_row": "measurement_value.74"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "reveals gram (-) bacilli",
-      "record_count": 193,
-      "_row": "measurement_value.75"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "(+) findings of vascular deformity in area of migr",
-      "record_count": 187,
-      "_row": "measurement_value.76"
+      "_row": "measurement_value.20"
     },
     {
       "domain": "measurement_value",
       "source_value": "shows stenosis at L4 and L5",
       "record_count": 178,
-      "_row": "measurement_value.77"
+      "_row": "measurement_value.21"
     },
     {
       "domain": "measurement_value",
       "source_value": "prolong in the right eye",
       "record_count": 171,
-      "_row": "measurement_value.78"
+      "_row": "measurement_value.22"
     },
     {
       "domain": "measurement_value",
       "source_value": "(+) oligoclonal bands",
       "record_count": 170,
-      "_row": "measurement_value.79"
+      "_row": "measurement_value.23"
     },
     {
       "domain": "measurement_value",
       "source_value": "sinus rhythm with LVH",
       "record_count": 167,
-      "_row": "measurement_value.80"
+      "_row": "measurement_value.24"
     },
     {
       "domain": "measurement_value",
       "source_value": "cocaine (+), PCP (+)",
       "record_count": 167,
-      "_row": "measurement_value.81"
+      "_row": "measurement_value.25"
     },
     {
       "domain": "measurement_value",
       "source_value": "shows cortical hemorrhage in left frontal lobe",
       "record_count": 167,
-      "_row": "measurement_value.82"
+      "_row": "measurement_value.26"
     },
     {
       "domain": "measurement_value",
       "source_value": "(+) lymphocytes proliferation (T cells)",
       "record_count": 163,
-      "_row": "measurement_value.83"
+      "_row": "measurement_value.27"
     },
     {
       "domain": "measurement_value",
       "source_value": "(+) findings on evaluation",
       "record_count": 162,
-      "_row": "measurement_value.84"
+      "_row": "measurement_value.28"
     },
     {
       "domain": "measurement_value",
       "source_value": "(+) perivascular infiltration of lymphocytes (pred",
       "record_count": 161,
-      "_row": "measurement_value.85"
+      "_row": "measurement_value.29"
     },
     {
       "domain": "measurement_value",
       "source_value": "4.3",
       "record_count": 157,
-      "_row": "measurement_value.86"
+      "_row": "measurement_value.30"
     },
     {
       "domain": "measurement_value",
       "source_value": "Mitral valvular leaflet length abnormality",
       "record_count": 155,
-      "_row": "measurement_value.87"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "revealed thickening of the skin overlying the mass",
-      "record_count": 153,
-      "_row": "measurement_value.88"
+      "_row": "measurement_value.31"
     },
     {
       "domain": "measurement_value",
       "source_value": "confirmed the diagnosis of lymphangiosarcoma",
       "record_count": 153,
-      "_row": "measurement_value.89"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "shows cavitation and air-fluid level",
-      "record_count": 149,
-      "_row": "measurement_value.90"
+      "_row": "measurement_value.32"
     },
     {
       "domain": "measurement_value",
       "source_value": "cocaine (-), PCP (-),TCAs serum concenteration (+)",
       "record_count": 148,
-      "_row": "measurement_value.91"
+      "_row": "measurement_value.33"
     },
     {
       "domain": "measurement_value",
       "source_value": "4",
       "record_count": 144,
-      "_row": "measurement_value.92"
+      "_row": "measurement_value.34"
     },
     {
       "domain": "measurement_value",
       "source_value": "shows hemorrhage in frontal lobe",
       "record_count": 133,
-      "_row": "measurement_value.93"
+      "_row": "measurement_value.35"
     },
     {
       "domain": "measurement_value",
       "source_value": "atrial fibrillation with rapid ventricular respons",
       "record_count": 131,
-      "_row": "measurement_value.94"
+      "_row": "measurement_value.36"
     },
     {
       "domain": "measurement_value",
       "source_value": "stool positive for blood",
       "record_count": 128,
-      "_row": "measurement_value.95"
+      "_row": "measurement_value.37"
     },
     {
       "domain": "measurement_value",
       "source_value": "shows complete occlusion of the left renal artery,",
       "record_count": 128,
-      "_row": "measurement_value.96"
+      "_row": "measurement_value.38"
     },
     {
       "domain": "measurement_value",
       "source_value": "16",
       "record_count": 121,
-      "_row": "measurement_value.97"
+      "_row": "measurement_value.39"
     },
     {
       "domain": "measurement_value",
       "source_value": "(+) fiber grouping and/or grouped atropy",
       "record_count": 116,
-      "_row": "measurement_value.98"
+      "_row": "measurement_value.40"
     },
     {
       "domain": "measurement_value",
       "source_value": "presence of cerebellar intraparenchymal hemorrhage",
       "record_count": 115,
-      "_row": "measurement_value.99"
+      "_row": "measurement_value.41"
     },
     {
       "domain": "measurement_value",
       "source_value": "(+) findings consistent with conductive hearing lo",
       "record_count": 113,
-      "_row": "measurement_value.100"
+      "_row": "measurement_value.42"
     },
     {
       "domain": "measurement_value",
       "source_value": "presence of nystagmus elicited",
       "record_count": 111,
-      "_row": "measurement_value.101"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "showed EF 60%, stage 1 diastolic dysfunction and a",
-      "record_count": 110,
-      "_row": "measurement_value.102"
+      "_row": "measurement_value.43"
     },
     {
       "domain": "measurement_value",
       "source_value": "(+) findings consistent with sensorineural hearing",
       "record_count": 109,
-      "_row": "measurement_value.103"
+      "_row": "measurement_value.44"
     },
     {
       "domain": "measurement_value",
       "source_value": "(+) Corneal Thickness on evaluation",
       "record_count": 109,
-      "_row": "measurement_value.104"
+      "_row": "measurement_value.45"
     },
     {
       "domain": "measurement_value",
       "source_value": "presence of spontaneous or induced nystagmus on te",
       "record_count": 103,
-      "_row": "measurement_value.105"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "LVH",
-      "record_count": 99,
-      "_row": "measurement_value.106"
+      "_row": "measurement_value.46"
     },
     {
       "domain": "measurement_value",
       "source_value": "shows left Ventricular Hypertrophy",
       "record_count": 99,
-      "_row": "measurement_value.107"
+      "_row": "measurement_value.47"
+    },
+    {
+      "domain": "measurement_value",
+      "source_value": "LVH",
+      "record_count": 99,
+      "_row": "measurement_value.48"
     },
     {
       "domain": "measurement_value",
       "source_value": "shows invasion of dermis by sheets and islands of ",
       "record_count": 93,
-      "_row": "measurement_value.108"
+      "_row": "measurement_value.49"
     },
     {
       "domain": "measurement_value",
       "source_value": "0.70",
       "record_count": 86,
-      "_row": "measurement_value.109"
+      "_row": "measurement_value.50"
     },
     {
       "domain": "measurement_value",
       "source_value": "studies typically normal, if findings show stool w",
       "record_count": 85,
-      "_row": "measurement_value.110"
+      "_row": "measurement_value.51"
     },
     {
       "domain": "measurement_value",
       "source_value": "0.88",
       "record_count": 82,
-      "_row": "measurement_value.111"
+      "_row": "measurement_value.52"
     },
     {
       "domain": "measurement_value",
       "source_value": "(+) red cell galactokinase/urine amino acids after",
       "record_count": 81,
-      "_row": "measurement_value.112"
+      "_row": "measurement_value.53"
     },
     {
       "domain": "measurement_value",
       "source_value": "darkening of the red reflex",
       "record_count": 76,
-      "_row": "measurement_value.113"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "shows a presence of a right upper lobe mass, along",
-      "record_count": 75,
-      "_row": "measurement_value.114"
+      "_row": "measurement_value.54"
     },
     {
       "domain": "measurement_value",
       "source_value": "showed moderately to poorly differentiated metasta",
       "record_count": 75,
-      "_row": "measurement_value.115"
+      "_row": "measurement_value.55"
     },
     {
       "domain": "measurement_value",
       "source_value": "shows diffuse infiltration by mature lymphocytes",
       "record_count": 68,
-      "_row": "measurement_value.116"
+      "_row": "measurement_value.56"
     },
     {
       "domain": "measurement_value",
       "source_value": "shows calcified aortic valve",
       "record_count": 65,
-      "_row": "measurement_value.117"
+      "_row": "measurement_value.57"
     },
     {
       "domain": "measurement_value",
       "source_value": "elevated",
       "record_count": 62,
-      "_row": "measurement_value.118"
+      "_row": "measurement_value.58"
     },
     {
       "domain": "measurement_value",
       "source_value": "granular casts !",
       "record_count": 61,
-      "_row": "measurement_value.119"
+      "_row": "measurement_value.59"
     },
     {
       "domain": "measurement_value",
       "source_value": "2 mm superior displacement of the mitral leaflets ",
       "record_count": 56,
-      "_row": "measurement_value.120"
+      "_row": "measurement_value.60"
     },
     {
       "domain": "measurement_value",
       "source_value": "ST Depression (Ischemic changes)",
       "record_count": 49,
-      "_row": "measurement_value.121"
+      "_row": "measurement_value.61"
     },
     {
       "domain": "measurement_value",
       "source_value": "(+) clonality of circulating B lymphocytes",
       "record_count": 48,
-      "_row": "measurement_value.122"
+      "_row": "measurement_value.62"
     },
     {
       "domain": "measurement_value",
       "source_value": "(+) findings consistent with glaucoma on imaging",
       "record_count": 48,
-      "_row": "measurement_value.123"
+      "_row": "measurement_value.63"
     },
     {
       "domain": "measurement_value",
       "source_value": "large, irregular lobulated mass is present in the ",
       "record_count": 44,
-      "_row": "measurement_value.124"
+      "_row": "measurement_value.64"
     },
     {
       "domain": "measurement_value",
       "source_value": "(+) findings for Sickle Cell",
       "record_count": 42,
-      "_row": "measurement_value.125"
+      "_row": "measurement_value.65"
     },
     {
       "domain": "measurement_value",
       "source_value": "Premature ventricular contractions and Ejection Fr",
       "record_count": 40,
-      "_row": "measurement_value.126"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "(+) degeneration and loss of terminal nerve twigs",
-      "record_count": 39,
-      "_row": "measurement_value.127"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "ST Elevation (STEMI)",
-      "record_count": 39,
-      "_row": "measurement_value.128"
+      "_row": "measurement_value.66"
     },
     {
       "domain": "measurement_value",
       "source_value": "ST elevation in leads 11, 111, and aVF",
       "record_count": 39,
-      "_row": "measurement_value.129"
+      "_row": "measurement_value.67"
+    },
+    {
+      "domain": "measurement_value",
+      "source_value": "ST Elevation (STEMI)",
+      "record_count": 39,
+      "_row": "measurement_value.68"
+    },
+    {
+      "domain": "measurement_value",
+      "source_value": "(+) degeneration and loss of terminal nerve twigs",
+      "record_count": 39,
+      "_row": "measurement_value.69"
     },
     {
       "domain": "measurement_value",
       "source_value": "New S-T elevation",
       "record_count": 38,
-      "_row": "measurement_value.130"
+      "_row": "measurement_value.70"
     },
     {
       "domain": "measurement_value",
       "source_value": "Pathologic Q-wave",
       "record_count": 37,
-      "_row": "measurement_value.131"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "0.16",
-      "record_count": 36,
-      "_row": "measurement_value.132"
+      "_row": "measurement_value.71"
     },
     {
       "domain": "measurement_value",
       "source_value": "0.55",
       "record_count": 36,
-      "_row": "measurement_value.133"
+      "_row": "measurement_value.72"
+    },
+    {
+      "domain": "measurement_value",
+      "source_value": "0.16",
+      "record_count": 36,
+      "_row": "measurement_value.73"
     },
     {
       "domain": "measurement_value",
       "source_value": "shows a distal common bile duct stricture with pro",
       "record_count": 35,
-      "_row": "measurement_value.134"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "shows mild to moderate aortic valve stenosis but r",
-      "record_count": 34,
-      "_row": "measurement_value.135"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "shows pericardial effusion, regional Wall Motion A",
-      "record_count": 32,
-      "_row": "measurement_value.136"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "ST elevation in leads V1, V2, V3, Inversion of T w",
-      "record_count": 32,
-      "_row": "measurement_value.137"
+      "_row": "measurement_value.74"
     },
     {
       "domain": "measurement_value",
       "source_value": "shows Ventricular Septal Rupture",
       "record_count": 32,
-      "_row": "measurement_value.138"
+      "_row": "measurement_value.75"
     },
     {
       "domain": "measurement_value",
-      "source_value": "0.39",
-      "record_count": 31,
-      "_row": "measurement_value.139"
+      "source_value": "shows pericardial effusion, regional Wall Motion A",
+      "record_count": 32,
+      "_row": "measurement_value.76"
+    },
+    {
+      "domain": "measurement_value",
+      "source_value": "ST elevation in leads V1, V2, V3, Inversion of T w",
+      "record_count": 32,
+      "_row": "measurement_value.77"
     },
     {
       "domain": "measurement_value",
       "source_value": "obscuration of ocular fundus detail",
       "record_count": 31,
-      "_row": "measurement_value.140"
+      "_row": "measurement_value.78"
     },
     {
       "domain": "measurement_value",
       "source_value": "narrowing of femoral arteries",
       "record_count": 31,
-      "_row": "measurement_value.141"
+      "_row": "measurement_value.79"
+    },
+    {
+      "domain": "measurement_value",
+      "source_value": "0.39",
+      "record_count": 31,
+      "_row": "measurement_value.80"
     },
     {
       "domain": "measurement_value",
       "source_value": "LEFT Ventricular Hypertrophy",
       "record_count": 30,
-      "_row": "measurement_value.142"
+      "_row": "measurement_value.81"
     },
     {
       "domain": "measurement_value",
       "source_value": "(+) Multifocal deficiencies of maculae on ERG",
       "record_count": 29,
-      "_row": "measurement_value.143"
+      "_row": "measurement_value.82"
     },
     {
       "domain": "measurement_value",
       "source_value": "shows a B/L solid nodular masses on both ovaries",
       "record_count": 28,
-      "_row": "measurement_value.144"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "shows calcification of the aortic valve",
-      "record_count": 26,
-      "_row": "measurement_value.145"
+      "_row": "measurement_value.83"
     },
     {
       "domain": "measurement_value",
       "source_value": "heme (+) stool",
       "record_count": 26,
-      "_row": "measurement_value.146"
+      "_row": "measurement_value.84"
     },
     {
       "domain": "measurement_value",
       "source_value": "shows right MCA infarct along with multiple foci o",
       "record_count": 25,
-      "_row": "measurement_value.147"
+      "_row": "measurement_value.85"
     },
     {
       "domain": "measurement_value",
       "source_value": "atrial fibrillation with controlled ventricular ra",
       "record_count": 25,
-      "_row": "measurement_value.148"
+      "_row": "measurement_value.86"
     },
     {
       "domain": "measurement_value",
       "source_value": "findings of acute hemorrhage of hyperdense focal c",
       "record_count": 25,
-      "_row": "measurement_value.149"
+      "_row": "measurement_value.87"
     },
     {
       "domain": "measurement_value",
       "source_value": "nearly extinguished signal in both eye",
       "record_count": 24,
-      "_row": "measurement_value.150"
+      "_row": "measurement_value.88"
     },
     {
       "domain": "measurement_value",
       "source_value": "(+) evidence of bony impingement on spinal nerve r",
       "record_count": 23,
-      "_row": "measurement_value.151"
+      "_row": "measurement_value.89"
     },
     {
       "domain": "measurement_value",
       "source_value": "peripheral palisading, clefting and a sclerotic st",
       "record_count": 22,
-      "_row": "measurement_value.152"
+      "_row": "measurement_value.90"
     },
     {
       "domain": "measurement_value",
       "source_value": "0.24",
       "record_count": 22,
-      "_row": "measurement_value.153"
+      "_row": "measurement_value.91"
     },
     {
       "domain": "measurement_value",
       "source_value": "loss of contrast sensitivity on testing",
       "record_count": 21,
-      "_row": "measurement_value.154"
+      "_row": "measurement_value.92"
     },
     {
       "domain": "measurement_value",
       "source_value": "scrapes off abnormal tissue which shows loss of no",
       "record_count": 20,
-      "_row": "measurement_value.155"
+      "_row": "measurement_value.93"
     },
     {
       "domain": "measurement_value",
       "source_value": "Non-recordable (extinguished) ERG",
       "record_count": 19,
-      "_row": "measurement_value.156"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "opacities seen in red reflex",
-      "record_count": 18,
-      "_row": "measurement_value.157"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "show seven 1.5 cm polyp in left descending colon",
-      "record_count": 18,
-      "_row": "measurement_value.158"
+      "_row": "measurement_value.94"
     },
     {
       "domain": "measurement_value",
       "source_value": "normal skin with changes in the subcutaneous tissu",
       "record_count": 18,
-      "_row": "measurement_value.159"
+      "_row": "measurement_value.95"
     },
     {
       "domain": "measurement_value",
-      "source_value": "(+) findings of bony abnormality inpinging on neur",
-      "record_count": 17,
-      "_row": "measurement_value.160"
+      "source_value": "opacities seen in red reflex",
+      "record_count": 18,
+      "_row": "measurement_value.96"
+    },
+    {
+      "domain": "measurement_value",
+      "source_value": "show seven 1.5 cm polyp in left descending colon",
+      "record_count": 18,
+      "_row": "measurement_value.97"
     },
     {
       "domain": "measurement_value",
       "source_value": "(+) loss of rod and/or cone sensitivity on testing",
       "record_count": 17,
-      "_row": "measurement_value.161"
+      "_row": "measurement_value.98"
     },
     {
       "domain": "measurement_value",
-      "source_value": "shows a polypod mass filling part of ascending col",
-      "record_count": 16,
-      "_row": "measurement_value.162"
+      "source_value": "(+) findings of bony abnormality inpinging on neur",
+      "record_count": 17,
+      "_row": "measurement_value.99"
     },
     {
       "domain": "measurement_value",
       "source_value": "positive for HPV 16",
       "record_count": 16,
-      "_row": "measurement_value.163"
+      "_row": "measurement_value.100"
+    },
+    {
+      "domain": "measurement_value",
+      "source_value": "shows a polypod mass filling part of ascending col",
+      "record_count": 16,
+      "_row": "measurement_value.101"
     },
     {
       "domain": "measurement_value",
       "source_value": "myopic shift noted",
       "record_count": 15,
-      "_row": "measurement_value.164"
+      "_row": "measurement_value.102"
     },
     {
       "domain": "measurement_value",
       "source_value": "no relationship between p and QRS waves",
       "record_count": 14,
-      "_row": "measurement_value.165"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "shows large bullae in both inferior lobes due to u",
-      "record_count": 13,
-      "_row": "measurement_value.166"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "demonstrates areas of centriacinar emphysema",
-      "record_count": 13,
-      "_row": "measurement_value.167"
+      "_row": "measurement_value.103"
     },
     {
       "domain": "measurement_value",
       "source_value": "shows monoclonal M spike",
       "record_count": 13,
-      "_row": "measurement_value.168"
+      "_row": "measurement_value.104"
     },
     {
       "domain": "measurement_value",
       "source_value": "revealed a Gleason score 6 (3 + 3) adenocarcinoma ",
       "record_count": 13,
-      "_row": "measurement_value.169"
+      "_row": "measurement_value.105"
     },
     {
       "domain": "measurement_value",
       "source_value": "reveals fungating mass showing back to back glands",
       "record_count": 12,
-      "_row": "measurement_value.170"
+      "_row": "measurement_value.106"
     },
     {
       "domain": "measurement_value",
       "source_value": "shows exaggerated plasma renin activity",
       "record_count": 12,
-      "_row": "measurement_value.171"
+      "_row": "measurement_value.107"
     },
     {
       "domain": "measurement_value",
       "source_value": "LEFT and RIGHT Ventricular Enlargement (4 chamber ",
       "record_count": 11,
-      "_row": "measurement_value.172"
+      "_row": "measurement_value.108"
     },
     {
       "domain": "measurement_value",
       "source_value": "mild dysplasia",
       "record_count": 10,
-      "_row": "measurement_value.173"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "distant metastasis to lung (pleural effusion)",
-      "record_count": 10,
-      "_row": "measurement_value.174"
+      "_row": "measurement_value.109"
     },
     {
       "domain": "measurement_value",
       "source_value": "shows loss of normal orientation of squamous cells",
       "record_count": 10,
-      "_row": "measurement_value.175"
+      "_row": "measurement_value.110"
     },
     {
       "domain": "measurement_value",
       "source_value": "shows a 2.2-cm pancreatic adenocarcinoma of the he",
       "record_count": 8,
-      "_row": "measurement_value.176"
+      "_row": "measurement_value.111"
     },
     {
       "domain": "measurement_value",
       "source_value": "revealed a moderately to poorly differentiated ade",
       "record_count": 8,
-      "_row": "measurement_value.177"
+      "_row": "measurement_value.112"
     },
     {
       "domain": "measurement_value",
       "source_value": "reveals a suspicious area from which biopsy is tak",
       "record_count": 8,
-      "_row": "measurement_value.178"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "(+) evidence of denervation with absence of muscle",
-      "record_count": 7,
-      "_row": "measurement_value.179"
+      "_row": "measurement_value.113"
     },
     {
       "domain": "measurement_value",
       "source_value": "shows significant small bowel congestion with necr",
       "record_count": 7,
-      "_row": "measurement_value.180"
+      "_row": "measurement_value.114"
     },
     {
       "domain": "measurement_value",
-      "source_value": "negative for orthostatic hypotension to rule out a",
-      "record_count": 6,
-      "_row": "measurement_value.181"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "shows poorly differentiated squamous cell carinoma",
-      "record_count": 6,
-      "_row": "measurement_value.182"
+      "source_value": "(+) evidence of denervation with absence of muscle",
+      "record_count": 7,
+      "_row": "measurement_value.115"
     },
     {
       "domain": "measurement_value",
       "source_value": "absence of other pathology causing symptoms",
       "record_count": 6,
-      "_row": "measurement_value.183"
+      "_row": "measurement_value.116"
     },
     {
       "domain": "measurement_value",
       "source_value": "atypical squamous cells of unknown significance",
       "record_count": 6,
-      "_row": "measurement_value.184"
+      "_row": "measurement_value.117"
+    },
+    {
+      "domain": "measurement_value",
+      "source_value": "shows poorly differentiated squamous cell carinoma",
+      "record_count": 6,
+      "_row": "measurement_value.118"
     },
     {
       "domain": "measurement_value",
       "source_value": "findings of aortic, atrial, atrial septal deficien",
       "record_count": 6,
-      "_row": "measurement_value.185"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "shows a 7 cm heterogeneous solid cystic mass repla",
-      "record_count": 5,
-      "_row": "measurement_value.186"
+      "_row": "measurement_value.119"
     },
     {
       "domain": "measurement_value",
       "source_value": "shows a 5 mm gastric ulcer with symmetrical, radia",
       "record_count": 5,
-      "_row": "measurement_value.187"
+      "_row": "measurement_value.120"
     },
     {
       "domain": "measurement_value",
-      "source_value": "negative for psychologic etiology for physical fin",
+      "source_value": "shows a 7 cm heterogeneous solid cystic mass repla",
       "record_count": 5,
-      "_row": "measurement_value.188"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "indicated clotted blood within the false lumen",
-      "record_count": 4,
-      "_row": "measurement_value.189"
+      "_row": "measurement_value.121"
     },
     {
       "domain": "measurement_value",
       "source_value": "NSR with left axis deviation",
       "record_count": 4,
-      "_row": "measurement_value.190"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "shows 2 lession at cervical intraepithelial juncti",
-      "record_count": 3,
-      "_row": "measurement_value.191"
+      "_row": "measurement_value.122"
     },
     {
       "domain": "measurement_value",
       "source_value": "ER staining was strongly positive, PR staining was",
       "record_count": 3,
-      "_row": "measurement_value.192"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "showed a cystic tumor arising from the superior bo",
-      "record_count": 3,
-      "_row": "measurement_value.193"
+      "_row": "measurement_value.123"
     },
     {
       "domain": "measurement_value",
       "source_value": "shows slower refilling at the distal limb and mid ",
       "record_count": 3,
-      "_row": "measurement_value.194"
+      "_row": "measurement_value.124"
     },
     {
       "domain": "measurement_value",
       "source_value": "showed a poorly differentiated pseudopapillary tum",
       "record_count": 3,
-      "_row": "measurement_value.195"
+      "_row": "measurement_value.125"
+    },
+    {
+      "domain": "measurement_value",
+      "source_value": "shows 2 lession at cervical intraepithelial juncti",
+      "record_count": 3,
+      "_row": "measurement_value.126"
+    },
+    {
+      "domain": "measurement_value",
+      "source_value": "showed a cystic tumor arising from the superior bo",
+      "record_count": 3,
+      "_row": "measurement_value.127"
     },
     {
       "domain": "measurement_value",
       "source_value": "no mass, no shift, no hemorrhage",
       "record_count": 2,
-      "_row": "measurement_value.196"
+      "_row": "measurement_value.128"
     },
     {
       "domain": "measurement_value",
       "source_value": "shows cerebellopontine angle tumor",
       "record_count": 2,
-      "_row": "measurement_value.197"
+      "_row": "measurement_value.129"
     },
     {
       "domain": "measurement_value",
       "source_value": "abnormal findings in peripheral stimulation of sen",
       "record_count": 1,
-      "_row": "measurement_value.198"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "shows a large left lung and a 2.5 x 2.1 cm hilar m",
-      "record_count": 1,
-      "_row": "measurement_value.199"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "absence of vision problem",
-      "record_count": 1,
-      "_row": "measurement_value.200"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "showed a 6cm by 4cm solid, grey white, smooth surf",
-      "record_count": 1,
-      "_row": "measurement_value.201"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "aortic incompetence, left ventricular hypertrophy ",
-      "record_count": 1,
-      "_row": "measurement_value.202"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "shows a large hilar tumor on the right side, with ",
-      "record_count": 1,
-      "_row": "measurement_value.203"
-    },
-    {
-      "domain": "measurement_value",
-      "source_value": "intimal flap separates true from false lumen",
-      "record_count": 1,
-      "_row": "measurement_value.204"
+      "_row": "measurement_value.130"
     },
     {
       "domain": "measurement_value",
       "source_value": "shows a Leaking aneurysm",
       "record_count": 1,
-      "_row": "measurement_value.205"
+      "_row": "measurement_value.131"
+    },
+    {
+      "domain": "measurement_value",
+      "source_value": "absence of vision problem",
+      "record_count": 1,
+      "_row": "measurement_value.132"
+    },
+    {
+      "domain": "measurement_value",
+      "source_value": "intimal flap separates true from false lumen",
+      "record_count": 1,
+      "_row": "measurement_value.133"
+    },
+    {
+      "domain": "measurement_value",
+      "source_value": "aortic incompetence, left ventricular hypertrophy ",
+      "record_count": 1,
+      "_row": "measurement_value.134"
+    },
+    {
+      "domain": "measurement_value",
+      "source_value": "showed a 6cm by 4cm solid, grey white, smooth surf",
+      "record_count": 1,
+      "_row": "measurement_value.135"
     }
   ],
   "record_counts": [
@@ -3158,25 +1004,25 @@
     },
     {
       "table_name": "cdm.drug_exposure",
-      "row_count": 960328,
+      "row_count": 962858,
       "layer": "cdm",
       "_row": "drug_exposure"
     },
     {
       "table_name": "cdm.measurement",
-      "row_count": 12637114,
+      "row_count": 12634407,
       "layer": "cdm",
       "_row": "measurement"
     },
     {
       "table_name": "cdm.observation",
-      "row_count": 1372781,
+      "row_count": 1370251,
       "layer": "cdm",
       "_row": "observation"
     },
     {
       "table_name": "cdm.procedure_occurrence",
-      "row_count": 812722,
+      "row_count": 815429,
       "layer": "cdm",
       "_row": "procedure_occurrence"
     },
@@ -3188,7 +1034,7 @@
     },
     {
       "table_name": "cdm.observation_period",
-      "row_count": 99488,
+      "row_count": 99523,
       "layer": "cdm",
       "_row": "observation_period"
     }
@@ -3206,13 +1052,13 @@
   "one_to_many": [
     {
       "mapping": "map_condition",
-      "source_key": "434.11",
+      "source_key": "442.9",
       "target_count": 2,
       "_row": "condition.1"
     },
     {
       "mapping": "map_condition",
-      "source_key": "442.9",
+      "source_key": "434.11",
       "target_count": 2,
       "_row": "condition.2"
     }
@@ -3220,39 +1066,303 @@
   "many_to_one": [
     {
       "mapping": "map_drug_order",
-      "concept_id": 1551100,
+      "concept_id": 1305058,
       "source_key_count": 2,
       "_row": "drug_order.1"
     },
     {
       "mapping": "map_drug_order",
-      "concept_id": 19075392,
-      "source_key_count": 3,
+      "concept_id": 1112807,
+      "source_key_count": 2,
       "_row": "drug_order.2"
     },
     {
       "mapping": "map_drug_order",
-      "concept_id": 19075601,
-      "source_key_count": 2,
+      "concept_id": 19075392,
+      "source_key_count": 3,
       "_row": "drug_order.3"
     },
     {
       "mapping": "map_drug_order",
-      "concept_id": 40236435,
-      "source_key_count": 2,
+      "concept_id": 1518254,
+      "source_key_count": 4,
       "_row": "drug_order.4"
     },
     {
       "mapping": "map_drug_order",
-      "concept_id": 35603929,
+      "concept_id": 778711,
       "source_key_count": 2,
       "_row": "drug_order.5"
     },
     {
       "mapping": "map_drug_order",
-      "concept_id": 1797576,
+      "concept_id": 1338512,
       "source_key_count": 2,
       "_row": "drug_order.6"
+    },
+    {
+      "mapping": "map_drug_order",
+      "concept_id": 19075601,
+      "source_key_count": 2,
+      "_row": "drug_order.7"
+    },
+    {
+      "mapping": "map_drug_order",
+      "concept_id": 40220447,
+      "source_key_count": 2,
+      "_row": "drug_order.8"
+    },
+    {
+      "mapping": "map_drug_order",
+      "concept_id": 1704183,
+      "source_key_count": 2,
+      "_row": "drug_order.9"
+    },
+    {
+      "mapping": "map_drug_order",
+      "concept_id": 766529,
+      "source_key_count": 2,
+      "_row": "drug_order.10"
+    },
+    {
+      "mapping": "map_drug_order",
+      "concept_id": 1782521,
+      "source_key_count": 3,
+      "_row": "drug_order.11"
+    },
+    {
+      "mapping": "map_drug_order",
+      "concept_id": 1347384,
+      "source_key_count": 2,
+      "_row": "drug_order.12"
+    },
+    {
+      "mapping": "map_drug_order",
+      "concept_id": 740910,
+      "source_key_count": 4,
+      "_row": "drug_order.13"
+    },
+    {
+      "mapping": "map_drug_order",
+      "concept_id": 1367268,
+      "source_key_count": 2,
+      "_row": "drug_order.14"
+    },
+    {
+      "mapping": "map_drug_order",
+      "concept_id": 1331247,
+      "source_key_count": 3,
+      "_row": "drug_order.15"
+    },
+    {
+      "mapping": "map_drug_order",
+      "concept_id": 1797576,
+      "source_key_count": 2,
+      "_row": "drug_order.16"
+    },
+    {
+      "mapping": "map_drug_order",
+      "concept_id": 752061,
+      "source_key_count": 2,
+      "_row": "drug_order.17"
+    },
+    {
+      "mapping": "map_drug_order",
+      "concept_id": 1326303,
+      "source_key_count": 2,
+      "_row": "drug_order.18"
+    },
+    {
+      "mapping": "map_drug_order",
+      "concept_id": 1310149,
+      "source_key_count": 5,
+      "_row": "drug_order.19"
+    },
+    {
+      "mapping": "map_drug_order",
+      "concept_id": 1301025,
+      "source_key_count": 3,
+      "_row": "drug_order.20"
+    },
+    {
+      "mapping": "map_drug_order",
+      "concept_id": 1734104,
+      "source_key_count": 2,
+      "_row": "drug_order.21"
+    },
+    {
+      "mapping": "map_drug_order",
+      "concept_id": 739138,
+      "source_key_count": 3,
+      "_row": "drug_order.22"
+    },
+    {
+      "mapping": "map_drug_order",
+      "concept_id": 1154458,
+      "source_key_count": 2,
+      "_row": "drug_order.23"
+    },
+    {
+      "mapping": "map_drug_order",
+      "concept_id": 1713332,
+      "source_key_count": 3,
+      "_row": "drug_order.24"
+    },
+    {
+      "mapping": "map_drug_order",
+      "concept_id": 35603929,
+      "source_key_count": 2,
+      "_row": "drug_order.25"
+    },
+    {
+      "mapping": "map_drug_order",
+      "concept_id": 1378382,
+      "source_key_count": 2,
+      "_row": "drug_order.26"
+    },
+    {
+      "mapping": "map_drug_order",
+      "concept_id": 19014878,
+      "source_key_count": 2,
+      "_row": "drug_order.27"
+    },
+    {
+      "mapping": "map_drug_order",
+      "concept_id": 1318011,
+      "source_key_count": 2,
+      "_row": "drug_order.28"
+    },
+    {
+      "mapping": "map_drug_order",
+      "concept_id": 710062,
+      "source_key_count": 3,
+      "_row": "drug_order.29"
+    },
+    {
+      "mapping": "map_drug_order",
+      "concept_id": 1551099,
+      "source_key_count": 5,
+      "_row": "drug_order.30"
+    },
+    {
+      "mapping": "map_drug_order",
+      "concept_id": 1367571,
+      "source_key_count": 5,
+      "_row": "drug_order.31"
+    },
+    {
+      "mapping": "map_drug_order",
+      "concept_id": 1177480,
+      "source_key_count": 5,
+      "_row": "drug_order.32"
+    },
+    {
+      "mapping": "map_drug_order",
+      "concept_id": 1115008,
+      "source_key_count": 3,
+      "_row": "drug_order.33"
+    },
+    {
+      "mapping": "map_drug_order",
+      "concept_id": 1551100,
+      "source_key_count": 2,
+      "_row": "drug_order.34"
+    },
+    {
+      "mapping": "map_drug_order",
+      "concept_id": 994341,
+      "source_key_count": 2,
+      "_row": "drug_order.35"
+    },
+    {
+      "mapping": "map_drug_order",
+      "concept_id": 1341927,
+      "source_key_count": 2,
+      "_row": "drug_order.36"
+    },
+    {
+      "mapping": "map_drug_order",
+      "concept_id": 1550557,
+      "source_key_count": 3,
+      "_row": "drug_order.37"
+    },
+    {
+      "mapping": "map_drug_order",
+      "concept_id": 742267,
+      "source_key_count": 2,
+      "_row": "drug_order.38"
+    },
+    {
+      "mapping": "map_drug_order",
+      "concept_id": 923645,
+      "source_key_count": 2,
+      "_row": "drug_order.39"
+    },
+    {
+      "mapping": "map_drug_order",
+      "concept_id": 705944,
+      "source_key_count": 2,
+      "_row": "drug_order.40"
+    },
+    {
+      "mapping": "map_drug_order",
+      "concept_id": 745466,
+      "source_key_count": 2,
+      "_row": "drug_order.41"
+    },
+    {
+      "mapping": "map_drug_order",
+      "concept_id": 1124300,
+      "source_key_count": 2,
+      "_row": "drug_order.42"
+    },
+    {
+      "mapping": "map_drug_order",
+      "concept_id": 1307046,
+      "source_key_count": 3,
+      "_row": "drug_order.43"
+    },
+    {
+      "mapping": "map_drug_order",
+      "concept_id": 1356123,
+      "source_key_count": 2,
+      "_row": "drug_order.44"
+    },
+    {
+      "mapping": "map_drug_order",
+      "concept_id": 955632,
+      "source_key_count": 3,
+      "_row": "drug_order.45"
+    },
+    {
+      "mapping": "map_drug_order",
+      "concept_id": 974166,
+      "source_key_count": 2,
+      "_row": "drug_order.46"
+    },
+    {
+      "mapping": "map_drug_order",
+      "concept_id": 40236435,
+      "source_key_count": 2,
+      "_row": "drug_order.47"
+    },
+    {
+      "mapping": "map_drug_order",
+      "concept_id": 718122,
+      "source_key_count": 2,
+      "_row": "drug_order.48"
+    },
+    {
+      "mapping": "map_drug_order",
+      "concept_id": 797399,
+      "source_key_count": 3,
+      "_row": "drug_order.49"
+    },
+    {
+      "mapping": "map_drug_order",
+      "concept_id": 1125315,
+      "source_key_count": 3,
+      "_row": "drug_order.50"
     }
   ],
   "reject_counts": [
@@ -3348,7 +1458,7 @@
     },
     {
       "metric": "total_cdm_records_with_concept_id_0",
-      "value": 267216
+      "value": 21
     }
   ],
   "domain_conformance": [
@@ -3365,8 +1475,8 @@
       "cdm_table": "drug_exposure",
       "expected_domain": "Drug",
       "concept_domain": "Drug",
-      "record_count": 737496,
-      "total_mapped": 737496,
+      "record_count": 958577,
+      "total_mapped": 958577,
       "conforming": true,
       "conformance_pct": 100
     },
@@ -3374,8 +1484,8 @@
       "cdm_table": "measurement",
       "expected_domain": "Measurement",
       "concept_domain": "Measurement",
-      "record_count": 12620677,
-      "total_mapped": 12620677,
+      "record_count": 12634386,
+      "total_mapped": 12634386,
       "conforming": true,
       "conformance_pct": 100
     },
@@ -3383,8 +1493,8 @@
       "cdm_table": "observation",
       "expected_domain": "Observation",
       "concept_domain": "Observation",
-      "record_count": 1345676,
-      "total_mapped": 1345676,
+      "record_count": 1370251,
+      "total_mapped": 1370251,
       "conforming": true,
       "conformance_pct": 100
     },
@@ -3392,8 +1502,8 @@
       "cdm_table": "procedure_occurrence",
       "expected_domain": "Procedure",
       "concept_domain": "Procedure",
-      "record_count": 811880,
-      "total_mapped": 811880,
+      "record_count": 815429,
+      "total_mapped": 815429,
       "conforming": true,
       "conformance_pct": 100
     }
@@ -3407,12 +1517,12 @@
     {
       "from_table": "measurement",
       "to_domain": "Procedure",
-      "record_count": 44826
+      "record_count": 47533
     },
     {
       "from_table": "observation",
       "to_domain": "Drug",
-      "record_count": 20112
+      "record_count": 22642
     },
     {
       "from_table": "procedure_occurrence",
@@ -3420,5 +1530,5 @@
       "record_count": 667015
     }
   ],
-  "generated_at": "2026-02-24T19:52:24Z"
+  "generated_at": "2026-02-25T00:25:47Z"
 }

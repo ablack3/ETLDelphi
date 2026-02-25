@@ -55,12 +55,21 @@ env var based on provider.}
 
 \item{omophub}{OMOPHub client object. Default: created from env vars. Used for NDC lookups.}
 
-\item{force_retry}{Controls retry behaviour for already-processed values.
+\item{force_retry}{Controls which values are (re)processed.
 \itemize{
-\item \code{FALSE} (default): skip successfully mapped values (concept_id > 0
-AND confidence >= threshold). Failed mappings are automatically retried.
-\item \code{"all"}: skip ALL values already in the log, including failures.
-\item \code{TRUE}: ignore the log entirely — reprocess everything.
+\item \code{FALSE} (default): skip only successes (concept_id > 0 and
+confidence >= threshold). Retry failures and process new unmapped values
+from staging. This uses the same source as \code{export_unmapped_drugs()}:
+unmapped rows in \code{stg.map_drug_order} (and equivalent for other domains).
+\item \code{"fail"}: only retry failed log entries. Uses the mapping log file
+only — rows where \code{concept_id} is missing or \code{<= 0}. Does not
+query staging, so the list will not match \code{export_unmapped_drugs()};
+use default \code{force_retry = FALSE} to process the same set as unmapped
+exports.
+\item \code{"all"}: skip ALL values already in the log (including failures).
+Only process new unmapped values from staging.
+\item \code{TRUE}: ignore the log entirely — reprocess everything (staging
+unmapped + all previously logged values).
 }}
 
 \item{delay}{Seconds to wait between LLM API calls (rate limiting). Default: 0.5.}

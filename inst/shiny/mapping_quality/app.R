@@ -673,9 +673,9 @@ server <- function(input, output, session) {
     )
     d$mapped_pct <- 100 - d$unmapped_pct
 
-    left_margin <- max(9, max(nchar(d$label), na.rm = TRUE) * 0.48)
-    op <- par(mar = c(3, left_margin, 1.2, 1), family = "sans", bg = "white",
-              cex.axis = 0.65, cex.lab = 0.68, mgp = c(1.8, 0.4, 0), tcl = -0.15)
+    left_margin <- max(9, max(nchar(d$label), na.rm = TRUE) * 0.52)
+    op <- par(mar = c(4, left_margin, 1.2, 1), family = "sans", bg = "white",
+              cex.axis = 0.9, cex.lab = 0.9, mgp = c(1.8, 0.4, 0), tcl = -0.15)
     on.exit(par(op))
 
     n <- nrow(d)
@@ -688,8 +688,8 @@ server <- function(input, output, session) {
       border = NA,
       xlim = c(0, 105),
       xlab = "Mapped %",
-      cex.names = 0.65,
-      cex.main = 0.82
+      cex.names = 0.9,
+      cex.main = 0.95
     )
 
     # Add percentage labels
@@ -698,7 +698,7 @@ server <- function(input, output, session) {
       y = ypos,
       labels = fmt_pct(rev(d$mapped_pct)),
       adj = 0,
-      cex = 0.6,
+      cex = 0.85,
       col = "#495057"
     )
   })

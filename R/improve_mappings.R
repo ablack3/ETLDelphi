@@ -48,12 +48,21 @@
 #' @param hecate Hecate client object. Default: created from env vars.
 #' @param omophub OMOPHub client object. Default: created from env vars. Used for NDC lookups.
 #' @param custom_ndc_mapping_path Path to custom NDC mapping CSV. Default: from config or package default.
-#' @param force_retry Controls retry behaviour for already-processed values.
+#' @param force_retry Controls which values are (re)processed.
 #'   \itemize{
-#'     \item \code{FALSE} (default): skip successfully mapped values (concept_id > 0
-#'       AND confidence >= threshold). Failed mappings are automatically retried.
-#'     \item \code{"all"}: skip ALL values already in the log, including failures.
-#'     \item \code{TRUE}: ignore the log entirely — reprocess everything.
+#'     \item \code{FALSE} (default): skip only successes (concept_id > 0 and
+#'       confidence >= threshold). Retry failures and process new unmapped values
+#'       from staging. This uses the same source as \code{export_unmapped_drugs()}:
+#'       unmapped rows in \code{stg.map_drug_order} (and equivalent for other domains).
+#'     \item \code{"fail"}: only retry failed log entries. Uses the mapping log file
+#'       only — rows where \code{concept_id} is missing or \code{<= 0}. Does not
+#'       query staging, so the list will not match \code{export_unmapped_drugs()};
+#'       use default \code{force_retry = FALSE} to process the same set as unmapped
+#'       exports.
+#'     \item \code{"all"}: skip ALL values already in the log (including failures).
+#'       Only process new unmapped values from staging.
+#'     \item \code{TRUE}: ignore the log entirely — reprocess everything (staging
+#'       unmapped + all previously logged values).
 #'   }
 #' @param delay Seconds to wait between LLM API calls (rate limiting). Default: 0.5.
 #' @param dry_run If TRUE, show what would be processed without calling LLM.
@@ -108,16 +117,29 @@ improve_mappings <- function(con,
     data.frame(source_value = character(), domain = character(), concept_id = integer(), stringsAsFactors = FALSE)
   }
 
-  # Query unmapped source values from staging (with rich context)
-  unmapped <- get_unmapped_source_values(con, stg = stg, domains = domains, limit = limit)
+  # --- Build list of values to process ---
+  # force_retry == "fail": only retry failed log entries (concept_id missing or <= 0)
+  if (identical(force_retry, "fail")) {
+    unmapped <- get_failed_log_entries(existing_log, domains = domains, limit = limit)
+  } else {
+    unmapped <- get_unmapped_source_values(con, stg = stg, domains = domains, limit = limit)
+  }
 
   if (nrow(unmapped) == 0) {
-    cli::cli_alert_success("No unmapped source values found across requested domain(s).")
+    if (identical(force_retry, "fail")) {
+      cli::cli_alert_success("No failed log entries to retry (no rows with missing or zero concept_id in log).")
+    } else {
+      cli::cli_alert_success("No unmapped source values found across requested domain(s).")
+    }
     cleanup_already_done_table(con)
     return(invisible(existing_log))
   }
 
-  cli::cli_alert_info("Processing {nrow(unmapped)} unmapped source values across {length(unique(unmapped$domain))} domain(s)")
+  if (identical(force_retry, "fail")) {
+    cli::cli_alert_info("Retrying {nrow(unmapped)} failed log entries across {length(unique(unmapped$domain))} domain(s)")
+  } else {
+    cli::cli_alert_info("Processing {nrow(unmapped)} unmapped source values across {length(unique(unmapped$domain))} domain(s)")
+  }
 
   if (dry_run) {
     cli::cli_alert_info("Dry run -- would process:")
@@ -362,6 +384,69 @@ empty_log_df <- function() {
     concept_id = integer(), confidence = numeric(),
     stringsAsFactors = FALSE
   )
+}
+
+# Build data.frame of failed log entries (concept_id missing or <= 0) for force_retry = "fail".
+# Returns same shape as get_unmapped_source_values: source_value, record_count, domain, source_code, source_name, source_vocab, mapping_key.
+# De-duplicates by (source_value, domain), keeping the most recent row per pair. Applies limit per domain.
+get_failed_log_entries <- function(existing_log, domains, limit) {
+  if (is.null(existing_log) || nrow(existing_log) == 0) {
+    return(data.frame(
+      source_value = character(), record_count = integer(), domain = character(),
+      source_code = character(), source_name = character(), source_vocab = character(),
+      mapping_key = character(), stringsAsFactors = FALSE
+    ))
+  }
+  # Failed = concept_id missing or <= 0
+  concept_col <- if ("concept_id" %in% names(existing_log)) existing_log$concept_id else rep(NA_integer_, nrow(existing_log))
+  failed <- existing_log[
+    (is.na(concept_col) | as.integer(concept_col) <= 0L) &
+    existing_log$domain %in% domains,
+    , drop = FALSE
+  ]
+  if (nrow(failed) == 0) {
+    return(data.frame(
+      source_value = character(), record_count = integer(), domain = character(),
+      source_code = character(), source_name = character(), source_vocab = character(),
+      mapping_key = character(), stringsAsFactors = FALSE
+    ))
+  }
+  # De-duplicate by (source_value, domain), keep last (most recent) row
+  failed <- failed[order(seq_len(nrow(failed))), , drop = FALSE]
+  idx <- duplicated(failed[, c("source_value", "domain")], fromLast = TRUE)
+  failed <- failed[!idx, , drop = FALSE]
+  # Limit per domain (same behaviour as get_unmapped_source_values)
+  out <- list()
+  for (d in domains) {
+    sub <- failed[failed$domain == d, , drop = FALSE]
+    if (nrow(sub) > limit) sub <- sub[seq_len(limit), , drop = FALSE]
+    if (nrow(sub) > 0) out[[length(out) + 1L]] <- sub
+  }
+  if (length(out) == 0) {
+    return(data.frame(
+      source_value = character(), record_count = integer(), domain = character(),
+      source_code = character(), source_name = character(), source_vocab = character(),
+      mapping_key = character(), stringsAsFactors = FALSE
+    ))
+  }
+  result <- do.call(rbind, out)
+  # Ensure record_count is integer
+  if ("record_count" %in% names(result)) {
+    result$record_count <- suppressWarnings(as.integer(result$record_count))
+    result$record_count[is.na(result$record_count)] <- 0L
+  } else {
+    result$record_count <- 0L
+  }
+  # Add missing columns expected by downstream (same as get_unmapped_source_values output)
+  for (col in c("source_code", "source_name", "source_vocab", "mapping_key")) {
+    if (!col %in% names(result)) result[[col]] <- NA_character_
+  }
+  result$source_vocab[is.na(result$source_vocab)] <- NA_character_
+  result$mapping_key <- if (is.character(result$mapping_key)) result$mapping_key else NA_character_
+  miss <- is.na(result$mapping_key) | !nzchar(trimws(result$mapping_key))
+  result$mapping_key[miss] <- result$source_value[miss]
+  cols <- c("source_value", "record_count", "domain", "source_code", "source_name", "source_vocab", "mapping_key")
+  result[, intersect(cols, names(result)), drop = FALSE]
 }
 
 # Canonical 16-column header for the mapping improvement log.

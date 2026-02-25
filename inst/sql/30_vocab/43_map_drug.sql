@@ -43,13 +43,16 @@ keys AS (
     END AS ndc_digits_11
   FROM cleaned
 ),
--- NDC concepts: join on concept_code to get source concept_id, then map to standard
+-- NDC concepts: normalize concept_code (strip dashes, spaces, *) so we match regardless of vocabulary format
 ndc_concepts AS (
-  SELECT concept_id, concept_code
+  SELECT
+    concept_id,
+    concept_code,
+    REPLACE(REPLACE(REPLACE(TRIM(concept_code), '-', ''), ' ', ''), '*', '') AS concept_code_normalized
   FROM cdm.concept
   WHERE vocabulary_id = 'NDC' AND invalid_reason IS NULL
 ),
--- 3a) Direct join: source NDC (normalized) to concept.concept_code -> source concept_id
+-- 3a) Direct join: source NDC (normalized) to normalized concept_code -> source concept_id
 m_concept_code AS (
   SELECT
     k.drug_ndc_raw,
@@ -59,7 +62,7 @@ m_concept_code AS (
     c.concept_code,
     0 AS match_rank
   FROM keys k
-  JOIN ndc_concepts c ON c.concept_code = k.drug_ndc_normalized
+  JOIN ndc_concepts c ON c.concept_code_normalized = k.drug_ndc_normalized
   WHERE k.drug_ndc_normalized IS NOT NULL AND TRIM(k.drug_ndc_normalized) <> ''
 ),
 -- 3b) Exact match on digits-only (from raw)
@@ -72,7 +75,7 @@ m_exact AS (
     c.concept_code,
     1 AS match_rank
   FROM keys k
-  JOIN ndc_concepts c ON c.concept_code = k.ndc_digits
+  JOIN ndc_concepts c ON c.concept_code_normalized = k.ndc_digits
   WHERE k.ndc_digits IS NOT NULL AND k.ndc_digits <> ''
 ),
 -- 3c) Exact match on 11-digit padded
@@ -85,10 +88,10 @@ m_exact11 AS (
     c.concept_code,
     2 AS match_rank
   FROM keys k
-  JOIN ndc_concepts c ON c.concept_code = k.ndc_digits_11
+  JOIN ndc_concepts c ON c.concept_code_normalized = k.ndc_digits_11
   WHERE k.ndc_digits_11 IS NOT NULL
 ),
--- 3d) Wildcard match using LIKE (handles e.g. 54569-3335-*0); skip pattern that is only '%'
+-- 3d) Wildcard match: normalize concept_code and compare to pattern (pattern has % from *)
 m_like AS (
   SELECT
     k.drug_ndc_raw,
@@ -98,7 +101,7 @@ m_like AS (
     c.concept_code,
     3 AS match_rank
   FROM keys k
-  JOIN ndc_concepts c ON c.concept_code LIKE k.ndc_pattern
+  JOIN ndc_concepts c ON c.concept_code_normalized LIKE k.ndc_pattern
   WHERE k.ndc_pattern IS NOT NULL AND k.ndc_pattern <> '' AND k.ndc_pattern <> '%'
 ),
 all_matches AS (
@@ -169,8 +172,10 @@ WHERE (mo.drug_ndc_normalized IS NULL OR TRIM(mo.drug_ndc_normalized) = '')
   AND mo.drug_name IS NOT NULL AND TRIM(mo.drug_name) <> ''
   AND NOT EXISTS (SELECT 1 FROM stg.map_drug_order d WHERE d.drug_name = TRIM(mo.drug_name) AND d.drug_ndc_normalized IS NULL);
 
--- Apply custom NDC overrides (e.g. when NDC is not in vocabulary or maps to wrong concept)
+-- Apply custom NDC overrides (e.g. when NDC is not in vocabulary or maps to wrong concept).
+-- Match on normalized NDC; strip '*' from map side in case of any legacy/alternate path.
 UPDATE stg.map_drug_order
 SET drug_concept_id = c.drug_concept_id, drug_source_concept_id = 0
 FROM stg.custom_ndc_mapping c
-WHERE stg.map_drug_order.drug_ndc_normalized = c.drug_ndc_normalized;
+WHERE REPLACE(COALESCE(stg.map_drug_order.drug_ndc_normalized, ''), '*', '') = c.drug_ndc_normalized
+  AND TRIM(COALESCE(stg.map_drug_order.drug_ndc_normalized, '')) <> '';

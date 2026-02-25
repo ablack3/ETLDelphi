@@ -1,6 +1,6 @@
 "cdm_table","expected_domain","concept_domain","record_count","total_mapped","conforming","conformance_pct"
 "condition_occurrence","Condition","Condition",39306,39306,TRUE,100
-"drug_exposure","Drug","Drug",737496,737496,TRUE,100
-"measurement","Measurement","Measurement",12620677,12620677,TRUE,100
-"observation","Observation","Observation",1345676,1345676,TRUE,100
-"procedure_occurrence","Procedure","Procedure",811880,811880,TRUE,100
+"drug_exposure","Drug","Drug",958577,958577,TRUE,100
+"measurement","Measurement","Measurement",12634386,12634386,TRUE,100
+"observation","Observation","Observation",1370251,1370251,TRUE,100
+"procedure_occurrence","Procedure","Procedure",815429,815429,TRUE,100

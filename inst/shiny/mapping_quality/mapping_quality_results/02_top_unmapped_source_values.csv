@@ -1,373 +1,28 @@
 "domain","source_value","record_count"
-"drug","59630*70248",7153
-"drug","00944262001",5186
-"drug","33413005004",4984
-"drug","00026440005",4978
-"drug","52959*39115",4505
-"drug","545693787*0",4408
-"drug","545695435*0",4281
-"drug","00047007824",4175
-"drug","00068050861",4168
-"drug","00264400155",3799
-"drug","24385013778",3779
-"drug","00517010125",3771
-"drug","548686054*0",3670
-"drug","49884*46901",3427
-"drug","00087277231",3412
-"drug","67544*13430",3237
-"drug","682583012*1",3098
-"drug","00093002601",2999
-"drug","00722521201",2778
-"drug","17236096101",2755
-"drug","00102343001",2715
-"drug","00186423962",2715
-"drug","66267*63300",2644
-"drug","67544*21030",2533
-"drug","66435020209",2458
-"drug","00364724812",2397
-"drug","58914*01310",2207
-"drug","21695009215",2011
-"drug","54569560400",1982
-"drug","00781508801",1955
-"drug","50383*17708",1907
-"drug","66758004403",1760
-"drug","51432034206",1750
-"drug","47202252901",1649
-"drug","545691818*0",1626
-"drug","64376*50101",1617
-"drug","42549*51800",1612
-"drug","17478028912",1602
-"drug","545690014*1",1594
-"drug","00013105694",1576
-"drug","545696062*0",1557
-"drug","545691519*0",1546
-"drug","545695757*0",1524
-"drug","545690332*3",1520
-"drug","00182269015",1485
-"drug","545695574*0",1466
-"drug","00719129513",1465
-"drug","00045152550",1439
-"drug","00013113691",1433
-"drug","00093063201",1430
-"drug","545694272*0",1429
-"drug","53905005301",1399
-"drug","65162*18010",1398
-"drug","545692942*0",1390
-"drug","54569547900",1383
-"drug","61748001409",1365
-"drug","00093089701",1357
-"drug","46703*06803",1328
-"drug","10754085801",1327
-"drug","545693335*2",1303
-"drug","545695671*0",1280
-"drug","00093725601",1265
-"drug","46703*10401",1239
-"drug","545693335*0",1238
-"drug","545693335*1",1199
-"drug","68115070815",1152
-"drug","00005312223",1135
-"drug","545695482*0",1059
-"drug","545695777*0",1050
-"drug","16590046730",1015
-"drug","545693900*0",1014
-"drug","21695*45530",976
-"drug","00052078216",931
-"drug","00487990102",914
-"drug","00049211066",893
-"drug","00339651399",892
-"drug","62584*14301",879
-"drug","38779214905",877
-"drug","00093092619",865
-"drug","545695688*0",856
-"drug","00054009820",842
-"drug","55390011501",836
-"drug","00172443149",832
-"drug","00071036524",831
-"drug","00028007101",830
-"drug","00172248560",830
-"drug","545696138*0",824
-"drug","00083400041",824
-"drug","42549*51302",803
-"drug","68084*23501",800
-"drug","00409302401",793
-"drug","55390*60020",791
-"drug","64980*30912",777
-"drug","13613023004",728
-"drug","53258011913",723
-"drug","545696137*0",713
-"drug","00641146535",713
-"drug","00074779462",705
-"drug","23490624902",685
-"drug","545691754*0",651
-"drug","00143988125",649
-"drug","00007550040",641
-"drug","44514*95518",638
-"drug","00258361005",634
-"drug","00056017070",611
-"drug","00186602001",609
-"drug","545694446*0",598
-"drug","66758*04801",591
-"drug","545695758*0",585
-"drug","545692173*0",584
-"drug","16590050928",582
-"drug","18837*37630",569
-"drug","548685440*0",566
-"drug","550451642*1",552
-"drug","00349873501",536
-"drug","55390*05301",530
-"drug","35356*01256",524
-"drug","00007440701",516
-"drug","00093474101",506
-"drug","00052083011",501
-"drug","59075*73015",484
-"drug","00228266650",482
-"drug","545691224*0",476
-"drug","545694663*1",470
-"drug","63874*30130",466
-"drug","00677193601",453
-"drug","66794*00230",448
-"drug","00065075212",438
-"drug","548685772*0",417
-"drug","00054002413",416
-"drug","545694507*0",411
-"drug","00088222052",399
-"drug","00781328275",385
-"drug","545695291*0",384
-"drug","10019*08202",377
-"drug","00088216203",369
-"drug","00349844010",367
-"drug","00093022419",367
-"drug","00088177190",367
-"drug","00054413025",364
-"drug","59743*02601",364
-"drug","00187200605",363
-"drug","00173063535",356
-"drug","65271000130",353
-"drug","51309022720",350
-"drug","05024005121",346
-"drug","545690332*5",345
-"drug","545695818*1",345
-"drug","51285*44102",342
-"drug","545694102*0",338
-"drug","16590084660",328
-"drug","18837008230",327
-"drug","55390*23110",327
-"drug","00013745686",327
-"drug","545695133*0",327
-"drug","545694048*1",321
-"drug","00641627215",317
-"drug","58016*78100",316
-"drug","42549*59230",308
-"drug","00004201709",306
-"drug","65243*00603",305
-"drug","55390*80610",298
-"drug","55390*14301",298
-"drug","00093517119",298
-"drug","00409485605",298
-"drug","545690032*5",296
-"drug","00182101601",294
-"drug","59911588801",294
-"drug","548681616*1",293
-"drug","545690277*1",287
-"drug","00004150603",283
-"drug","00093723619",274
-"drug","00085087905",250
-"drug","16590*45730",249
-"drug","00115704401",249
-"drug","545694720*0",234
-"drug","545695360*0",222
-"drug","597728840*1",222
-"drug","545695972*0",217
-"drug","00093067006",216
-"drug","548681290*1",213
-"drug","00406112101",201
-"drug","00085123501",190
-"drug","00024059010",179
-"drug","00944099601",175
-"drug","545694538*0",168
-"drug","00009022501",163
-"drug","545694089*0",163
-"drug","66336038607",159
-"drug","00039007811",156
-"drug","545694934*0",152
-"drug","00093079301",146
-"drug","00245002711",144
-"drug","12280006200",140
-"drug","49999*54260",130
-"drug","54868526009",125
-"drug","54569571700",125
-"drug","00093715510",123
-"drug","59148*00216",123
-"drug","00047019624",119
-"drug","18837026190",112
-"drug","00074779361",108
-"drug","545693841*0",97
-"drug","548685782*0",96
-"drug","545695669*0",96
-"drug","00517405025",95
-"drug","00007323601",92
-"drug","00007420101",88
-"drug","58016*48900",83
-"drug","00173052000",76
-"drug","54569488100",73
-"drug","545693788*0",58
-"drug","12280016315",49
-"drug","68115074610",49
-"drug","00186115102",48
-"drug","00169643910",48
-"drug","548685192*0",48
-"drug","00044108501",43
-"drug","00172375396",42
-"drug","00047095524",41
-"drug","00904183160",41
-"drug","00015307220",39
-"drug","00228271711",38
-"drug","58016*28900",37
-"drug","42549*50830",37
-"drug","545690916*0",34
-"drug","00403077450",31
-"drug","54868608902",30
-"drug","10019*02518",29
-"drug","00555090401",27
-"drug","545690347*3",26
-"drug","63323*26801",24
-"drug","50242*05656",18
-"drug","00024059240",17
-"drug","61703035991",17
-"drug","00085173302",16
-"drug","55084011612",16
-"drug","00093022001",15
-"drug","00056034208",15
-"drug","00641246045",14
-"drug","57480042506",13
-"drug","58063060050",12
-"drug","00781311964",12
-"drug","53506098704",12
-"drug","63323*16610",10
-"drug","62086*14630",9
-"drug","00590012770",8
-"drug","67544*40130",8
-"drug","52152*34102",8
-"drug","50222*34208",8
-"drug","24430100101",7
-"drug","00131326732",7
-"drug","00005317543",6
-"drug","55513*82310",6
-"drug","44206*41501",5
-"drug","63323*54401",5
-"drug","24477*04001",4
-"drug","55390*30405",4
-"drug","66758*04301",3
-"drug","00781311963",2
-"drug","00007323002",2
-"drug","35470053701",2
-"measurement","0",6011
-"measurement","21189-7",5122
-"measurement","24627-2",1938
-"measurement","24725-4",1084
-"measurement","44616-1",788
-"measurement","36014-9",599
-"measurement","9408-5",319
-"measurement","9785-7",298
-"measurement","11522-0",144
-"measurement","24869-0",33
-"measurement","30806-4",31
-"measurement","58744-4",26
-"measurement","28566-8",23
 "measurement","44120-4",16
 "measurement","39059-1",5
-"procedure","38.7",400
-"procedure","44.04",242
-"procedure","32.52",200
-"observation","cefuroxime",2530
-"observation","Anticonvulsants",2504
-"observation","Sulfa Drugs",2501
-"observation","ampicillin",2488
-"observation","cephalexin",2481
-"observation","Barbiturates",2479
-"observation","Iodine",2477
-"observation","amoxicillin",2448
-"observation","Aspirin",2444
-"observation","Penicillin",2393
-"observation","Insulin",2360
 "measurement_unit","]",5285
 "measurement_unit","ng/mL per year",18
-"measurement_value","no abnormal skin or mole present",70549
-"measurement_value","no lumps noted",69582
-"measurement_value","no lumps noticed",38357
-"measurement_value","uterus and ovaries are normal in size and location",35321
-"measurement_value","no abnormal cervical cells",35320
-"measurement_value","negative for HPV 16 & 18",21633
-"measurement_value","Platelet count = 200,000/uL",6979
-"measurement_value","Otoacoustic emissions (OAE)",6031
 "measurement_value","Straw",6030
-"measurement_value","normal hemoglobin is present",6030
-"measurement_value","no lump noted",5657
-"measurement_value","Plts=245,000/uL",4374
-"measurement_value","Bone have a normal density at hip and spine that i",2771
-"measurement_value","no polyps or growth in rectum and  lower colon",2351
-"measurement_value","Severe portal inflammation, lymphocytic bridging n",1966
-"measurement_value","sinus bradycardia",1721
-"measurement_value","shows nodular aggregates of basalioma cells are pr",1683
-"measurement_value","no polyps or cancerous growth in upper and lower c",1564
-"measurement_value","normal rate and rhythm",1563
-"measurement_value","absence of hearing loss",1454
-"measurement_value","Plts=260,000 /uL",1409
-"measurement_value","NSR",1300
 "measurement_value","4.8",1269
-"measurement_value","1.21 LIV(+)",1091
-"measurement_value","no sores or red and white patches",1064
-"measurement_value","lens opacity seen",930
-"measurement_value","Plts=425,000 /uL",817
-"measurement_value","no mass or nodule seen",814
 "measurement_value","Plts=163,000 /uL",804
-"measurement_value","Plts=325,000 /uL",803
 "measurement_value","Plts=407,000 /uL",802
-"measurement_value","grew greater than 100,000 colonies of proteus",790
 "measurement_value","7.4",766
-"measurement_value","Plts=345,000 /uL",761
 "measurement_value","Plts=315,000 /uL",755
-"measurement_value","grew greater than 100,000 colonies of EColi",751
-"measurement_value","grew greater than 100,000 colonies of Klebsiella",744
 "measurement_value","Plts=280,000 /uL",740
-"measurement_value","Plts=235,000 /uL",734
 "measurement_value","Plts=300,000 /uL",722
-"measurement_value","Plts=310,000 /uL",719
 "measurement_value","Plts=400,000 /uL",705
-"measurement_value","Plts=360,000 /uL",699
 "measurement_value","6.0",676
-"measurement_value","RSV (+)",619
 "measurement_value","(+) for astigmatism in affected eye(s)",609
-"measurement_value","shows joint narrowing, osteophyte formation, and s",599
-"measurement_value","shows sensorineural hearing loss",571
-"measurement_value","sinus tachycardia",556
-"measurement_value","(+) presence of H. pylori",445
 "measurement_value","3.6",422
-"measurement_value","ring enhancing lession in the left parietal lobe",411
-"measurement_value","IgM anti-HAV (+)",382
-"measurement_value","(+) presence of Borrellia burgdorferi",371
-"measurement_value","Upper Lobe Solitary nodules on Imaging",360
-"measurement_value","Cavity or Centrilobular Lesions of the Lung",345
 "measurement_value","7.3",334
 "measurement_value","shows S1Q3T3 pattern with RIGHT ventricular strain",333
 "measurement_value","cell-wall deficient organisms (+)",316
-"measurement_value","Lymphocytic infiltration, moderate degrees of infl",305
-"measurement_value","polymorphs without any bacteria",301
-"measurement_value","10",297
-"measurement_value","cytology (+) for leptomeningeal carcinomatosis",291
-"measurement_value","(9-22) bcr-abl (+)",271
-"measurement_value","shows hypercellularity with elevated myeloid to er",264
-"measurement_value","fasiculations and evidence of denervation in upper",258
-"measurement_value","causative organism (+)",253
-"measurement_value","(+) fragile X syndrome noted",244
-"measurement_value","decreased tone of LES and reduced esophageal body ",225
 "measurement_value","-2.5",220
 "measurement_value","WBC present with gram positive diplococci",215
 "measurement_value","cocaine (-), PCP (+),TCAs serum concenteration (-)",198
 "measurement_value","4.0",196
 "measurement_value","7.0",193
-"measurement_value","reveals gram (-) bacilli",193
-"measurement_value","(+) findings of vascular deformity in area of migr",187
 "measurement_value","shows stenosis at L4 and L5",178
 "measurement_value","prolong in the right eye",171
 "measurement_value","(+) oligoclonal bands",170
@@ -379,9 +34,7 @@
 "measurement_value","(+) perivascular infiltration of lymphocytes (pred",161
 "measurement_value","4.3",157
 "measurement_value","Mitral valvular leaflet length abnormality",155
-"measurement_value","revealed thickening of the skin overlying the mass",153
 "measurement_value","confirmed the diagnosis of lymphangiosarcoma",153
-"measurement_value","shows cavitation and air-fluid level",149
 "measurement_value","cocaine (-), PCP (-),TCAs serum concenteration (+)",148
 "measurement_value","4",144
 "measurement_value","shows hemorrhage in frontal lobe",133
@@ -393,19 +46,17 @@
 "measurement_value","presence of cerebellar intraparenchymal hemorrhage",115
 "measurement_value","(+) findings consistent with conductive hearing lo",113
 "measurement_value","presence of nystagmus elicited",111
-"measurement_value","showed EF 60%, stage 1 diastolic dysfunction and a",110
 "measurement_value","(+) findings consistent with sensorineural hearing",109
 "measurement_value","(+) Corneal Thickness on evaluation",109
 "measurement_value","presence of spontaneous or induced nystagmus on te",103
-"measurement_value","LVH",99
 "measurement_value","shows left Ventricular Hypertrophy",99
+"measurement_value","LVH",99
 "measurement_value","shows invasion of dermis by sheets and islands of ",93
 "measurement_value","0.70",86
 "measurement_value","studies typically normal, if findings show stool w",85
 "measurement_value","0.88",82
 "measurement_value","(+) red cell galactokinase/urine amino acids after",81
 "measurement_value","darkening of the red reflex",76
-"measurement_value","shows a presence of a right upper lobe mass, along",75
 "measurement_value","showed moderately to poorly differentiated metasta",75
 "measurement_value","shows diffuse infiltration by mature lymphocytes",68
 "measurement_value","shows calcified aortic valve",65
@@ -418,25 +69,23 @@
 "measurement_value","large, irregular lobulated mass is present in the ",44
 "measurement_value","(+) findings for Sickle Cell",42
 "measurement_value","Premature ventricular contractions and Ejection Fr",40
-"measurement_value","(+) degeneration and loss of terminal nerve twigs",39
-"measurement_value","ST Elevation (STEMI)",39
 "measurement_value","ST elevation in leads 11, 111, and aVF",39
+"measurement_value","ST Elevation (STEMI)",39
+"measurement_value","(+) degeneration and loss of terminal nerve twigs",39
 "measurement_value","New S-T elevation",38
 "measurement_value","Pathologic Q-wave",37
-"measurement_value","0.16",36
 "measurement_value","0.55",36
+"measurement_value","0.16",36
 "measurement_value","shows a distal common bile duct stricture with pro",35
-"measurement_value","shows mild to moderate aortic valve stenosis but r",34
+"measurement_value","shows Ventricular Septal Rupture",32
 "measurement_value","shows pericardial effusion, regional Wall Motion A",32
 "measurement_value","ST elevation in leads V1, V2, V3, Inversion of T w",32
-"measurement_value","shows Ventricular Septal Rupture",32
-"measurement_value","0.39",31
 "measurement_value","obscuration of ocular fundus detail",31
 "measurement_value","narrowing of femoral arteries",31
+"measurement_value","0.39",31
 "measurement_value","LEFT Ventricular Hypertrophy",30
 "measurement_value","(+) Multifocal deficiencies of maculae on ERG",29
 "measurement_value","shows a B/L solid nodular masses on both ovaries",28
-"measurement_value","shows calcification of the aortic valve",26
 "measurement_value","heme (+) stool",26
 "measurement_value","shows right MCA infarct along with multiple foci o",25
 "measurement_value","atrial fibrillation with controlled ventricular ra",25
@@ -448,52 +97,44 @@
 "measurement_value","loss of contrast sensitivity on testing",21
 "measurement_value","scrapes off abnormal tissue which shows loss of no",20
 "measurement_value","Non-recordable (extinguished) ERG",19
+"measurement_value","normal skin with changes in the subcutaneous tissu",18
 "measurement_value","opacities seen in red reflex",18
 "measurement_value","show seven 1.5 cm polyp in left descending colon",18
-"measurement_value","normal skin with changes in the subcutaneous tissu",18
-"measurement_value","(+) findings of bony abnormality inpinging on neur",17
 "measurement_value","(+) loss of rod and/or cone sensitivity on testing",17
-"measurement_value","shows a polypod mass filling part of ascending col",16
+"measurement_value","(+) findings of bony abnormality inpinging on neur",17
 "measurement_value","positive for HPV 16",16
+"measurement_value","shows a polypod mass filling part of ascending col",16
 "measurement_value","myopic shift noted",15
 "measurement_value","no relationship between p and QRS waves",14
-"measurement_value","shows large bullae in both inferior lobes due to u",13
-"measurement_value","demonstrates areas of centriacinar emphysema",13
 "measurement_value","shows monoclonal M spike",13
 "measurement_value","revealed a Gleason score 6 (3 + 3) adenocarcinoma ",13
 "measurement_value","reveals fungating mass showing back to back glands",12
 "measurement_value","shows exaggerated plasma renin activity",12
 "measurement_value","LEFT and RIGHT Ventricular Enlargement (4 chamber ",11
 "measurement_value","mild dysplasia",10
-"measurement_value","distant metastasis to lung (pleural effusion)",10
 "measurement_value","shows loss of normal orientation of squamous cells",10
 "measurement_value","shows a 2.2-cm pancreatic adenocarcinoma of the he",8
 "measurement_value","revealed a moderately to poorly differentiated ade",8
 "measurement_value","reveals a suspicious area from which biopsy is tak",8
-"measurement_value","(+) evidence of denervation with absence of muscle",7
 "measurement_value","shows significant small bowel congestion with necr",7
-"measurement_value","negative for orthostatic hypotension to rule out a",6
-"measurement_value","shows poorly differentiated squamous cell carinoma",6
+"measurement_value","(+) evidence of denervation with absence of muscle",7
 "measurement_value","absence of other pathology causing symptoms",6
 "measurement_value","atypical squamous cells of unknown significance",6
+"measurement_value","shows poorly differentiated squamous cell carinoma",6
 "measurement_value","findings of aortic, atrial, atrial septal deficien",6
-"measurement_value","shows a 7 cm heterogeneous solid cystic mass repla",5
 "measurement_value","shows a 5 mm gastric ulcer with symmetrical, radia",5
-"measurement_value","negative for psychologic etiology for physical fin",5
-"measurement_value","indicated clotted blood within the false lumen",4
+"measurement_value","shows a 7 cm heterogeneous solid cystic mass repla",5
 "measurement_value","NSR with left axis deviation",4
-"measurement_value","shows 2 lession at cervical intraepithelial juncti",3
 "measurement_value","ER staining was strongly positive, PR staining was",3
-"measurement_value","showed a cystic tumor arising from the superior bo",3
 "measurement_value","shows slower refilling at the distal limb and mid ",3
 "measurement_value","showed a poorly differentiated pseudopapillary tum",3
+"measurement_value","shows 2 lession at cervical intraepithelial juncti",3
+"measurement_value","showed a cystic tumor arising from the superior bo",3
 "measurement_value","no mass, no shift, no hemorrhage",2
 "measurement_value","shows cerebellopontine angle tumor",2
 "measurement_value","abnormal findings in peripheral stimulation of sen",1
-"measurement_value","shows a large left lung and a 2.5 x 2.1 cm hilar m",1
-"measurement_value","absence of vision problem",1
-"measurement_value","showed a 6cm by 4cm solid, grey white, smooth surf",1
-"measurement_value","aortic incompetence, left ventricular hypertrophy ",1
-"measurement_value","shows a large hilar tumor on the right side, with ",1
-"measurement_value","intimal flap separates true from false lumen",1
 "measurement_value","shows a Leaking aneurysm",1
+"measurement_value","absence of vision problem",1
+"measurement_value","intimal flap separates true from false lumen",1
+"measurement_value","aortic incompetence, left ventricular hypertrophy ",1
+"measurement_value","showed a 6cm by 4cm solid, grey white, smooth surf",1

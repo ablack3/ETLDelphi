@@ -1,11 +1,11 @@
 -- Stage medication_orders: parse Order_Date, Last_Filled_Date; TRY_CAST Dose, Qty_Ordered, Refills, Days_Of_Supply.
--- Drug_NDC: strip dashes for mapping. Drug_Name trimmed.
+-- Drug_NDC: strip dashes, spaces, and '*' for mapping (concept_code in NDC vocabulary is digits-only). Drug_Name trimmed.
 CREATE OR REPLACE TABLE stg.medication_orders AS
 SELECT
     TRIM(CAST("Member_ID" AS VARCHAR)) AS member_id,
     TRIM(CAST("Order_ID" AS VARCHAR)) AS order_id,
     TRIM(CAST("Drug_Name" AS VARCHAR)) AS drug_name,
-    REPLACE(REPLACE(TRIM(CAST("Drug_NDC" AS VARCHAR)), '-', ''), ' ', '') AS drug_ndc_normalized,
+    REPLACE(REPLACE(REPLACE(TRIM(CAST("Drug_NDC" AS VARCHAR)), '-', ''), ' ', ''), '*', '') AS drug_ndc_normalized,
     TRIM(CAST("Drug_NDC" AS VARCHAR)) AS drug_ndc_raw,
     TRIM(CAST("Order_Date" AS VARCHAR)) AS order_date_raw,
     COALESCE(

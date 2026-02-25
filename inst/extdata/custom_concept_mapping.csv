@@ -1,2 +1,589 @@
 "source_value","domain","concept_id"
 "uterus and ovaries are normal in size and location","measurement_value",608359
+"5963070248","drug",1550557
+"24385013778","drug",19077344
+"548686054*0","drug",1567232
+"87277231","drug",1552310
+"682583012*1","drug",1734134
+"17236096101","drug",1759456
+"66435020209","drug",19047523
+"21695009215","drug",19123106
+"59630*70248","drug",19125148
+"944262001","drug",40220626
+"52959*39115","drug",752095
+"545693787*0","drug",40167218
+"545695435*0","drug",19080129
+"47007824","drug",19019309
+"68050861","drug",19025865
+"264400155","drug",40221387
+"517010125","drug",40243436
+"49884*46901","drug",19033925
+"67544*13430","drug",19080129
+"93002601","drug",40165767
+"722521201","drug",1782573
+"186423962","drug",19045526
+"102343001","drug",40174765
+"66267*63300","drug",40163555
+"67544*21030","drug",19004693
+"364724812","drug",1125392
+"58914*01310","drug",40176745
+"781508801","drug",19102298
+"50383*17708","drug",19070310
+"66758004403","drug",42628973
+"51432034206","drug",19019588
+"545691818*0","drug",19007332
+"64376*50101","drug",1165632
+"42549*51800","drug",19019074
+"17478028912","drug",1594707
+"545690014*1","drug",1112892
+"13105694","drug",955640
+"545696062*0","drug",19080217
+"545691519*0","drug",40162729
+"545695757*0","drug",1113079
+"545690332*3","drug",1551170
+"182269015","drug",19075002
+"545695574*0","drug",19075380
+"719129513","drug",19018937
+"45152550","drug",1742258
+"13113691","drug",44060822
+"24627-2","measurement",4058335
+"24725-4","measurement",3040312
+"44616-1","measurement",3034937
+"9785-7","measurement",3001952
+"11522-0","measurement",3033702
+"24869-0","measurement",3033128
+"30806-4","measurement",1176290
+"58744-4","measurement",4083211
+"28566-8","measurement",3004410
+"38.7","procedure",4193288
+"44.04","procedure",4163971
+"32.52","procedure",4279443
+"cefuroxime","observation",1778162
+"Anticonvulsants","observation",36674434
+"Sulfa Drugs","observation",439228
+"ampicillin","observation",37118023
+"Barbiturates","observation",443623
+"Iodine","observation",45768492
+"amoxicillin","observation",3667062
+"Aspirin","observation",4167538
+"Penicillin","observation",4240903
+"Insulin","observation",35624433
+"545694272*0","drug",40162570
+"53905005301","drug",1388826
+"65162*18010","drug",1782573
+"545692942*0","drug",1782573
+"61748001409","drug",40222616
+"93089701","drug",953113
+"46703*06803","drug",46233710
+"545693335*2","drug",19073187
+"545695671*0","drug",40169217
+"93725601","drug",1597773
+"46703*10401","drug",19019073
+"545693335*0","drug",19073187
+"545693335*1","drug",19073187
+"68115070815","drug",785821
+"5312223","drug",19019073
+"545695482*0","drug",19019418
+"545695777*0","drug",1154619
+"16590046730","drug",40163286
+"545693900*0","drug",1154380
+"21695*45530","drug",703252
+"52078216","drug",35606533
+"487990102","drug",1154380
+"49211066","drug",40222797
+"339651399","drug",19078663
+"62584*14301","drug",718128
+"93092619","drug",19019115
+"545695688*0","drug",1750501
+"54009820","drug",718128
+"55390011501","drug",19058076
+"172443149","drug",1150926
+"71036524","drug",40163230
+"28007101","drug",40167203
+"172248560","drug",974196
+"545696138*0","drug",742268
+"83400041","drug",19016857
+"42549*51302","drug",797432
+"68084*23501","drug",1713694
+"409302401","drug",19058101
+"55390*60020","drug",19014903
+"64980*30912","drug",904860
+"641146535","drug",740910
+"545696137*0","drug",742303
+"74779462","drug",46275495
+"23490624902","drug",961050
+"545691754*0","drug",40180065
+"143988125","drug",35602776
+"7550040","drug",1753748
+"44514*95518","drug",723042
+"258361005","drug",40162438
+"56017070","drug",40163525
+"186602001","drug",19122571
+"545694446*0","drug",1036233
+"66758*04801","drug",35604254
+"545695758*0","drug",19018937
+"545692173*0","drug",19019114
+"16590050928","drug",19123106
+"18837*37630","drug",40163464
+"548685440*0","drug",40160974
+"550451642*1","drug",19079057
+"349873501","drug",40238008
+"55390*05301","drug",1388826
+"35356*01256","drug",19124311
+"7440701","drug",19073526
+"93474101","drug",19023636
+"52083011","drug",19012389
+"59075*73015","drug",19122575
+"228266650","drug",19077548
+"545691224*0","drug",1518490
+"545694663*1","drug",19095325
+"63874*30130","drug",19019272
+"677193601","drug",19077548
+"66794*00230","drug",1113076
+"65075212","drug",40179974
+"548685772*0","drug",40226388
+"54002413","drug",739207
+"545694507*0","drug",961050
+"88222052","drug",1502910
+"781328275","drug",1314924
+"545695291*0","drug",19077463
+"10019*08202","drug",19058101
+"88216203","drug",19047766
+"88177190","drug",1328690
+"93022419","drug",19079711
+"54413025","drug",19018903
+"59743*02601","drug",40232649
+"187200605","drug",19047523
+"173063535","drug",19007234
+"65271000130","drug",1113076
+"545695818*1","drug",739209
+"545690332*5","drug",1551170
+"51285*44102","drug",1596800
+"545694102*0","drug",19078461
+"16590084660","drug",19080256
+"55390*23110","drug",36249243
+"13745686","drug",1593012
+"545695133*0","drug",40165789
+"18837008230","drug",19123161
+"545694048*1","drug",704945
+"641627215","drug",19076145
+"58016*78100","drug",1518292
+"42549*59230","drug",19019273
+"4201709","drug",19131772
+"65243*00603","drug",40162717
+"55390*14301","drug",1305122
+"409485605","drug",975505
+"93517119","drug",40173612
+"55390*80610","drug",19057780
+"545690032*5","drug",40162502
+"59911588801","drug",19078754
+"548681616*1","drug",1705676
+"545690277*1","drug",1178665
+"4150603","drug",955632
+"93723619","drug",19079171
+"85087905","drug",920596
+"16590*45730","drug",739209
+"115704401","drug",19079220
+"545694720*0","drug",752092
+"597728840*1","drug",40236481
+"545695360*0","drug",40164929
+"545695972*0","drug",19079220
+"93067006","drug",19077577
+"548681290*1","drug",1350552
+"406112101","drug",40236482
+"85123501","drug",1380068
+"24059010","drug",35603926
+"944099601","drug",41087862
+"545694538*0","drug",1710617
+"545694089*0","drug",19134049
+"9022501","drug",998001
+"58016*48900","drug",40162401
+"54569488100","drug",19079293
+"Isotonic Saline (0.9%)","drug",46276153
+"OMS","drug",1110410
+"HEPSERA","drug",40168221
+"dexamethasone","drug",1518254
+"valproic acid","drug",745466
+"EPIVIR","drug",1704183
+"phenytoin","drug",740910
+"prednisone","drug",1551099
+"ULTRALYTIC","drug",19079854
+"dimenhydrinate","drug",928744
+"Hydrochlorothiazide","drug",974166
+"azathioprine","drug",19014878
+"rituximab","drug",1314273
+"sulfasalazine","drug",964339
+"Trental","drug",19035628
+"Pentoxil","drug",1331277
+"Nicardipine","drug",40165080
+"LEVAQUIN","drug",1742258
+"XELODA","drug",1337644
+"Pentoxifylline","drug",19079220
+"Oxaliplatin","drug",1318011
+"warfarin","drug",1310149
+"Simvastatin","drug",1539407
+"Pletal","drug",1350333
+"Theophylline","drug",19125937
+"LYRICA","drug",19123169
+"heparin","drug",43011816
+"glipizide","drug",19077638
+"AVANDIA","drug",19079465
+"fondaparinux","drug",40163991
+"21189-7","measurement",3018171
+"36014-9","measurement",4086258
+"9408-5","measurement",40762499
+"0","measurement",46235082
+"Telbivudine","drug",1758395
+"HYCAMTIN","drug",19124326
+"mannitol","drug",19078824
+"salmeterol","drug",40166838
+"20/20, left eye","measurement_value",4260685
+"no abnormal skin or mole present","measurement_value",3655152
+"no lumps noted","measurement_value",4140560
+"no lumps noticed","measurement_value",36311203
+"right ear pass, left ear pass","measurement_value",45878697
+"no abnormal cervical cells","measurement_value",45877847
+"negative for HPV 16 & 18","measurement_value",9189
+"no mass seen on B/L breast","measurement_value",4115111
+"Otoacoustic emissions (OAE)","measurement_value",4191707
+"no lump noted","measurement_value",36311203
+"no mass lession found on ovaries and endometrium","measurement_value",4115111
+"Bone have a normal density at hip and spine that i","measurement_value",35821591
+"Platelet count = 200,000/uL","measurement_value",4306265
+"normal hemoglobin is present","measurement_value",45763851
+"Plts=245,000/uL","measurement_value",35919838
+"no polyps or growth in rectum and  lower colon","measurement_value",36309110
+"Severe portal inflammation, lymphocytic bridging n","measurement_value",4013447
+"no polyps or pouches in upper and lower colon","measurement_value",4051554
+"sinus bradycardia","measurement_value",21499419
+"shows nodular aggregates of basalioma cells are pr","measurement_value",45883493
+"Clinically Paranoid","measurement_value",4108386
+"shows Lt atrial enlargement","measurement_value",4128641
+"no polyps or cancerous growth in upper and lower c","measurement_value",4194406
+"normal rate and rhythm","measurement_value",4124457
+"absence of hearing loss","measurement_value",4077375
+"Plts=260,000 /uL","measurement_value",4306265
+"NSR","measurement_value",45877096
+"enlargement of cardiac silhouette, clear lung fiel","measurement_value",4104510
+"shows smaller than normal kidneys","measurement_value",195861
+"Transvaginal U/S shows single 28 mm gestational sa","measurement_value",4051969
+"Transvaginal U/S shows single 14 mm gestational sa","measurement_value",4051969
+"Transvaginal U/S shows single 4 mm gestational sac","measurement_value",45883515
+"soft tissue sweeling","measurement_value",36716247
+"1.21 LIV(+)","measurement_value",9191
+"no sores or red and white patches","measurement_value",4059927
+"lens opacity seen","measurement_value",45877195
+"Plts=425,000 /uL","measurement_value",4133293
+"no mass or nodule seen","measurement_value",4115111
+"Plts=325,000 /uL","measurement_value",35919838
+"grew greater than 100,000 colonies of proteus","measurement_value",46237316
+"Plts=345,000 /uL","measurement_value",1449122
+"grew greater than 100,000 colonies of EColi","measurement_value",4011683
+"grew greater than 100,000 colonies of Klebsiella","measurement_value",36308773
+"Plts=235,000 /uL","measurement_value",4069590
+"Plts=310,000 /uL","measurement_value",4306265
+"(+) Loss of Visual Field","measurement_value",4201690
+"Plts=360,000 /uL","measurement_value",4306265
+"RSV (+)","measurement_value",9191
+"(+) mid-peripheral scotomata","measurement_value",9191
+"shows joint narrowing, osteophyte formation, and s","measurement_value",4230331
+"shows a femoral DVT in right femoral vein","measurement_value",4334183
+"shows sensorineural hearing loss","measurement_value",374366
+"sinus tachycardia","measurement_value",4007310
+"bilateral medial femorotibial compartment narrowin","measurement_value",45879804
+"diffuse slowing with generalized spike and wave pa","measurement_value",4088679
+"shows multiple periventricular white matter lessio","measurement_value",36308824
+"(+) presence of H. pylori","measurement_value",9191
+"ring enhancing lession in the left parietal lobe","measurement_value",40599742
+"IgM anti-HAV (+)","measurement_value",9191
+"nodular infiltrate","measurement_value",4139624
+"left mesial temoral sclerosis, hippocampal calcifi","measurement_value",40491436
+"shows lower lobe consolidation","measurement_value",3655169
+"(+) presence of Borrellia burgdorferi","measurement_value",9191
+"PTSD","measurement_value",441947
+"Upper Lobe Solitary nodules on Imaging","measurement_value",4324955
+"normal appearing chest","measurement_value",4303576
+"Obstructing Kidney/Ureter Stones(+)","measurement_value",4297104
+"Cavity or Centrilobular Lesions of the Lung","measurement_value",4324955
+"large clot in iliofemoral veins","measurement_value",45877604
+"shows left lobe consolidation","measurement_value",3655169
+"shows patch consolidation","measurement_value",4001776
+"(+) findings of cause for joint pain","measurement_value",4181412
+"(+) area of increased perfusion","measurement_value",4161988
+"shows cirrhosis, no ascites or gall stones","measurement_value",3655191
+"Lymphocytic infiltration, moderate degrees of infl","measurement_value",4237015
+"polymorphs without any bacteria","measurement_value",4218414
+"10","measurement_value",600712
+"cytology (+) for leptomeningeal carcinomatosis","measurement_value",4189525
+"(+) findings of nerve dysfunction, decreased ampli","measurement_value",9191
+"(9-22) bcr-abl (+)","measurement_value",9191
+"shows hypercellularity with elevated myeloid to er","measurement_value",4186396
+"Clinically Depressed or Manic Findings","measurement_value",40546087
+"fasiculations and evidence of denervation in upper","measurement_value",4113616
+"causative organism (+)","measurement_value",9191
+"(+) fragile X syndrome noted","measurement_value",9191
+"punched-out ulcer base with whitish fibrinoid exud","measurement_value",35919222
+"shows a very large complex disk herniation in the","measurement_value",763924
+"decreased tone of LES and reduced esophageal body","measurement_value",4239369
+"shows a new vertebral fracture","measurement_value",4071579
+"amlodipine","drug",1332418
+"benazepril","drug",1335471
+"HUMALOG","drug",40166274
+"dilaudid","drug",40115863
+"Metoprolol","drug",1307046
+"morphine sulfate","drug",40169889
+"ONXOL","drug",19071366
+"insulin detemir","drug",1516976
+"diclofenac","drug",40162401
+"shows periarticuler sclerosis with blurred sacroil","measurement_value",36310905
+"reveals ischemic areas with perfusion-weighted ima","measurement_value",4115429
+"shows right lower lobe infiltrate and abcess forma","measurement_value",4041105
+"reveals gram (-) bacilli","measurement_value",4336840
+"(+) findings of vascular deformity in area of migr","measurement_value",9191
+"shows esophagitis with a massive gastric ulcer ext","measurement_value",4206914
+"00078053815","drug",1758392
+"00944262001","drug",40220447
+"00026440005","drug",19079524
+"00068050861","drug",1763204
+"00047007824","drug",1318853
+"00264400155","drug",1759092
+"00722521201","drug",1782521
+"00517010125","drug",914335
+"00087277231","drug",1347384
+"00093002601","drug",1341927
+"cephalexin","observation",4100014
+"00186423962","drug",19008339
+"00102343001","drug",1373928
+"00781508801","drug",740275
+"00364724812","drug",1125315
+"00013105694","drug",955632
+"00182269015","drug",19075002
+"00013113691","drug",1338512
+"00719129513","drug",1326303
+"00093063201","drug",745466
+"00045152550","drug",1742253
+"00093725601","drug",1597756
+"00093089701","drug",953076
+"00052078216","drug",1506270
+"00005312223","drug",1177480
+"00054009820","drug",718122
+"00093092619","drug",1592085
+"00172248560","drug",974166
+"00028007101","drug",40167203
+"00339651399","drug",40053544
+"00172443149","drug",1150871
+"00409302401","drug",19058101
+"00049211066","drug",994341
+"00071036524","drug",740910
+"00083400041","drug",1308842
+"00487990102","drug",1154343
+"00641146535","drug",740910
+"00143988125","drug",740910
+"00007550040","drug",1753745
+"00074779462","drug",1367571
+"00186602001","drug",904453
+"00056017070","drug",1310149
+"00349873501","drug",745466
+"00007440701","drug",1322207
+"00052083011","drug",19026343
+"00258361005","drug",1353766
+"00677193601","drug",797399
+"00065075212","drug",945661
+"00054002413","drug",739138
+"00349844010","drug",974166
+"00781328275","drug",1314924
+"00228266650","drug",797399
+"00187200605","drug",1781314
+"00088216203","drug",19047766
+"00088177190","drug",1328165
+"00054413025","drug",1310317
+"00093022419","drug",1140643
+"00173063535","drug",1390051
+"00093474101","drug",797617
+"05024005121","drug",1314273
+"00013745686","drug",1308290
+"00641627215","drug",1518254
+"00004201709","drug",19131772
+"00093517119","drug",1557272
+"00182101601","drug",964339
+"00004150603","drug",955632
+"00093723619","drug",19079171
+"00088222052","drug",19071700
+"00115704401","drug",1331247
+"00085087905","drug",920596
+"00409485605","drug",975125
+"00093067006","drug",1558242
+"00406112101","drug",705944
+"00009022501","drug",998001
+"00085123501","drug",1380068
+"00039007811","drug",19035628
+"00944099601","drug",1436169
+"00245002711","drug",1331277
+"00024059010","drug",35603926
+"00093079301","drug",1318137
+"00093715510","drug",1539403
+"00047019624","drug",1237049
+"00074779361","drug",1367571
+"00007323601","drug",1315865
+"00007420101","drug",19124326
+"00517405025","drug",994058
+"00173052000","drug",1137529
+"00044108501","drug",40173075
+"00047095524","drug",1307046
+"00186115102","drug",40169889
+"00169643910","drug",1516981
+"00172375396","drug",19071366
+"00904183160","drug",766529
+"00228271711","drug",1124300
+"42549*50830","drug",778711
+"548685192*0","drug",715259
+"58016*28900","drug",1115008
+"00015307220","drug",19030418
+"12280016315","drug",19060283
+"545690916*0","drug",40162494
+"10019*02518","drug",19063575
+"00555090401","drug",1436678
+"00403077450","drug",1550557
+"54868608902","drug",1717704
+"50242*05656","drug",1387104
+"545690347*3","drug",994341
+"00024059240","drug",1318011
+"63323*26801","drug",965748
+"61703035991","drug",1344354
+"00093022001","drug",1344381
+"55084011612","drug",778711
+"00056034208","drug",40180718
+"00641246045","drug",1367571
+"58063060050","drug",19089150
+"57480042506","drug",710062
+"00781311964","drug",1301025
+"00085173302","drug",1716904
+"63323*16610","drug",1344905
+"00590012770","drug",40231906
+"52152*34102","drug",716968
+"53506098704","drug",1707164
+"67544*40130","drug",1310149
+"62086*14630","drug",1308738
+"50222*34208","drug",1308473
+"00131326732","drug",19132560
+"24430100101","drug",19123326
+"00005317543","drug",766529
+"44206*41501","drug",40220447
+"55513*82310","drug",1301125
+"63323*54401","drug",1367571
+"55390*30405","drug",1378382
+"24477*04001","drug",19024191
+"66758*04301","drug",1378382
+"00007323002","drug",42902741
+"35470053701","drug",1310149
+"00781311963","drug",1301025
+"5295939115","drug",752061
+"5456937870","drug",1307046
+"4988446901","drug",1177480
+"5891401310","drug",924724
+"6754413430","drug",1308216
+"6825830121","drug",1734104
+"5038317708","drug",1550557
+"6626763300","drug",1310149
+"6754421030","drug",735979
+"5456918180","drug",1305058
+"5456960620","drug",948078
+"5456915190","drug",710062
+"5456957570","drug",40143214
+"5456903323","drug",1551099
+"6437650101","drug",1163944
+"5456955740","drug",1797513
+"5456929420","drug",1782521
+"6516218010","drug",1782521
+"5456933352","drug",1713332
+"5456956710","drug",1149380
+"4670310401","drug",1177480
+"4254951800","drug",1177480
+"5456942720","drug",1125315
+"5456957770","drug",1154458
+"5456933351","drug",1713332
+"4670306803","drug",1738521
+"6258414301","drug",718122
+"5456956880","drug",1750500
+"5456933350","drug",1713332
+"5456900141","drug",1112807
+"4254951302","drug",797399
+"6808423501","drug",40105046
+"5456961380","drug",742267
+"6498030912","drug",42900381
+"5456961370","drug",742267
+"5539060020","drug",19014878
+"2169545530","drug",703244
+"5456939000","drug",1356123
+"5456917540","drug",1153013
+"5456954820","drug",923645
+"4451495518","drug",723013
+"5456944460","drug",1036228
+"5456957580","drug",1326303
+"1883737630","drug",703547
+"5486854400","drug",1301025
+"5456921730","drug",791967
+"3535601256","drug",19124311
+"5539005301","drug",1388796
+"6675804801","drug",1367268
+"5907573015","drug",735843
+"5504516421","drug",1361711
+"5456946631","drug",19095309
+"6387430130","drug",1115008
+"6679400230","drug",1112921
+"5486857720","drug",1317967
+"5456945070","drug",961047
+"5456952910","drug",755695
+"5974302601","drug",923672
+"5456912240","drug",1518254
+"1001908202","drug",19020994
+"5456941020","drug",1177480
+"5539023110","drug",1338512
+"5128544102","drug",19049228
+"5456951330","drug",1341927
+"5456958181","drug",739138
+"6524300603","drug",710062
+"5456940481","drug",704943
+"4254959230","drug",1115008
+"5456902771","drug",1178663
+"5456900325","drug",40162502
+"1659045730","drug",739138
+"5486816161","drug",1705674
+"5456947200","drug",752061
+"5486812901","drug",1350489
+"5801678100","drug",1518254
+"5539080610","drug",1311078
+"5539014301","drug",1305058
+"5977288401","drug",705944
+"5456940890","drug",19134049
+"5456959720","drug",1331247
+"5456945380","drug",1704183
+"5456953600","drug",1503297
+"5456903325","drug",1551099
+"4999954260","drug",1331247
+"5456949340","drug",1310149
+"5914800216","drug",1350333
+"5456938410","drug",1560171
+"5801648900","drug",1124300
+"5456956690","drug",1335471
+"5486857820","drug",1332418
+"5456937880","drug",1307046
+"4254950830","drug",778711
+"5801628900","drug",1115008
+"5486851920","drug",715259
+"5456909160","drug",40162494
+"1001902518","drug",19063575
+"5456903473","drug",994341
+"5024205656","drug",1387104
+"6332326801","drug",965748
+"6332316610","drug",1344905
+"5215234102","drug",716968
+"6208614630","drug",1308738
+"6754440130","drug",1310149
+"5022234208","drug",1308473
+"5551382310","drug",1301125
+"4420641501","drug",40220447
+"6332354401","drug",1367571
+"2447704001","drug",19024191
+"5539030405","drug",1378382
+"6675804301","drug",1378382

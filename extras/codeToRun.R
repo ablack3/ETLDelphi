@@ -17,8 +17,6 @@ delphi_source_dir <- "delphi100k"
 # Path to the output DuckDB database file (created or overwritten)
 duckdb_path <- "~/Desktop/delphi.duckdb"
 
-file.remove(duckdb_path)
-
 # Optional: vocabulary file delimiter ("," for CSV, "\t" for TSV)
 vocab_delimiter <- "\t"
 
@@ -51,8 +49,8 @@ config <- list(
   ),
   prefer_fulfillment = FALSE,
   drug_name_mapping_path = NULL,   # NULL = use package default drug_name_to_concept.csv
-  custom_mapping_path = NULL,     # NULL = use package default custom_concept_mapping.csv
-  custom_ndc_mapping_path = NULL  # NULL = use package default custom_ndc_mapping.csv
+  custom_mapping_path = NULL,      # NULL = use package default custom_concept_mapping.csv
+  custom_ndc_mapping_path = NULL   # NULL = try project inst/extdata then package default (set e.g. here::here("inst/extdata/custom_ndc_mapping.csv") to force project file)
 )
 
 if (file.exists(duckdb_path)) file.remove(duckdb_path)
@@ -83,14 +81,9 @@ con <- ETLDelphi::init_vocabulary_db(
   cdm_schema = config$schemas$cdm
 )
 
+# confirm that data is populated
 DBI::dbGetQuery(con, "select * from main.concept_relationship limit 10")
 DBI::dbGetQuery(con, "select * from main.concept limit 10")
-
-# cdm <- CDMConnector::cdmFromCon(con, "main")
-# cdm$concept
-#
-# cdm$vocabulary
-
 
 # --- 2. Create src schema and load Delphi CSVs -------------------------------
 
@@ -99,75 +92,85 @@ ETLDelphi::init_source_data(con, delphi_source_dir)
 # --- 3. Run the ETL ----------------------------------------------------------
 
 DBI::dbDisconnect(con, shutdown = T)
-
-con <- DBI::dbConnect(duckdb::duckdb(), "~/Desktop/delphi.duckdb")
-
+con <- DBI::dbConnect(duckdb::duckdb(), duckdb_path)
 ETLDelphi::run_etl(con = con, config = config)
 
+
+# --- 4. Analyze mapping results ----------------------------------------------
+
 unlink(here::here("inst/shiny/mapping_quality/mapping_quality_results"), recursive = T)
-ETLDelphi::analyze_mapping_quality(con, output_dir = "inst/shiny/mapping_quality/mapping_quality_results")
+analyze_mapping_quality(con, output_dir = "inst/shiny/mapping_quality/mapping_quality_results")
 list.files("inst/shiny/mapping_quality/mapping_quality_results")
 run_mapping_quality_app(results_dir = here::here("inst/shiny/mapping_quality/mapping_quality_results"))
+# df <- readr::read_csv("inst/shiny/mapping_quality/mapping_quality_results/02_top_unmapped_source_values.csv")
 
 
-# measurement_value	no abnormal skin or mole present	70,549
-# measurement_value	no lumps noted	69,582
-# measurement_value	no lumps noticed	38,357
-# measurement_value	uterus and ovaries are normal in size and location	35,321
-# measurement_value	no abnormal cervical cells	35,320
-# measurement_value	negative for HPV 16 & 18	21,633
-# drug	59630*70248	7,153
-# measurement_value	Platelet count = 200,000/uL
-
-devtools::load_all()
-rebuild_custom_mappings_from_log(dry_run = TRUE)  # preview
-rebuild_custom_mappings_from_log()                  # write CSVs
-run_etl(con, from_step = "30_vocab")               # re-run with pattern mapping
+# Option to add custom mappings
+# ETLDelphi::add_custom_mapping(
+#   "5963070248",
+#   "drug",
+#   1550557,
+#   ndc_code = "5963070248",
+#   custom_mapping_path      = here::here("inst/extdata/custom_concept_mapping.csv"),
+#   custom_ndc_mapping_path  = here::here("inst/extdata/custom_ndc_mapping.csv")
+# )
 
 
-df <- readr::read_csv("mapping_improvement_log.csv")
+# use the custom mapping log to update custom mapping csv files
+# rebuild_custom_mappings_from_log(dry_run = TRUE)  # preview
+# rebuild_custom_mappings_from_log(
+#   custom_mapping_path = here::here("inst/extdata/custom_concept_mapping.csv"),
+#   custom_ndc_mapping_path = here::here("inst/extdata/custom_ndc_mapping.csv")
+# )
 
-# Create LLM generated custom mappings
-improve_mappings(
-  con,
-  config = config,
-  domains = "measurement_value",
-  force_retry = "fail",
-  dry_run = TRUE,
-  limit = 10,
-  confidence_threshold = .7,
-  provider = "openai"
-)
 
-improve_mappings(
-  con,
-  config = config,
-  # domains = "drug",
-  limit = 10,
-  confidence_threshold = .7,
-  provider = "openai"
-)
+# df <- readr::read_csv("mapping_improvement_log.csv")
 
+# Create LLM generated custom mappings (dry run shows what would be mapped by the LLM)
+# improve_mappings(
+#   con,
+#   config = config,
+#   domains = "drug",
+#   force_retry = "fail",
+#   dry_run = TRUE,
+#   limit = 10,
+#   confidence_threshold = .7,
+#   provider = "openai"
+# )
+
+# Create LLM custom mappings
+# improve_mappings(
+#   con,
+#   config = config,
+#   force_retry = "fail",
+#   # force_retry = FALSE,
+#   domains = "observation",
+#   custom_mapping_path = here::here("inst/extdata/custom_concept_mapping.csv"),
+#   custom_ndc_mapping_path = here::here("inst/extdata/custom_ndc_mapping.csv"),
+#   limit = 20,
+#   confidence_threshold = .7,
+#   provider = "openai"
+# )
 
 
 # Export unmapped units, measurement values, and drugs for manual mapping (see extras/UNMAPPED_UNITS.md)
-ETLDelphi::export_unmapped_units(con, output_path = "unmapped_units.csv")
-ETLDelphi::export_unmapped_measurement_values(con, output_path = "unmapped_measurement_values.csv")
-ETLDelphi::export_unmapped_drugs(con, output_path = "unmapped_drugs.csv")
+# ETLDelphi::export_unmapped_units(con, output_path = "unmapped_units.csv")
+# ETLDelphi::export_unmapped_measurement_values(con, output_path = "unmapped_measurement_values.csv")
+# ETLDelphi::export_unmapped_drugs(con, output_path = "unmapped_drugs.csv")
 
+# run_etl(con, from_step = "30_vocab") # rerun starting from vocab
 
 DBI::dbDisconnect(con, shutdown = TRUE)
 
-# --- 3. Run Achilles ----------------------------------------------------------
+# --- 5. Run Achilles ----------------------------------------------------------
 
 cd <- DatabaseConnector::createConnectionDetails(
   dbms = "duckdb",
-  server = "~/Desktop/delphi.duckdb"
+  server = duckdb_path
 )
 
 con <- DatabaseConnector::connect(cd)
 DatabaseConnector::querySql(con, "create schema if not exists scratch")
-DatabaseConnector::querySql(con, "create schema if not exists achilles")
 DatabaseConnector::querySql(con, "create schema if not exists achilles")
 DatabaseConnector::disconnect(con)
 
@@ -202,6 +205,7 @@ DataQualityDashboard::viewDqDashboard(here::here("DQD_results", "delphi-2m-20260
 
 
 library(CDMConnector)
+library(dplyr)
 
 con <- DBI::dbConnect(duckdb::duckdb(), "~/Desktop/delphi.duckdb")
 
@@ -211,6 +215,12 @@ cdm <- cdmFromCon(
   writeSchema = "scratch",
   achillesSchema = "achilles"
 )
+
+# drug	59630*70248
+
+cdm$concept %>%
+  filter(vocabulary_id == "NDC") %>%
+  filter(concept_code == "59630-7024-08")
 
 snapshot(cdm) %>%
   tidyr::gather()
@@ -229,3 +239,7 @@ DBI::dbListTables(con)
 # DBI::dbExecute(con, "DROP SCHEMA stg CASCADE;")
 message("ETL complete. DuckDB output: ", duckdb_path)
 
+
+
+
+exportToParquet(cdm, "~/Desktop/delphi100k")
