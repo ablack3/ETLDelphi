@@ -26,9 +26,9 @@
 "measurement_value","shows stenosis at L4 and L5",178
 "measurement_value","prolong in the right eye",171
 "measurement_value","(+) oligoclonal bands",170
-"measurement_value","sinus rhythm with LVH",167
 "measurement_value","cocaine (+), PCP (+)",167
 "measurement_value","shows cortical hemorrhage in left frontal lobe",167
+"measurement_value","sinus rhythm with LVH",167
 "measurement_value","(+) lymphocytes proliferation (T cells)",163
 "measurement_value","(+) findings on evaluation",162
 "measurement_value","(+) perivascular infiltration of lymphocytes (pred",161
@@ -46,11 +46,11 @@
 "measurement_value","presence of cerebellar intraparenchymal hemorrhage",115
 "measurement_value","(+) findings consistent with conductive hearing lo",113
 "measurement_value","presence of nystagmus elicited",111
-"measurement_value","(+) findings consistent with sensorineural hearing",109
 "measurement_value","(+) Corneal Thickness on evaluation",109
+"measurement_value","(+) findings consistent with sensorineural hearing",109
 "measurement_value","presence of spontaneous or induced nystagmus on te",103
-"measurement_value","shows left Ventricular Hypertrophy",99
 "measurement_value","LVH",99
+"measurement_value","shows left Ventricular Hypertrophy",99
 "measurement_value","shows invasion of dermis by sheets and islands of ",93
 "measurement_value","0.70",86
 "measurement_value","studies typically normal, if findings show stool w",85
@@ -70,19 +70,19 @@
 "measurement_value","(+) findings for Sickle Cell",42
 "measurement_value","Premature ventricular contractions and Ejection Fr",40
 "measurement_value","ST elevation in leads 11, 111, and aVF",39
-"measurement_value","ST Elevation (STEMI)",39
 "measurement_value","(+) degeneration and loss of terminal nerve twigs",39
+"measurement_value","ST Elevation (STEMI)",39
 "measurement_value","New S-T elevation",38
 "measurement_value","Pathologic Q-wave",37
 "measurement_value","0.55",36
 "measurement_value","0.16",36
 "measurement_value","shows a distal common bile duct stricture with pro",35
-"measurement_value","shows Ventricular Septal Rupture",32
 "measurement_value","shows pericardial effusion, regional Wall Motion A",32
+"measurement_value","shows Ventricular Septal Rupture",32
 "measurement_value","ST elevation in leads V1, V2, V3, Inversion of T w",32
-"measurement_value","obscuration of ocular fundus detail",31
 "measurement_value","narrowing of femoral arteries",31
 "measurement_value","0.39",31
+"measurement_value","obscuration of ocular fundus detail",31
 "measurement_value","LEFT Ventricular Hypertrophy",30
 "measurement_value","(+) Multifocal deficiencies of maculae on ERG",29
 "measurement_value","shows a B/L solid nodular masses on both ovaries",28
@@ -92,49 +92,49 @@
 "measurement_value","findings of acute hemorrhage of hyperdense focal c",25
 "measurement_value","nearly extinguished signal in both eye",24
 "measurement_value","(+) evidence of bony impingement on spinal nerve r",23
-"measurement_value","peripheral palisading, clefting and a sclerotic st",22
 "measurement_value","0.24",22
+"measurement_value","peripheral palisading, clefting and a sclerotic st",22
 "measurement_value","loss of contrast sensitivity on testing",21
 "measurement_value","scrapes off abnormal tissue which shows loss of no",20
 "measurement_value","Non-recordable (extinguished) ERG",19
+"measurement_value","show seven 1.5 cm polyp in left descending colon",18
 "measurement_value","normal skin with changes in the subcutaneous tissu",18
 "measurement_value","opacities seen in red reflex",18
-"measurement_value","show seven 1.5 cm polyp in left descending colon",18
 "measurement_value","(+) loss of rod and/or cone sensitivity on testing",17
 "measurement_value","(+) findings of bony abnormality inpinging on neur",17
-"measurement_value","positive for HPV 16",16
 "measurement_value","shows a polypod mass filling part of ascending col",16
+"measurement_value","positive for HPV 16",16
 "measurement_value","myopic shift noted",15
 "measurement_value","no relationship between p and QRS waves",14
 "measurement_value","shows monoclonal M spike",13
 "measurement_value","revealed a Gleason score 6 (3 + 3) adenocarcinoma ",13
-"measurement_value","reveals fungating mass showing back to back glands",12
 "measurement_value","shows exaggerated plasma renin activity",12
+"measurement_value","reveals fungating mass showing back to back glands",12
 "measurement_value","LEFT and RIGHT Ventricular Enlargement (4 chamber ",11
 "measurement_value","mild dysplasia",10
 "measurement_value","shows loss of normal orientation of squamous cells",10
 "measurement_value","shows a 2.2-cm pancreatic adenocarcinoma of the he",8
 "measurement_value","revealed a moderately to poorly differentiated ade",8
 "measurement_value","reveals a suspicious area from which biopsy is tak",8
-"measurement_value","shows significant small bowel congestion with necr",7
 "measurement_value","(+) evidence of denervation with absence of muscle",7
-"measurement_value","absence of other pathology causing symptoms",6
-"measurement_value","atypical squamous cells of unknown significance",6
+"measurement_value","shows significant small bowel congestion with necr",7
 "measurement_value","shows poorly differentiated squamous cell carinoma",6
 "measurement_value","findings of aortic, atrial, atrial septal deficien",6
+"measurement_value","absence of other pathology causing symptoms",6
+"measurement_value","atypical squamous cells of unknown significance",6
 "measurement_value","shows a 5 mm gastric ulcer with symmetrical, radia",5
 "measurement_value","shows a 7 cm heterogeneous solid cystic mass repla",5
 "measurement_value","NSR with left axis deviation",4
 "measurement_value","ER staining was strongly positive, PR staining was",3
-"measurement_value","shows slower refilling at the distal limb and mid ",3
-"measurement_value","showed a poorly differentiated pseudopapillary tum",3
-"measurement_value","shows 2 lession at cervical intraepithelial juncti",3
 "measurement_value","showed a cystic tumor arising from the superior bo",3
+"measurement_value","shows 2 lession at cervical intraepithelial juncti",3
+"measurement_value","showed a poorly differentiated pseudopapillary tum",3
+"measurement_value","shows slower refilling at the distal limb and mid ",3
 "measurement_value","no mass, no shift, no hemorrhage",2
 "measurement_value","shows cerebellopontine angle tumor",2
-"measurement_value","abnormal findings in peripheral stimulation of sen",1
-"measurement_value","shows a Leaking aneurysm",1
-"measurement_value","absence of vision problem",1
 "measurement_value","intimal flap separates true from false lumen",1
-"measurement_value","aortic incompetence, left ventricular hypertrophy ",1
+"measurement_value","absence of vision problem",1
+"measurement_value","shows a Leaking aneurysm",1
 "measurement_value","showed a 6cm by 4cm solid, grey white, smooth surf",1
+"measurement_value","aortic incompetence, left ventricular hypertrophy ",1
+"measurement_value","abnormal findings in peripheral stimulation of sen",1

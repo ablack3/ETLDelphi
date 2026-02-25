@@ -7,12 +7,12 @@ INSERT INTO cdm.visit_occurrence (
 SELECT
     mv.visit_occurrence_id,
     mp.person_id,
-    COALESCE(vc.visit_concept_id, 44813942),
+    COALESCE(vc.visit_concept_id, {default_visit_concept_id}),
     e.encounter_date,
     e.encounter_datetime,
     COALESCE(e.encounter_date, e.encounter_datetime::DATE),
     e.encounter_datetime,
-    44818517,
+    {visit_type_concept_id},
     mpr.provider_id,
     cs.care_site_id,
     e.encounter_id

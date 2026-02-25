@@ -28,7 +28,7 @@ SELECT
     COALESCE(NULLIF(mv.measurement_concept_id, 0), cust.concept_id, 0),
     w.encounter_date,
     w.encounter_datetime,
-    32817,
+    {measurement_type_vitals},
     w.value_num,
     COALESCE(u.unit_concept_id, mv.default_unit_concept_id),
     COALESCE(w.unit_src, mv.default_unit_source_value),

@@ -18,7 +18,7 @@ SELECT
     COALESCE(NULLIF(mi.drug_concept_id, 0), cust.concept_id, 0),
     i.vaccination_date,
     i.vaccination_date,
-    38000280,
+    {drug_type_immunization},
     SUBSTR(i.lot_number, 1, 50),
     mpr.provider_id,
     mv.visit_occurrence_id,

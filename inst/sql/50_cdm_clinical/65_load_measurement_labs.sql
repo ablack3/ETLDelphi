@@ -20,7 +20,7 @@ SELECT
     CASE WHEN lm.loinc_code IS NOT NULL THEN COALESCE(lm.measurement_source_concept_id, 0) ELSE NULL END,
     COALESCE(l.date_resulted, l.date_collected),
     COALESCE(l.date_resulted_datetime, l.date_collected_datetime),
-    32827,
+    {measurement_type_labs},
     l.numeric_result,
     CASE WHEN l.numeric_result IS NULL AND l.result_description IS NOT NULL AND TRIM(l.result_description) <> ''
          THEN COALESCE(

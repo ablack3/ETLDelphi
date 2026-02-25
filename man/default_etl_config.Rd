@@ -10,5 +10,11 @@ default_etl_config()
 List suitable for \code{run_etl(con, config = ...)}.
 }
 \description{
-Default ETL config (schemas, type concept IDs, paths). Used when \code{config} is NULL.
+Type concept IDs are substituted into SQL via placeholders (e.g. \code{{visit_type_concept_id}}).
+For the Data Quality Dashboard (DQD) to pass type-concept and domain checks, every ID must exist
+in your \code{CONCEPT} table and be a standard, valid concept in the correct domain (e.g. Type Concept
+for \code{*_type_concept_id}, Visit for \code{visit_concept_id}). If DQD fails on NOTE_TYPE_CONCEPT_ID,
+VISIT_TYPE_CONCEPT_ID, DRUG_TYPE_CONCEPT_ID, PROCEDURE_TYPE_CONCEPT_ID, or OBSERVATION_TYPE_CONCEPT_ID,
+override \code{type_concept_ids} in your config (or YAML) with concept_id values from your vocabulary.
+Implausible measurement unit checks are often acceptable for real-world data.
 }

@@ -1,10 +1,10 @@
--- Visit concept: (appt_type, clinic_type) -> visit_concept_id. Default 44813942 (Outpatient).
+-- Visit concept: (appt_type, clinic_type) -> visit_concept_id. Default from config (e.g. 44813942 Outpatient).
 CREATE OR REPLACE TABLE stg.map_visit_concept AS
 WITH known AS (
     SELECT * FROM (VALUES
         ('inpatient', NULL, 9201),
         ('emergency', NULL, 9203),
-        ('outpatient', NULL, 44813942)
+        ('outpatient', NULL, {default_visit_concept_id})
     ) AS t(apt, cln, concept_id)
 ),
 distinct_enc AS (
@@ -16,7 +16,7 @@ distinct_enc AS (
 SELECT
     e.appt_type,
     e.clinic_type,
-    COALESCE(k.concept_id, 44813942) AS visit_concept_id,
+    COALESCE(k.concept_id, {default_visit_concept_id}) AS visit_concept_id,
     COALESCE(e.appt_type, e.clinic_type, 'outpatient') AS visit_source_value
 FROM distinct_enc e
 LEFT JOIN known k ON (k.apt = e.appt_type AND (k.cln = e.clinic_type OR (k.cln IS NULL AND e.clinic_type IS NULL)));

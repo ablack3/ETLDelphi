@@ -1,30 +1,30 @@
-2026-02-25 00:29:18	[Main thread]	INFO	DataQualityDashboard	executeDqChecks	CDM Tables skipped: COHORT, COHORT_DEFINITION
-2026-02-25 00:29:18	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: cdmTable
-2026-02-25 00:29:18	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: measurePersonCompleteness
-2026-02-25 00:29:19	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: measureConditionEraCompleteness
-2026-02-25 00:29:19	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: measureObservationPeriodOverlap
-2026-02-25 00:29:19	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: cdmField
-2026-02-25 00:29:24	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: isRequired
-2026-02-25 00:29:26	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: cdmDatatype
-2026-02-25 00:29:35	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: isPrimaryKey
-2026-02-25 00:29:37	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: isForeignKey
-2026-02-25 00:29:44	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: fkDomain
-2026-02-25 00:29:46	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: fkClass
-2026-02-25 00:29:46	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: isStandardValidConcept
-2026-02-25 00:29:49	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: measureValueCompleteness
-2026-02-25 00:29:55	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: standardConceptRecordCompleteness
-2026-02-25 00:29:56	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: sourceConceptRecordCompleteness
-2026-02-25 00:29:57	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: sourceValueCompleteness
-2026-02-25 00:29:58	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: plausibleValueLow
-2026-02-25 00:30:00	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: plausibleValueHigh
-2026-02-25 00:30:02	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: plausibleTemporalAfter
-2026-02-25 00:30:03	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: plausibleDuringLife
-2026-02-25 00:30:04	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: withinVisitDates
-2026-02-25 00:30:05	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: plausibleAfterBirth
-2026-02-25 00:30:07	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: plausibleBeforeDeath
-2026-02-25 00:30:08	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: plausibleStartBeforeEnd
-2026-02-25 00:30:09	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: plausibleGender
-2026-02-25 00:30:13	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: plausibleGenderUseDescendants
-2026-02-25 00:30:15	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: plausibleUnitConceptIds
-2026-02-25 00:30:22	[Main thread]	INFO	DataQualityDashboard	.writeResultsToJson	Writing results to file: /Users/ablack/projects/ETLDelphi/DQD_results/delphi-2m-20260225003022.json
-2026-02-25 00:30:22	[Main thread]	INFO	DataQualityDashboard	executeDqChecks	Execution Complete
+2026-02-25 00:53:50	[Main thread]	INFO	DataQualityDashboard	executeDqChecks	CDM Tables skipped: COHORT, COHORT_DEFINITION
+2026-02-25 00:53:50	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: cdmTable
+2026-02-25 00:53:51	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: measurePersonCompleteness
+2026-02-25 00:53:52	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: measureConditionEraCompleteness
+2026-02-25 00:53:52	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: measureObservationPeriodOverlap
+2026-02-25 00:53:52	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: cdmField
+2026-02-25 00:53:57	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: isRequired
+2026-02-25 00:53:59	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: cdmDatatype
+2026-02-25 00:54:07	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: isPrimaryKey
+2026-02-25 00:54:08	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: isForeignKey
+2026-02-25 00:54:15	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: fkDomain
+2026-02-25 00:54:16	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: fkClass
+2026-02-25 00:54:16	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: isStandardValidConcept
+2026-02-25 00:54:18	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: measureValueCompleteness
+2026-02-25 00:54:24	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: standardConceptRecordCompleteness
+2026-02-25 00:54:25	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: sourceConceptRecordCompleteness
+2026-02-25 00:54:25	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: sourceValueCompleteness
+2026-02-25 00:54:26	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: plausibleValueLow
+2026-02-25 00:54:27	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: plausibleValueHigh
+2026-02-25 00:54:28	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: plausibleTemporalAfter
+2026-02-25 00:54:28	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: plausibleDuringLife
+2026-02-25 00:54:29	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: withinVisitDates
+2026-02-25 00:54:30	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: plausibleAfterBirth
+2026-02-25 00:54:30	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: plausibleBeforeDeath
+2026-02-25 00:54:31	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: plausibleStartBeforeEnd
+2026-02-25 00:54:31	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: plausibleGender
+2026-02-25 00:54:35	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: plausibleGenderUseDescendants
+2026-02-25 00:54:35	[Main thread]	INFO	DataQualityDashboard	FUN	Processing check description: plausibleUnitConceptIds
+2026-02-25 00:54:42	[Main thread]	INFO	DataQualityDashboard	.writeResultsToJson	Writing results to file: /Users/ablack/projects/ETLDelphi/DQD_results/delphi-2m-20260225005442.json
+2026-02-25 00:54:42	[Main thread]	INFO	DataQualityDashboard	executeDqChecks	Execution Complete

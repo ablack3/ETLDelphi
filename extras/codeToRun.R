@@ -171,13 +171,12 @@ cd <- DatabaseConnector::createConnectionDetails(
 
 con <- DatabaseConnector::connect(cd)
 DatabaseConnector::querySql(con, "create schema if not exists scratch")
-DatabaseConnector::querySql(con, "create schema if not exists achilles")
 DatabaseConnector::disconnect(con)
 
 r <- Achilles::achilles(
   connectionDetails = cd,
   cdmDatabaseSchema = "main",
-  resultsDatabaseSchema = "achilles",
+  resultsDatabaseSchema = "main",
   scratchDatabaseSchema = "scratch",
   dropScratchTables = T,
   optimizeAtlasCache = T,
@@ -187,7 +186,10 @@ r <- Achilles::achilles(
 
 # --- 3. Run DQD ----------------------------------------------------------
 
+con <- DatabaseConnector::connect(cd)
 DatabaseConnector::querySql(con, "create schema if not exists dqd")
+DatabaseConnector::disconnect(con)
+
 DataQualityDashboard::executeDqChecks(
   connectionDetails = cd,
   cdmDatabaseSchema = "main",
@@ -199,28 +201,21 @@ DataQualityDashboard::executeDqChecks(
   verboseMode = TRUE,
   cdmVersion = "5.4"
 )
-list.files( here::here("DQD_results"))
-DataQualityDashboard::viewDqDashboard(here::here("DQD_results", "delphi-2m-20260224193532.json"))
-
+list.files(here::here("DQD_results"))
+DataQualityDashboard::viewDqDashboard(here::here("DQD_results", "delphi-2m-20260225005442.json"))
 
 
 library(CDMConnector)
 library(dplyr)
 
-con <- DBI::dbConnect(duckdb::duckdb(), "~/Desktop/delphi.duckdb")
+con <- DBI::dbConnect(duckdb::duckdb(), duckdb_path)
 
 cdm <- cdmFromCon(
   con,
   cdmSchema = "main",
   writeSchema = "scratch",
-  achillesSchema = "achilles"
+  achillesSchema = "main"
 )
-
-# drug	59630*70248
-
-cdm$concept %>%
-  filter(vocabulary_id == "NDC") %>%
-  filter(concept_code == "59630-7024-08")
 
 snapshot(cdm) %>%
   tidyr::gather()
@@ -233,13 +228,20 @@ from information_schema.tables
 where table_type in ('BASE TABLE','VIEW')
 order by 1,2;")
 
+DBI::dbExecute(con, "DROP SCHEMA stg CASCADE;")
+DBI::dbExecute(con, "DROP SCHEMA src CASCADE;")
 DBI::dbListTables(con)
 
-# DBI::dbExecute(con, "DROP SCHEMA src CASCADE;")
-# DBI::dbExecute(con, "DROP SCHEMA stg CASCADE;")
+
+
+# cdm$source_to_concept_map
+
+unlink("~/Desktop/delphi100k")
+dir.exists("~/Desktop/delphi100k")
+exportToParquet(cdm, "~/Desktop/delphi100k")
+
+
+CDMConnector::cdmDisconnect(cdm)
+
 message("ETL complete. DuckDB output: ", duckdb_path)
 
-
-
-
-exportToParquet(cdm, "~/Desktop/delphi100k")

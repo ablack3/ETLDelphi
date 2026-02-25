@@ -47,7 +47,7 @@ FROM (
         COALESCE(r.onset_date, r.fallback_start_date) AS condition_start_date,
         NULL AS condition_start_datetime,
         r.resolution_date AS condition_end_date,
-        32818 AS condition_type_concept_id,
+        {condition_type_concept_id} AS condition_type_concept_id,
         mpr.provider_id,
         mv.visit_occurrence_id,
         SUBSTR(COALESCE(r.problem_code, r.problem_description), 1, 50) AS condition_source_value,

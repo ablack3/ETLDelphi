@@ -9,11 +9,11 @@ SELECT
     mp.person_id,
     e.encounter_date,
     e.encounter_datetime,
-    44813942,
-    44814639,
+    {note_type_concept_id},
+    {note_class_concept_id},
     COALESCE(TRIM(e.soap_note), ' '),
-    44815386,
-    4180186,
+    {encoding_concept_id},
+    {language_concept_id},
     mv.visit_occurrence_id,
     'SOAP_Note'
 FROM stg.encounter e

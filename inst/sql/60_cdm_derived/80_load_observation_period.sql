@@ -37,6 +37,6 @@ with_id AS (
     FROM all_persons
     WHERE start_date IS NOT NULL
 )
-SELECT w.observation_period_id, w.person_id, w.start_date, w.end_date, 32821
+SELECT w.observation_period_id, w.person_id, w.start_date, w.end_date, {period_type_concept_id}
 FROM with_id w
 WHERE NOT EXISTS (SELECT 1 FROM cdm.observation_period o WHERE o.person_id = w.person_id);

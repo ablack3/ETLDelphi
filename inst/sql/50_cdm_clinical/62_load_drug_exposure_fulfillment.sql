@@ -47,7 +47,7 @@ SELECT
     drug_concept_id,
     dispense_date,
     drug_exposure_end_date,
-    38000230,
+    {drug_type_dispensed},
     dispense_qty,
     days_of_supply,
     NULL,

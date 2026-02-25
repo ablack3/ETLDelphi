@@ -97,6 +97,16 @@ run_sql_scripts <- function(con,
     sql <- gsub("\\bcdm\\.", paste0(cdm, "."), sql)
     sql <- gsub("\\{stg\\}", stg, sql)
     sql <- gsub("\\{src\\}", src, sql)
+    # Type concept IDs from config (DQD: use standard, valid concepts from your vocabulary)
+    tc <- config[["type_concept_ids"]]
+    if (!is.null(tc) && length(tc) > 0) {
+      for (k in names(tc)) {
+        val <- tc[[k]]
+        if (!is.null(val) && (is.numeric(val) || is.integer(val))) {
+          sql <- gsub(paste0("\\{", k, "\\}"), as.character(as.integer(val)), sql)
+        }
+      }
+    }
     # Drug name mapping path (Hecate-built CSV for fallback drug mapping)
     drug_path <- config[["drug_name_mapping_path"]]
     if (is.null(drug_path) || !nzchar(trimws(drug_path))) {

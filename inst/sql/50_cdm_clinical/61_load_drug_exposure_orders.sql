@@ -18,7 +18,7 @@ rows AS (
         mp.person_id,
         COALESCE(NULLIF(d.drug_concept_id, 0), cust.concept_id, 0) AS drug_concept_id,
         o.order_date,
-        38000177 AS drug_type_concept_id,
+        {drug_type_orders} AS drug_type_concept_id,
         o.refills,
         o.qty_ordered,
         o.sig,
