@@ -36,19 +36,25 @@ CDM tables). Handles large files (e.g. CONCEPT) by chunked reading and appending
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu"><li>
-      <a href="../articles/delphi100k.html">delphi100k: Source Data and OMOP CDM Mapping</a>
-    </li>
-    <li>
       <a href="../articles/etl.html">Delphi to OMOP CDM ETL: Workflow and Design Decisions</a>
     </li>
     <li>
       <a href="../articles/how_to_run.html">How to Run the ETL</a>
     </li>
     <li>
+      <a href="../articles/oncology_diagnostic.html">Oncology Data Diagnostic</a>
+    </li>
+    <li>
       <a href="../articles/run_etl_steps.html">run_etl: Detailed Steps and Mechanics</a>
     </li>
   </ul></li>
-      </ul><ul class="nav navbar-nav navbar-right"></ul></div><!--/.nav-collapse -->
+      </ul><ul class="nav navbar-nav navbar-right"><li>
+  <a href="https://github.com/gerstung-lab/Delphi/" class="external-link">
+    <span class="fab fa-github fa-lg"></span>
+
+  </a>
+</li>
+      </ul></div><!--/.nav-collapse -->
   </div><!--/.container -->
 </div><!--/.navbar -->
 
@@ -58,7 +64,7 @@ CDM tables). Handles large files (e.g. CONCEPT) by chunked reading and appending
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Initialize a fresh DuckDB database with DDL and load vocabulary files in batches</h1>
-
+    <small class="dont-index">Source: <a href="https://github.com/gerstung-lab/Delphi/blob/HEAD/R/init_vocabulary_db.R" class="external-link"><code>R/init_vocabulary_db.R</code></a></small>
     <div class="hidden name"><code>init_vocabulary_db.Rd</code></div>
     </div>
 
@@ -74,7 +80,7 @@ CDM tables). Handles large files (e.g. CONCEPT) by chunked reading and appending
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">init_vocabulary_db</span><span class="op">(</span></span>
 <span>  <span class="va">db_path</span>,</span>
 <span>  vocabulary_dir <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  cdm_schema <span class="op">=</span> <span class="st">"cdm"</span>,</span>
+<span>  cdm_schema <span class="op">=</span> <span class="st">"main"</span>,</span>
 <span>  delimiter <span class="op">=</span> <span class="st">"\t"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -94,7 +100,7 @@ CDM tables). Handles large files (e.g. CONCEPT) by chunked reading and appending
 
 
 <dt id="arg-cdm-schema">cdm_schema<a class="anchor" aria-label="anchor" href="#arg-cdm-schema"></a></dt>
-<dd><p>Character. Schema name for CDM/vocabulary tables (default <code>"cdm"</code>).</p></dd>
+<dd><p>Character. Schema name for CDM/vocabulary tables (default <code>"main"</code>).</p></dd>
 
 
 <dt id="arg-delimiter">delimiter<a class="anchor" aria-label="anchor" href="#arg-delimiter"></a></dt>

@@ -49,13 +49,13 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
-      <a href="../articles/delphi100k.html">delphi100k: Source Data and OMOP CDM Mapping</a>
-    </li>
-    <li>
       <a href="../articles/etl.html">Delphi to OMOP CDM ETL: Workflow and Design Decisions</a>
     </li>
     <li>
       <a href="../articles/how_to_run.html">How to Run the ETL</a>
+    </li>
+    <li>
+      <a href="../articles/oncology_diagnostic.html">Oncology Data Diagnostic</a>
     </li>
     <li>
       <a href="../articles/run_etl_steps.html">run_etl: Detailed Steps and Mechanics</a>
@@ -63,7 +63,14 @@
   </ul>
 </li>
       </ul>
-<ul class="nav navbar-nav navbar-right"></ul>
+<ul class="nav navbar-nav navbar-right">
+<li>
+  <a href="https://github.com/gerstung-lab/Delphi/" class="external-link">
+    <span class="fab fa-github fa-lg"></span>
+
+  </a>
+</li>
+      </ul>
 </div>
 <!--/.nav-collapse -->
   </div>
@@ -79,9 +86,9 @@
       <h1 data-toc-skip>How to Run the ETL</h1>
                         <h4 data-toc-skip class="author">ETLDelphi</h4>
             
-            <h4 data-toc-skip class="date">2026-02-10</h4>
+            <h4 data-toc-skip class="date">2026-02-25</h4>
       
-
+      <small class="dont-index">Source: <a href="https://github.com/gerstung-lab/Delphi/blob/HEAD/vignettes/how_to_run.Rmd" class="external-link"><code>vignettes/how_to_run.Rmd</code></a></small>
       <div class="hidden name"><code>how_to_run.Rmd</code></div>
 
     </div>
@@ -159,7 +166,7 @@ and DuckDB driver<br>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dbi.r-dbi.org" class="external-link">DBI</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://r.duckdb.org/" class="external-link">duckdb</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">ETLDelphi</span><span class="op">)</span></span></code></pre></div>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/gerstung-lab/Delphi" class="external-link">ETLDelphi</a></span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="connect-to-duckdb">Connect to DuckDB<a class="anchor" aria-label="anchor" href="#connect-to-duckdb"></a>

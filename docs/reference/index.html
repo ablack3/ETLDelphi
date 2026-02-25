@@ -32,19 +32,25 @@
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu"><li>
-      <a href="../articles/delphi100k.html">delphi100k: Source Data and OMOP CDM Mapping</a>
-    </li>
-    <li>
       <a href="../articles/etl.html">Delphi to OMOP CDM ETL: Workflow and Design Decisions</a>
     </li>
     <li>
       <a href="../articles/how_to_run.html">How to Run the ETL</a>
     </li>
     <li>
+      <a href="../articles/oncology_diagnostic.html">Oncology Data Diagnostic</a>
+    </li>
+    <li>
       <a href="../articles/run_etl_steps.html">run_etl: Detailed Steps and Mechanics</a>
     </li>
   </ul></li>
-      </ul><ul class="nav navbar-nav navbar-right"></ul></div><!--/.nav-collapse -->
+      </ul><ul class="nav navbar-nav navbar-right"><li>
+  <a href="https://github.com/gerstung-lab/Delphi/" class="external-link">
+    <span class="fab fa-github fa-lg"></span>
+
+  </a>
+</li>
+      </ul></div><!--/.nav-collapse -->
   </div><!--/.container -->
 </div><!--/.navbar -->
 
@@ -61,13 +67,69 @@
           <p class="section-desc"></p>
         </th>
       </tr></tbody><tbody><tr><td>
+          <p><code><a href="add_custom_mapping.html">add_custom_mapping()</a></code> </p>
+        </td>
+        <td><p>Manually add custom concept mappings</p></td>
+      </tr><tr><td>
           <p><code><a href="analyze_mapping_quality.html">analyze_mapping_quality()</a></code> </p>
         </td>
         <td><p>Analyze data mapping quality and save results to CSV</p></td>
       </tr><tr><td>
+          <p><code><a href="default_etl_config.html">default_etl_config()</a></code> </p>
+        </td>
+        <td><p>Default ETL config (schemas, type concept IDs, paths). Used when <code>config</code> is NULL.</p></td>
+      </tr><tr><td>
           <p><code><a href="exportToParquet.html">exportToParquet()</a></code> </p>
         </td>
-        <td><p>Export entire DuckDB database to Parquet files</p></td>
+        <td><p>Export CDM or entire DuckDB database to Parquet files</p></td>
+      </tr><tr><td>
+          <p><code><a href="export_mapping_quality_json.html">export_mapping_quality_json()</a></code> </p>
+        </td>
+        <td><p>Export mapping quality metrics as JSON</p></td>
+      </tr><tr><td>
+          <p><code><a href="export_mapping_quality_site.html">export_mapping_quality_site()</a></code> </p>
+        </td>
+        <td><p>Export a complete static mapping quality site</p></td>
+      </tr><tr><td>
+          <p><code><a href="export_top_unmapped_source_values.html">export_top_unmapped_source_values()</a></code> </p>
+        </td>
+        <td><p>Export top unmapped source values to CSV</p></td>
+      </tr><tr><td>
+          <p><code><a href="export_unmapped_drugs.html">export_unmapped_drugs()</a></code> </p>
+        </td>
+        <td><p>Export unmapped drugs (name, NDC, record counts) for custom mapping</p></td>
+      </tr><tr><td>
+          <p><code><a href="export_unmapped_measurement_values.html">export_unmapped_measurement_values()</a></code> </p>
+        </td>
+        <td><p>Export unmapped categorical measurement values for custom mapping</p></td>
+      </tr><tr><td>
+          <p><code><a href="export_unmapped_units.html">export_unmapped_units()</a></code> </p>
+        </td>
+        <td><p>Export unmapped units with their measurements to CSV for manual mapping</p></td>
+      </tr><tr><td>
+          <p><code><a href="extract_note_nlp.html">extract_note_nlp()</a></code> </p>
+        </td>
+        <td><p>Extract structured data from SOAP notes and populate note_nlp</p></td>
+      </tr><tr><td>
+          <p><code><a href="hecate_client.html">hecate_client()</a></code> </p>
+        </td>
+        <td><p>Create a Hecate API client</p></td>
+      </tr><tr><td>
+          <p><code><a href="hecate_get_concept.html">hecate_get_concept()</a></code> </p>
+        </td>
+        <td><p>Get a concept by ID from Hecate</p></td>
+      </tr><tr><td>
+          <p><code><a href="hecate_get_relationships.html">hecate_get_relationships()</a></code> </p>
+        </td>
+        <td><p>Get concept relationships from Hecate</p></td>
+      </tr><tr><td>
+          <p><code><a href="hecate_search.html">hecate_search()</a></code> </p>
+        </td>
+        <td><p>Search OMOP vocabulary concepts via Hecate</p></td>
+      </tr><tr><td>
+          <p><code><a href="improve_mappings.html">improve_mappings()</a></code> </p>
+        </td>
+        <td><p>Improve unmapped concept mappings using an LLM with vocabulary search tools</p></td>
       </tr><tr><td>
           <p><code><a href="init_source_data.html">init_source_data()</a></code> </p>
         </td>
@@ -77,9 +139,49 @@
         </td>
         <td><p>Initialize a fresh DuckDB database with DDL and load vocabulary files in batches</p></td>
       </tr><tr><td>
+          <p><code><a href="is_ndc_like.html">is_ndc_like()</a></code> </p>
+        </td>
+        <td><p>Test whether a string looks like an NDC code</p></td>
+      </tr><tr><td>
+          <p><code><a href="lookup_ndc_smart.html">lookup_ndc_smart()</a></code> </p>
+        </td>
+        <td><p>Smart NDC lookup: try all normalized variants against OMOPHub</p></td>
+      </tr><tr><td>
+          <p><code><a href="ndc_variants.html">ndc_variants()</a></code> </p>
+        </td>
+        <td><p>Generate all plausible NDC formatted variants from a raw string</p></td>
+      </tr><tr><td>
+          <p><code><a href="omophub_client.html">omophub_client()</a></code> </p>
+        </td>
+        <td><p>Create an OMOPHub API client</p></td>
+      </tr><tr><td>
+          <p><code><a href="omophub_get_by_code.html">omophub_get_by_code()</a></code> </p>
+        </td>
+        <td><p>Look up an OMOP concept by vocabulary and code</p></td>
+      </tr><tr><td>
+          <p><code><a href="omophub_map_codes.html">omophub_map_codes()</a></code> </p>
+        </td>
+        <td><p>Map source codes to a target vocabulary via OMOPHub</p></td>
+      </tr><tr><td>
+          <p><code><a href="omophub_search.html">omophub_search()</a></code> </p>
+        </td>
+        <td><p>Search OMOPHub concepts</p></td>
+      </tr><tr><td>
+          <p><code><a href="rebuild_custom_mappings_from_log.html">rebuild_custom_mappings_from_log()</a></code> </p>
+        </td>
+        <td><p>Rebuild custom mapping CSVs from the mapping improvement log</p></td>
+      </tr><tr><td>
           <p><code><a href="run_etl.html">run_etl()</a></code> </p>
         </td>
         <td><p>Run the Delphi to OMOP CDM ETL</p></td>
+      </tr><tr><td>
+          <p><code><a href="run_mapping_quality_app.html">run_mapping_quality_app()</a></code> </p>
+        </td>
+        <td><p>Launch the interactive mapping quality Shiny app</p></td>
+      </tr><tr><td>
+          <p><code><a href="run_mapping_quality_site.html">run_mapping_quality_site()</a></code> </p>
+        </td>
+        <td><p>Serve the static mapping quality dashboard</p></td>
       </tr><tr><td>
           <p><code><a href="run_sql_scripts.html">run_sql_scripts()</a></code> </p>
         </td>

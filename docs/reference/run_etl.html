@@ -33,19 +33,25 @@ cdm_core -&amp;gt; cdm_clinical -&amp;gt; cdm_derived -&amp;gt; qc."><!-- mathja
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu"><li>
-      <a href="../articles/delphi100k.html">delphi100k: Source Data and OMOP CDM Mapping</a>
-    </li>
-    <li>
       <a href="../articles/etl.html">Delphi to OMOP CDM ETL: Workflow and Design Decisions</a>
     </li>
     <li>
       <a href="../articles/how_to_run.html">How to Run the ETL</a>
     </li>
     <li>
+      <a href="../articles/oncology_diagnostic.html">Oncology Data Diagnostic</a>
+    </li>
+    <li>
       <a href="../articles/run_etl_steps.html">run_etl: Detailed Steps and Mechanics</a>
     </li>
   </ul></li>
-      </ul><ul class="nav navbar-nav navbar-right"></ul></div><!--/.nav-collapse -->
+      </ul><ul class="nav navbar-nav navbar-right"><li>
+  <a href="https://github.com/gerstung-lab/Delphi/" class="external-link">
+    <span class="fab fa-github fa-lg"></span>
+
+  </a>
+</li>
+      </ul></div><!--/.nav-collapse -->
   </div><!--/.container -->
 </div><!--/.navbar -->
 
@@ -55,7 +61,7 @@ cdm_core -&amp;gt; cdm_clinical -&amp;gt; cdm_derived -&amp;gt; qc."><!-- mathja
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Run the Delphi to OMOP CDM ETL</h1>
-
+    <small class="dont-index">Source: <a href="https://github.com/gerstung-lab/Delphi/blob/HEAD/R/run_etl.R" class="external-link"><code>R/run_etl.R</code></a></small>
     <div class="hidden name"><code>run_etl.Rd</code></div>
     </div>
 
@@ -85,7 +91,7 @@ cdm_core -&gt; cdm_clinical -&gt; cdm_derived -&gt; qc.</p>
 
 
 <dt id="arg-config-path">config_path<a class="anchor" aria-label="anchor" href="#arg-config-path"></a></dt>
-<dd><p>Path to config YAML; if NULL, uses package default.</p></dd>
+<dd><p>Path to config YAML; if NULL, uses <code><a href="default_etl_config.html">default_etl_config()</a></code>.</p></dd>
 
 
 <dt id="arg-config">config<a class="anchor" aria-label="anchor" href="#arg-config"></a></dt>
