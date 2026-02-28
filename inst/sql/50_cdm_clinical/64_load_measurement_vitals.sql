@@ -30,7 +30,7 @@ SELECT
     w.encounter_datetime,
     32817,
     w.value_num,
-    COALESCE(u.unit_concept_id, mv.default_unit_concept_id),
+    COALESCE(NULLIF(u.unit_concept_id, 0), mv.default_unit_concept_id),
     COALESCE(w.unit_src, mv.default_unit_source_value),
     mapv.visit_occurrence_id,
     w.vital_name,
