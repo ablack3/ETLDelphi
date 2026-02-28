@@ -23,7 +23,7 @@ SELECT
     mp.person_id,
     COALESCE(NULLIF(mt.procedure_concept_id, 0), cust.concept_id, 0),
     w.encounter_date,
-    {procedure_type_concept_id},
+    32817,
     mv.visit_occurrence_id,
     SUBSTR(COALESCE(w.code, w.name), 1, 50),
     SUBSTR(w.target_area, 1, 50)

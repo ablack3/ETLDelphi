@@ -1,5 +1,5 @@
 -- Load cdm.note from stg.encounter SOAP_Note where not null/empty. note_id deterministic by Encounter_ID.
--- note_type_concept_id, note_class_concept_id, encoding_concept_id, language_concept_id from config (e.g. 44813942, 44814639, 44815386, 4180186).
+-- note_type_concept_id = 32831 (EHR note), note_class_concept_id = 3000735 (Progress note), encoding_concept_id = 32678 (UTF-8), language_concept_id = 4180186 (English).
 INSERT INTO cdm.note (
     note_id, person_id, note_date, note_datetime, note_type_concept_id, note_class_concept_id,
     note_text, encoding_concept_id, language_concept_id, visit_occurrence_id, note_source_value
@@ -9,11 +9,11 @@ SELECT
     mp.person_id,
     e.encounter_date,
     e.encounter_datetime,
-    {note_type_concept_id},
-    {note_class_concept_id},
+    32831,
+    3000735,
     COALESCE(TRIM(e.soap_note), ' '),
-    {encoding_concept_id},
-    {language_concept_id},
+    32678,
+    4180186,
     mv.visit_occurrence_id,
     'SOAP_Note'
 FROM stg.encounter e
