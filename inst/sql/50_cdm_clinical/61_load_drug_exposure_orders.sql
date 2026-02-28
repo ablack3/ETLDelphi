@@ -1,4 +1,4 @@
--- Load drug_exposure from stg.medication_orders. drug_type_concept_id 38000177 (EHR order).
+-- Load drug_exposure from stg.medication_orders. drug_type_concept_id 32833 (EHR order).
 INSERT INTO cdm.drug_exposure (
     drug_exposure_id, person_id, drug_concept_id, drug_exposure_start_date, drug_exposure_end_date,
     drug_type_concept_id, refills, quantity, sig, provider_id, visit_occurrence_id,
@@ -17,7 +17,7 @@ SELECT
     COALESCE(NULLIF(d.drug_concept_id, 0), cust.concept_id, 0),
     o.order_date,
     o.order_date,
-    38000177,
+    32833,
     o.refills,
     o.qty_ordered,
     o.sig,

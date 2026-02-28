@@ -1,4 +1,4 @@
--- Load cdm.visit_occurrence from stg.encounter + map_visit + map_person + map_visit_concept. visit_type_concept_id from config (44818517).
+-- Load cdm.visit_occurrence from stg.encounter + map_visit + map_person + map_visit_concept. visit_type_concept_id = 32817 (EHR).
 -- Reject encounters whose Member_ID not in map_person.
 INSERT INTO cdm.visit_occurrence (
     visit_occurrence_id, person_id, visit_concept_id, visit_start_date, visit_start_datetime,
@@ -7,12 +7,12 @@ INSERT INTO cdm.visit_occurrence (
 SELECT
     mv.visit_occurrence_id,
     mp.person_id,
-    COALESCE(vc.visit_concept_id, 44813942),
+    COALESCE(vc.visit_concept_id, 9202),
     e.encounter_date,
     e.encounter_datetime,
     COALESCE(e.encounter_date, e.encounter_datetime::DATE),
     e.encounter_datetime,
-    44818517,
+    32817,
     mpr.provider_id,
     cs.care_site_id,
     e.encounter_id
