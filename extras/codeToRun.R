@@ -104,8 +104,12 @@ con <- DBI::dbConnect(duckdb::duckdb(), "~/Desktop/delphi.duckdb")
 
 ETLDelphi::run_etl(con = con, config = config)
 
+# --- 4. Simulate genomic data and populate G-CDM extension tables -----------
 
+cdm <- CDMConnector::cdmFromCon(con, "main", "main")
+cdm <- ETLDelphi::simulateGenomicData(cdm, overwrite = TRUE)
 
+ETLDelphi::run_genomic_etl(con = con, config = config)
 
 
 DBI::dbDisconnect(con, shutdown = T)
