@@ -95,8 +95,41 @@ DBI::dbDisconnect(con, shutdown = T)
 con <- DBI::dbConnect(duckdb::duckdb(), duckdb_path)
 ETLDelphi::run_etl(con = con, config = config)
 
+# --- 4. Simulate genomic data and populate G-CDM extension tables -----------
 
-# --- 4. Analyze mapping results ----------------------------------------------
+# --- 4. Simulate genomic data and populate G-CDM extension tables -----------
+
+cdm <- CDMConnector::cdmFromCon(con, "main", "main")
+cdm <- ETLDelphi::simulateGenomicData(cdm, overwrite = TRUE)
+
+ETLDelphi::run_genomic_etl(con = con, config = config)
+
+
+DBI::dbDisconnect(con, shutdown = T)
+
+con <- DBI::dbConnect(duckdb::duckdb(), "~/Desktop/delphi.duckdb")
+
+cdm <- CDMConnector::cdmFromCon(con, "main")
+
+library(dplyr)
+prov <- cdm$provider %>%
+  collect()
+
+readr::write_csv(prov, "prov.csv")
+
+cdm$person
+
+
+DBI::dbListTables(con)
+
+CDMConnector::listTables(con, "main")
+
+# --- 5. Analyze mapping results ----------------------------------------------
+
+# Export unmapped units, measurement values, and drugs for manual mapping (see extras/UNMAPPED_UNITS.md)
+ETLDelphi::export_unmapped_units(con, output_path = "unmapped_units.csv")
+ETLDelphi::export_unmapped_measurement_values(con, output_path = "unmapped_measurement_values.csv")
+ETLDelphi::export_unmapped_drugs(con, output_path = "unmapped_drugs.csv")
 
 unlink(here::here("inst/shiny/mapping_quality/mapping_quality_results"), recursive = T)
 analyze_mapping_quality(con, output_dir = "inst/shiny/mapping_quality/mapping_quality_results")
