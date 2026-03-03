@@ -52,11 +52,12 @@ Use **CDMConnector::copyCdmTo()** to copy the CDM from DuckDB to another
 database (e.g. PostgreSQL, SQL Server):
 
 ``` r
+remotes::install_github("darwin-eu/CDMConnector", "develop")
 library(CDMConnector)
 library(DBI)
 
 # Source: Delphi CDM in DuckDB
-con_src <- DBI::dbConnect(duckdb::duckdb(), "~/Desktop/delphi.duckdb")
+con_src <- DBI::dbConnect(duckdb::duckdb(), eunomiaDir("delphi-100k")
 cdm <- cdmFromCon(con_src, cdmSchema = "main", writeSchema = "main")
 
 # Target: your database (example: PostgreSQL)
