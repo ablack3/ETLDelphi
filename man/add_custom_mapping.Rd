@@ -49,7 +49,7 @@ add_custom_mapping("dexamethasone", "drug", 1518254)
 # With NDC
 add_custom_mapping("dexamethasone", "drug", 1518254, ndc_code = "47202252901")
 
-# Batch — vectorized
+# Batch - vectorized
 add_custom_mapping(
   source_value = c("dexamethasone", "valproic acid", "nifedipine"),
   domain      = "drug",

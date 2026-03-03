@@ -105,7 +105,7 @@ run_mapping_quality_site <- function(results_dir = "mapping_quality_results",
     )
   }
 
-  # ── Resolve results_dir ──────────────────────────────────────────
+  # Resolve results_dir
   if (is.null(results_dir) || !nzchar(trimws(results_dir))) {
     results_dir <- "mapping_quality_results"
   }
@@ -120,7 +120,7 @@ run_mapping_quality_site <- function(results_dir = "mapping_quality_results",
     )
   }
 
-  # ── Locate the bundled HTML template ─────────────────────────────
+  # Locate the bundled HTML template
   html_src <- system.file("site", "index.html", package = "ETLDelphi")
   if (!nzchar(html_src) || !file.exists(html_src)) {
     stop(
@@ -130,14 +130,14 @@ run_mapping_quality_site <- function(results_dir = "mapping_quality_results",
     )
   }
 
-  # ── Assemble serving directory ───────────────────────────────────
+  # Assemble serving directory
   serve_dir <- tempfile("mq_dashboard_")
   dir.create(serve_dir)
   file.copy(html_src, file.path(serve_dir, "index.html"))
   file.copy(json_path, file.path(serve_dir, "mapping_quality.json"))
   on.exit(unlink(serve_dir, recursive = TRUE), add = TRUE)
 
-  # ── Start httpuv static server ───────────────────────────────────
+  # Start httpuv static server
   server <- httpuv::startServer(
     host = "127.0.0.1",
     port = port,

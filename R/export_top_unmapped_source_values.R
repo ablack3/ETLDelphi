@@ -97,7 +97,7 @@ export_top_unmapped_source_values <- function(con,
   if (nzchar(out_dir) && !dir.exists(out_dir)) {
     dir.create(out_dir, recursive = TRUE)
   }
-  write.csv(df, output_path, row.names = FALSE)
+    utils::write.csv(df, output_path, row.names = FALSE)
   message("Wrote ", nrow(df), " unmapped source values to ", output_path)
 
   invisible(output_path)

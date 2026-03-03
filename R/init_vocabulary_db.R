@@ -35,7 +35,7 @@ init_vocabulary_db <- function(db_path,
   # Default DDL to package OMOP DDL
   ddl_path <- system.file("omop_cdm_specification", "OMOPCDM_duckdb_5.4_ddl.sql", package = "ETLDelphi", mustWork = TRUE)
 
-  # Create schema and run DDL (skip for "main" — DuckDB default schema, always exists)
+  # Create schema and run DDL (skip for "main" - DuckDB default schema, always exists)
   if (cdm_schema != "main") {
     DBI::dbExecute(con, glue::glue("DROP SCHEMA IF EXISTS {cdm_schema} CASCADE;"))
     DBI::dbExecute(con, glue::glue("CREATE SCHEMA {cdm_schema};"))
@@ -121,4 +121,3 @@ init_vocabulary_db <- function(db_path,
   cli::cli_alert_success("Vocabulary constraints applied.")
   invisible(con)
 }
-

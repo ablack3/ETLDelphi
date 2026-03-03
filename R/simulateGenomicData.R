@@ -55,7 +55,7 @@
 #'
 #' For person i with phenotype proxy value y_i and SNP j:
 #'
-#'   P(G=g | y_i) ∝ P(y_i | G=g) × P(G=g)
+#'   P(G=g | y_i) is proportional to P(y_i | G=g) * P(G=g)
 #'
 #' where P(G=g) follows Hardy-Weinberg with effect allele frequency p_j,
 #' and P(y_i | G=g) is derived from the GWAS linear/logistic model with
@@ -96,39 +96,6 @@
 #' @importFrom DBI dbWriteTable dbExecute dbExistsTable dbGetQuery
 #' @importFrom stats plogis qnorm rnorm pnorm rbinom setNames
 #' @export
-
-genomic_stage_schema <- function() {
-  cfg <- tryCatch(default_etl_config(), error = function(e) NULL)
-  schema <- if (!is.null(cfg) &&
-                !is.null(cfg$schemas) &&
-                !is.null(cfg$schemas$stg) &&
-                nzchar(cfg$schemas$stg)) {
-    cfg$schemas$stg
-  } else {
-    "stg"
-  }
-  schema
-}
-
-genomic_table_id <- function(table) {
-  DBI::Id(schema = genomic_stage_schema(), table = table)
-}
-
-quoted_table_name <- function(con, table_id) {
-  as.character(DBI::dbQuoteIdentifier(con, table_id))
-}
-
-find_genomic_table <- function(con, table) {
-  staged <- genomic_table_id(table)
-  if (DBI::dbExistsTable(con, staged)) {
-    return(staged)
-  }
-  if (DBI::dbExistsTable(con, table)) {
-    return(table)
-  }
-  NULL
-}
-
 simulateGenomicData <- function(
     cdm,
     snpPanel         = defaultSnpPanel(),
@@ -139,7 +106,7 @@ simulateGenomicData <- function(
     overwrite        = FALSE
 ) {
 
-  # ── 0. Validate inputs ──────────────────────────────────────────────────────
+  # 0. Validate inputs
 
   if (!inherits(cdm, "cdm_reference")) {
     stop("`cdm` must be a CDMConnector cdm_reference object.")
@@ -161,7 +128,7 @@ simulateGenomicData <- function(
 
   .msg <- function(...) if (verbose) message("[simulateGenomicData] ", ...)
 
-  # ── 1. Check / handle existing tables ───────────────────────────────────────
+  # 1. Check / handle existing tables
 
   tables_needed <- c("genomic_variants", "ancestry_pcs", "snp_reference")
   table_ids <- stats::setNames(lapply(tables_needed, genomic_table_id), tables_needed)
@@ -194,7 +161,7 @@ simulateGenomicData <- function(
     }
   }
 
-  # ── 2. Pull all person IDs ───────────────────────────────────────────────────
+  # 2. Pull all person IDs
 
   .msg("Loading person IDs ...")
 
@@ -208,7 +175,7 @@ simulateGenomicData <- function(
 
   person_ids <- persons$person_id
 
-  # ── 3. Build SNP reference table ─────────────────────────────────────────────
+  # 3. Build SNP reference table
   #
   # In production this queries OpenGWAS via ieugwasr. Here we embed a curated
   # set of well-validated SNPs so the function works offline. Users may pass
@@ -223,7 +190,7 @@ simulateGenomicData <- function(
 
   DBI::dbWriteTable(con, table_ids$snp_reference, snp_ref, overwrite = TRUE)
 
-  # ── 4. Extract phenotype proxies from CDM ────────────────────────────────────
+  # 4. Extract phenotype proxies from CDM
 
   .msg("Extracting phenotype proxies from conditions and measurements ...")
 
@@ -232,7 +199,7 @@ simulateGenomicData <- function(
   # phenotype_data: data.frame with columns:
   #   person_id, trait_key, proxy_value (numeric: z-score or 0/1 for binary)
 
-  # ── 5. Simulate ancestry principal components ────────────────────────────────
+  # 5. Simulate ancestry principal components
 
   .msg("Simulating ancestry principal components ...")
 
@@ -246,7 +213,7 @@ simulateGenomicData <- function(
 
   .msg("  Ancestry PCs written.")
 
-  # ── 6. Simulate genotypes ────────────────────────────────────────────────────
+  # 6. Simulate genotypes
   #
   # Process in chunks of persons to keep memory manageable for 100k persons.
 
@@ -266,7 +233,7 @@ simulateGenomicData <- function(
     chunk_ids   <- person_ids[chunk_start:chunk_end]
 
     if (verbose && (chunk_i %% 5 == 1 || chunk_i == n_chunks)) {
-      .msg(sprintf("  Chunk %d / %d  (persons %s – %s)",
+      .msg(sprintf("  Chunk %d / %d  (persons %s - %s)",
                    chunk_i, n_chunks,
                    format(chunk_start, big.mark = ","),
                    format(chunk_end, big.mark = ",")))
@@ -301,7 +268,7 @@ simulateGenomicData <- function(
   .msg(sprintf("  Total variant rows written: %s  (genotype > 0 only)",
                format(variants_written, big.mark = ",")))
 
-  # ── 7. Create indexes ────────────────────────────────────────────────────────
+  # 7. Create indexes
 
   .msg("Creating indexes ...")
 
@@ -321,7 +288,7 @@ simulateGenomicData <- function(
            quoted_table_name(con, table_ids$snp_reference), "(snp_id)")
   )
 
-  # ── 8. Summary diagnostics ───────────────────────────────────────────────────
+  # 8. Summary diagnostics
 
   if (verbose) {
     hw_check <- DBI::dbGetQuery(
@@ -346,9 +313,41 @@ simulateGenomicData <- function(
 }
 
 
-# ══════════════════════════════════════════════════════════════════════════════
+# ============================================================================
 # Internal helpers
-# ══════════════════════════════════════════════════════════════════════════════
+# ============================================================================
+
+genomic_stage_schema <- function() {
+  cfg <- tryCatch(default_etl_config(), error = function(e) NULL)
+  schema <- if (!is.null(cfg) &&
+                !is.null(cfg$schemas) &&
+                !is.null(cfg$schemas$stg) &&
+                nzchar(cfg$schemas$stg)) {
+    cfg$schemas$stg
+  } else {
+    "stg"
+  }
+  schema
+}
+
+genomic_table_id <- function(table) {
+  DBI::Id(schema = genomic_stage_schema(), table = table)
+}
+
+quoted_table_name <- function(con, table_id) {
+  as.character(DBI::dbQuoteIdentifier(con, table_id))
+}
+
+find_genomic_table <- function(con, table) {
+  staged <- genomic_table_id(table)
+  if (DBI::dbExistsTable(con, staged)) {
+    return(staged)
+  }
+  if (DBI::dbExistsTable(con, table)) {
+    return(table)
+  }
+  NULL
+}
 
 
 #' Default SNP panel definition
@@ -373,7 +372,7 @@ defaultSnpPanel <- function() {
   #   snps            : list of SNP definitions (see buildSnpReference)
 
   list(
-    # ── IL-6 / IL-6R signalling ───────────────────────────────────────────
+    # IL-6 / IL-6R signalling
     list(
       trait_key         = "il6_signalling",
       trait_label       = "IL-6 signalling",
@@ -383,22 +382,22 @@ defaultSnpPanel <- function() {
       proxy_concept_ids = c(3020460L, 3006322L),
       proxy_direction   = 1L,   # higher measurement = higher trait
       snps = list(
-        # rs2228145 — canonical IL6R coding variant, reduces IL-6 signalling
+        # rs2228145 - canonical IL6R coding variant, reduces IL-6 signalling
         list(snp_id="rs2228145", chr=1L, pos=154426970L,
              ea="A", oa="C", eaf=0.39, beta_ZX=0.29, se_ZX=0.011,
              pval_ZX=1.2e-142, gene_symbol="IL6R", hgnc_id="HGNC:6019"),
-        # rs4537545 — second independent IL6R signal
+        # rs4537545 - second independent IL6R signal
         list(snp_id="rs4537545", chr=1L, pos=154413427L,
              ea="C", oa="T", eaf=0.47, beta_ZX=0.11, se_ZX=0.013,
              pval_ZX=3.4e-17, gene_symbol="IL6R", hgnc_id="HGNC:6019"),
-        # rs7529229 — IL6R 3' region
+        # rs7529229 - IL6R 3' region
         list(snp_id="rs7529229", chr=1L, pos=154452481L,
              ea="T", oa="C", eaf=0.31, beta_ZX=0.09, se_ZX=0.014,
              pval_ZX=6.1e-11, gene_symbol="IL6R", hgnc_id="HGNC:6019")
       )
     ),
 
-    # ── C-reactive protein (CRP) ─────────────────────────────────────────
+    # C-reactive protein (CRP)
     list(
       trait_key         = "crp",
       trait_label       = "C-reactive protein",
@@ -419,7 +418,7 @@ defaultSnpPanel <- function() {
       )
     ),
 
-    # ── LDL cholesterol ──────────────────────────────────────────────────
+    # LDL cholesterol
     list(
       trait_key         = "ldl",
       trait_label       = "LDL cholesterol",
@@ -429,7 +428,7 @@ defaultSnpPanel <- function() {
       proxy_concept_ids = c(3007070L, 3009966L, 3028288L),
       proxy_direction   = 1L,
       snps = list(
-        # HMGCR — the statin target; key MR instrument for LDL
+        # HMGCR - the statin target; key MR instrument for LDL
         list(snp_id="rs12916",   chr=5L, pos=74656539L,
              ea="T", oa="C", eaf=0.54, beta_ZX=0.21, se_ZX=0.009,
              pval_ZX=1.1e-111, gene_symbol="HMGCR", hgnc_id="HGNC:5006"),
@@ -445,7 +444,7 @@ defaultSnpPanel <- function() {
       )
     ),
 
-    # ── BMI ───────────────────────────────────────────────────────────────
+    # BMI
     list(
       trait_key         = "bmi",
       trait_label       = "Body mass index",
@@ -467,7 +466,7 @@ defaultSnpPanel <- function() {
       )
     ),
 
-    # ── Type 2 diabetes ───────────────────────────────────────────────────
+    # Type 2 diabetes
     list(
       trait_key         = "t2d",
       trait_label       = "Type 2 diabetes",
@@ -489,7 +488,7 @@ defaultSnpPanel <- function() {
       )
     ),
 
-    # ── Colorectal cancer ─────────────────────────────────────────────────
+    # Colorectal cancer
     list(
       trait_key         = "colorectal_cancer",
       trait_label       = "Colorectal cancer",
@@ -512,7 +511,7 @@ defaultSnpPanel <- function() {
       )
     ),
 
-    # ── Systolic blood pressure ───────────────────────────────────────────
+    # Systolic blood pressure
     list(
       trait_key         = "sbp",
       trait_label       = "Systolic blood pressure",
@@ -576,7 +575,7 @@ buildSnpReference <- function(snpPanel, nullSnpCount, seed) {
   snp_df <- do.call(rbind, rows)
   snp_df <- snp_df[!duplicated(snp_df$snp_id), ]
 
-  # Add null SNPs — random allele frequencies, beta_ZX = 0
+  # Add null SNPs: random allele frequencies, beta_ZX = 0
   # These should show NO signal in PheWAS, useful for diagnostic demonstration
   if (nullSnpCount < 1L) {
     return(snp_df)
@@ -589,7 +588,7 @@ buildSnpReference <- function(snpPanel, nullSnpCount, seed) {
     position          = sample(1e6L:2e8L, nullSnpCount, replace = TRUE),
     effect_allele     = sample(c("A","T","G","C"), nullSnpCount, replace=TRUE),
     other_allele      = sample(c("A","T","G","C"), nullSnpCount, replace=TRUE),
-    eaf               = runif(nullSnpCount, 0.05, 0.95),
+    eaf               = stats::runif(nullSnpCount, 0.05, 0.95),
     beta_ZX           = 0,
     se_ZX             = 0,
     pval_ZX           = 1,
@@ -688,7 +687,7 @@ extractPhenotypeProxies <- function(cdm, snp_ref, person_ids, verbose) {
         # Z-score standardise so beta_ZX (on SD scale) is applicable
         if (nrow(raw) > 1) {
           mu  <- mean(raw$value_as_number, na.rm = TRUE)
-          sd_ <- sd(raw$value_as_number, na.rm = TRUE)
+          sd_ <- stats::sd(raw$value_as_number, na.rm = TRUE)
           if (sd_ > 0) {
             raw$value_as_number <- (raw$value_as_number - mu) / sd_
           }
@@ -712,7 +711,7 @@ extractPhenotypeProxies <- function(cdm, snp_ref, person_ids, verbose) {
     all_pheno[[trait_key]] <- result
   }
 
-  # Combine: long format — one row per person × trait with a proxy value
+  # Combine: long format - one row per person x trait with a proxy value
   if (length(all_pheno) == 0) {
     return(data.frame(
       person_id = integer(0),
@@ -864,7 +863,7 @@ simulateChunkGenotypes <- function(person_ids, snp_ref, ld_blocks,
     cor_mat  <- block$cor_mat
     n_snps   <- nrow(block_snps)
 
-    # ── Step A: Draw latent normal variables with LD correlation ───────────
+    # Step A: Draw latent normal variables with LD correlation
     # U[person, snp] ~ MVN(0, cor_mat)
     # We use Cholesky decomposition for efficiency
     L <- tryCatch(
@@ -879,7 +878,7 @@ simulateChunkGenotypes <- function(person_ids, snp_ref, ld_blocks,
     Z_indep <- matrix(rnorm(n_persons * n_snps), nrow = n_persons, ncol = n_snps)
     Z_corr  <- Z_indep %*% L  # [n_persons x n_snps], correlated
 
-    # ── Step B: For each SNP, apply phenotype-informed posterior ───────────
+    # Step B: For each SNP, apply phenotype-informed posterior
 
     block_results <- vector("list", n_snps)
 
@@ -902,7 +901,7 @@ simulateChunkGenotypes <- function(person_ids, snp_ref, ld_blocks,
         pc_weights[seq_along(pc_weights) %% 2L == 0L] <- -pc_weights[seq_along(pc_weights) %% 2L == 0L]
         snp_sign <- if (((snp$chromosome + snp$position) %% 2L) == 0L) 1 else -1
         snp_scale <- 1 + ((snp$position %% 1000L) / 1000)
-        logit_p <- qlogis(pmin(pmax(eaf, 1e-6), 1 - 1e-6)) +
+        logit_p <- stats::qlogis(pmin(pmax(eaf, 1e-6), 1 - 1e-6)) +
           as.vector(pc_matrix %*% (pc_weights * snp_sign * snp_scale))
         person_eaf <- pmin(pmax(plogis(logit_p), 0.01), 0.99)
         hw_person <- cbind(
@@ -929,7 +928,7 @@ simulateChunkGenotypes <- function(person_ids, snp_ref, ld_blocks,
 
         pid <- person_ids[p_i]
 
-        # Get the correlated latent uniform for this person × SNP
+        # Get the correlated latent uniform for this person x SNP
         u_latent <- pnorm(Z_corr[p_i, snp_j])  # maps to [0, 1]
 
         # Check if we have a phenotype proxy value for this person
@@ -958,14 +957,14 @@ simulateChunkGenotypes <- function(person_ids, snp_ref, ld_blocks,
           } else {
             # Continuous proxy: proxy_val is a z-score
             # P(y | G=g) ~ Normal(g * beta_ZX, 1) evaluated at proxy_val
-            p_y_given_g <- dnorm(proxy_val,
+            p_y_given_g <- stats::dnorm(proxy_val,
                                  mean = c(0, 1, 2) * beta_effect,
                                  sd   = 1)
             # Avoid underflow
             p_y_given_g <- pmax(p_y_given_g, 1e-10)
           }
 
-          # Posterior ∝ likelihood × HW prior
+          # Posterior is proportional to likelihood * HW prior
           posterior <- hw_i * p_y_given_g
           posterior <- posterior / sum(posterior)
 
@@ -994,9 +993,9 @@ simulateChunkGenotypes <- function(person_ids, snp_ref, ld_blocks,
 }
 
 
-# ══════════════════════════════════════════════════════════════════════════════
+# ============================================================================
 # Utility: retrieve genomic data back from CDM (convenience for vignettes)
-# ══════════════════════════════════════════════════════════════════════════════
+# ============================================================================
 
 
 #' Retrieve genotype data for a set of SNPs and persons
@@ -1086,7 +1085,7 @@ getGenotypes <- function(cdm, snp_ids, person_ids = NULL) {
 #'
 #' @param cdm        A CDMConnector cdm_reference object.
 #' @param person_ids Integer vector. If NULL, all persons returned.
-#' @param n_pcs      Number of PCs to return (1–10). Default 10.
+#' @param n_pcs      Number of PCs to return (1-10). Default 10.
 #'
 #' @return A data.frame with columns: person_id, pc1, ..., pc<n_pcs>
 #'

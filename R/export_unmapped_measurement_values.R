@@ -32,7 +32,7 @@ export_unmapped_measurement_values <- function(con, output_path = "unmapped_meas
   df <- df[!is.na(df$source_value) & nzchar(trimws(df$source_value)), , drop = FALSE]
   df$target_concept_id <- ""
 
-  write.csv(df, output_path, row.names = FALSE)
+  utils::write.csv(df, output_path, row.names = FALSE)
   message("Wrote ", nrow(df), " unmapped measurement value-measurement combinations to ", output_path)
 
   invisible(output_path)

@@ -62,13 +62,13 @@ confidence >= threshold). Retry failures and process new unmapped values
 from staging. This uses the same source as \code{export_unmapped_drugs()}:
 unmapped rows in \code{stg.map_drug_order} (and equivalent for other domains).
 \item \code{"fail"}: only retry failed log entries. Uses the mapping log file
-only — rows where \code{concept_id} is missing or \code{<= 0}. Does not
+only - rows where \code{concept_id} is missing or \code{<= 0}. Does not
 query staging, so the list will not match \code{export_unmapped_drugs()};
 use default \code{force_retry = FALSE} to process the same set as unmapped
 exports.
 \item \code{"all"}: skip ALL values already in the log (including failures).
 Only process new unmapped values from staging.
-\item \code{TRUE}: ignore the log entirely — reprocess everything (staging
+\item \code{TRUE}: ignore the log entirely - reprocess everything (staging
 unmapped + all previously logged values).
 }}
 

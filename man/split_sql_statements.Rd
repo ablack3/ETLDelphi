@@ -6,6 +6,9 @@
 \usage{
 split_sql_statements(sql)
 }
+\arguments{
+\item{sql}{Character SQL string or character vector of lines.}
+}
 \description{
 Split SQL script into single statements (semicolon-terminated, ignore in strings)
 }

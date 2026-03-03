@@ -1,6 +1,6 @@
 # api_utils.R
 # Shared HTTP request/response utilities for API clients (Hecate, OMOPHub).
-# Internal helpers — not exported.
+# Internal helpers - not exported.
 
 # Build an httr2 request for an API endpoint.
 #

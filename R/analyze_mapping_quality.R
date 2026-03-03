@@ -39,7 +39,7 @@ analyze_mapping_quality <- function(con, output_dir = "mapping_quality_results",
   written <- character(0)
   for (fname in names(csv_map)) {
     p <- out_path(fname)
-    write.csv(csv_map[[fname]], p, row.names = FALSE)
+    utils::write.csv(csv_map[[fname]], p, row.names = FALSE)
     written <- c(written, p)
   }
 

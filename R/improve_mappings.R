@@ -55,13 +55,13 @@
 #'       from staging. This uses the same source as \code{export_unmapped_drugs()}:
 #'       unmapped rows in \code{stg.map_drug_order} (and equivalent for other domains).
 #'     \item \code{"fail"}: only retry failed log entries. Uses the mapping log file
-#'       only — rows where \code{concept_id} is missing or \code{<= 0}. Does not
+#'       only - rows where \code{concept_id} is missing or \code{<= 0}. Does not
 #'       query staging, so the list will not match \code{export_unmapped_drugs()};
 #'       use default \code{force_retry = FALSE} to process the same set as unmapped
 #'       exports.
 #'     \item \code{"all"}: skip ALL values already in the log (including failures).
 #'       Only process new unmapped values from staging.
-#'     \item \code{TRUE}: ignore the log entirely — reprocess everything (staging
+#'     \item \code{TRUE}: ignore the log entirely - reprocess everything (staging
 #'       unmapped + all previously logged values).
 #'   }
 #' @param delay Seconds to wait between LLM API calls (rate limiting). Default: 0.5.
@@ -110,7 +110,7 @@ improve_mappings <- function(con,
   # Load existing custom mappings
   existing_custom <- if (file.exists(custom_mapping_path)) {
     tryCatch(
-      read.csv(custom_mapping_path, stringsAsFactors = FALSE),
+      utils::read.csv(custom_mapping_path, stringsAsFactors = FALSE),
       error = function(e) data.frame(source_value = character(), domain = character(), concept_id = integer(), stringsAsFactors = FALSE)
     )
   } else {
@@ -184,7 +184,7 @@ improve_mappings <- function(con,
   # Load existing NDC mappings
   existing_ndc <- if (file.exists(custom_ndc_mapping_path)) {
     tryCatch(
-      read.csv(custom_ndc_mapping_path, stringsAsFactors = FALSE),
+      utils::read.csv(custom_ndc_mapping_path, stringsAsFactors = FALSE),
       error = function(e) data.frame(drug_ndc_normalized = character(), drug_concept_id = integer(), stringsAsFactors = FALSE)
     )
   } else {
@@ -234,7 +234,7 @@ improve_mappings <- function(con,
       ),
       rate_limit_error = function(e) {
         rate_limited <<- TRUE
-        cli::cli_alert_danger("API rate limit reached. Stopping — run again later to continue from where you left off.")
+        cli::cli_alert_danger("API rate limit reached. Stopping - run again later to continue from where you left off.")
         cli::cli_alert_info("Processed {i - 1L} of {nrow(unmapped)} values before hitting the limit.")
         NULL
       },
@@ -250,7 +250,7 @@ improve_mappings <- function(con,
       }
     )
 
-    # Stop the loop on rate limit — don't log this item so it retries next run
+    # Stop the loop on rate limit - do not log this item so it retries next run
     if (rate_limited) break
 
     # Build log row (with new context columns)
@@ -276,7 +276,7 @@ improve_mappings <- function(con,
 
     # Append to log incrementally (explicit column ordering matches header)
     log_row <- log_row[, LOG_HEADER_COLS, drop = FALSE]
-    write.table(log_row, log_path, append = TRUE, sep = ",",
+    utils::write.table(log_row, log_path, append = TRUE, sep = ",",
                 row.names = FALSE, col.names = FALSE, quote = TRUE)
 
     # If above threshold, queue for custom mapping
@@ -326,7 +326,7 @@ improve_mappings <- function(con,
     merged <- rbind(existing_custom, new_custom)
     dup_key <- paste(merged$source_value, merged$domain, sep = "|||")
     merged <- merged[!duplicated(dup_key, fromLast = TRUE), , drop = FALSE]
-    write.csv(merged, custom_mapping_path, row.names = FALSE)
+    utils::write.csv(merged, custom_mapping_path, row.names = FALSE)
     cli::cli_alert_success("Added {nrow(new_custom)} new mapping(s) to {custom_mapping_path}")
   }
 
@@ -335,7 +335,7 @@ improve_mappings <- function(con,
     new_ndc <- do.call(rbind, new_ndc_rows)
     merged_ndc <- rbind(existing_ndc, new_ndc)
     merged_ndc <- merged_ndc[!duplicated(merged_ndc$drug_ndc_normalized, fromLast = TRUE), , drop = FALSE]
-    write.csv(merged_ndc, custom_ndc_mapping_path, row.names = FALSE)
+    utils::write.csv(merged_ndc, custom_ndc_mapping_path, row.names = FALSE)
     cli::cli_alert_success("Added {nrow(new_ndc)} NDC mapping(s) to {custom_ndc_mapping_path}")
   }
 
@@ -344,7 +344,7 @@ improve_mappings <- function(con,
 
   # Return full log
   full_log <- tryCatch(
-    read.csv(log_path, stringsAsFactors = FALSE),
+    utils::read.csv(log_path, stringsAsFactors = FALSE),
     error = function(e) existing_log
   )
 
@@ -373,7 +373,7 @@ load_existing_log <- function(log_path) {
   }
 
   tryCatch(
-    read.csv(log_path, stringsAsFactors = FALSE),
+    utils::read.csv(log_path, stringsAsFactors = FALSE),
     error = function(e) empty_log_df()
   )
 }
@@ -513,7 +513,7 @@ repair_mapping_log <- function(log_path) {
     line <- logical_lines[i]
 
     parsed <- tryCatch(
-      read.csv(text = line, header = FALSE, stringsAsFactors = FALSE),
+      utils::read.csv(text = line, header = FALSE, stringsAsFactors = FALSE),
       error = function(e) NULL
     )
     if (is.null(parsed)) next
@@ -543,7 +543,7 @@ repair_mapping_log <- function(log_path) {
       # Current 16-col: already correct
       new_row <- row
     } else {
-      # Unknown format — pad or truncate to 16
+      # Unknown format - pad or truncate to 16
       if (ncols < 16L) {
         new_row <- c(row, rep(NA, 16L - ncols))
       } else {
@@ -574,7 +574,7 @@ repair_mapping_log <- function(log_path) {
   # Step 4: Rewrite file atomically
   tmp <- paste0(log_path, ".repair_tmp")
   writeLines(LOG_HEADER_LINE, tmp)
-  write.table(repaired_df, tmp, append = TRUE, sep = ",",
+  utils::write.table(repaired_df, tmp, append = TRUE, sep = ",",
               row.names = FALSE, col.names = FALSE, quote = TRUE, na = "NA")
   file.rename(tmp, log_path)
 
@@ -590,7 +590,7 @@ populate_already_done_table <- function(con, existing_log, force_retry, confiden
   DBI::dbExecute(con, "CREATE TEMP TABLE _improve_already_done (source_value VARCHAR, domain VARCHAR)")
 
   if (isTRUE(force_retry)) {
-    # Skip nothing — leave the table empty
+    # Skip nothing - leave the table empty
     return(invisible(NULL))
   }
 
@@ -1177,7 +1177,7 @@ try_parse_llm_json <- function(text) {
 #' # With NDC
 #' add_custom_mapping("dexamethasone", "drug", 1518254, ndc_code = "47202252901")
 #'
-#' # Batch — vectorized
+#' # Batch - vectorized
 #' add_custom_mapping(
 #'   source_value = c("dexamethasone", "valproic acid", "nifedipine"),
 #'   domain      = "drug",
@@ -1237,7 +1237,7 @@ add_custom_mapping <- function(source_value,
   # Read existing
   existing <- if (file.exists(custom_mapping_path)) {
     tryCatch(
-      read.csv(custom_mapping_path, stringsAsFactors = FALSE),
+      utils::read.csv(custom_mapping_path, stringsAsFactors = FALSE),
       error = function(e) data.frame(source_value = character(), domain = character(), concept_id = integer(), stringsAsFactors = FALSE)
     )
   } else {
@@ -1254,7 +1254,7 @@ add_custom_mapping <- function(source_value,
   merged <- rbind(existing, new_rows)
   dup_key <- paste(merged$source_value, merged$domain, sep = "|||")
   merged <- merged[!duplicated(dup_key, fromLast = TRUE), , drop = FALSE]
-  write.csv(merged, custom_mapping_path, row.names = FALSE)
+  utils::write.csv(merged, custom_mapping_path, row.names = FALSE)
 
   cli::cli_alert_success("Added {n} mapping(s) to {custom_mapping_path}")
 
@@ -1275,7 +1275,7 @@ add_custom_mapping <- function(source_value,
 
       existing_ndc <- if (file.exists(custom_ndc_mapping_path)) {
         tryCatch(
-          read.csv(custom_ndc_mapping_path, stringsAsFactors = FALSE),
+          utils::read.csv(custom_ndc_mapping_path, stringsAsFactors = FALSE),
           error = function(e) data.frame(drug_ndc_normalized = character(), drug_concept_id = integer(), stringsAsFactors = FALSE)
         )
       } else {
@@ -1290,7 +1290,7 @@ add_custom_mapping <- function(source_value,
 
       merged_ndc <- rbind(existing_ndc, new_ndc)
       merged_ndc <- merged_ndc[!duplicated(merged_ndc$drug_ndc_normalized, fromLast = TRUE), , drop = FALSE]
-      write.csv(merged_ndc, custom_ndc_mapping_path, row.names = FALSE)
+      utils::write.csv(merged_ndc, custom_ndc_mapping_path, row.names = FALSE)
 
       cli::cli_alert_success("Added {sum(has_ndc)} NDC mapping(s) to {custom_ndc_mapping_path}")
     }
@@ -1340,7 +1340,7 @@ rebuild_custom_mappings_from_log <- function(
   }
 
   log_df <- tryCatch(
-    read.csv(log_path, stringsAsFactors = FALSE),
+    utils::read.csv(log_path, stringsAsFactors = FALSE),
     error = function(e) {
       cli::cli_alert_danger("Failed to read log: {conditionMessage(e)}")
       return(data.frame())
@@ -1425,14 +1425,14 @@ rebuild_custom_mappings_from_log <- function(
   }
 
   if (dry_run) {
-    cli::cli_alert_info("Dry run — no files modified.")
+    cli::cli_alert_info("Dry run - no files modified.")
     return(invisible(list(n_concept = nrow(concept_rows), n_ndc = nrow(ndc_rows))))
   }
 
   # --- Merge with existing and write ---
   # Concept mappings
   existing_concept <- if (file.exists(custom_mapping_path)) {
-    tryCatch(read.csv(custom_mapping_path, stringsAsFactors = FALSE), error = function(e) {
+    tryCatch(utils::read.csv(custom_mapping_path, stringsAsFactors = FALSE), error = function(e) {
       data.frame(source_value = character(), domain = character(), concept_id = integer(), stringsAsFactors = FALSE)
     })
   } else {
@@ -1442,13 +1442,13 @@ rebuild_custom_mappings_from_log <- function(
   merged <- rbind(existing_concept, concept_rows)
   merged_key <- paste(merged$source_value, merged$domain, sep = "|||")
   merged <- merged[!duplicated(merged_key, fromLast = TRUE), , drop = FALSE]
-  write.csv(merged, custom_mapping_path, row.names = FALSE)
+  utils::write.csv(merged, custom_mapping_path, row.names = FALSE)
   cli::cli_alert_success("Wrote {nrow(merged)} concept mapping(s) to {custom_mapping_path}")
 
   # NDC mappings
   if (nrow(ndc_rows) > 0) {
     existing_ndc <- if (file.exists(custom_ndc_mapping_path)) {
-      tryCatch(read.csv(custom_ndc_mapping_path, stringsAsFactors = FALSE), error = function(e) {
+      tryCatch(utils::read.csv(custom_ndc_mapping_path, stringsAsFactors = FALSE), error = function(e) {
         data.frame(drug_ndc_normalized = character(), drug_concept_id = integer(), stringsAsFactors = FALSE)
       })
     } else {
@@ -1456,7 +1456,7 @@ rebuild_custom_mappings_from_log <- function(
     }
     merged_ndc <- rbind(existing_ndc, ndc_rows)
     merged_ndc <- merged_ndc[!duplicated(merged_ndc$drug_ndc_normalized, fromLast = TRUE), , drop = FALSE]
-    write.csv(merged_ndc, custom_ndc_mapping_path, row.names = FALSE)
+    utils::write.csv(merged_ndc, custom_ndc_mapping_path, row.names = FALSE)
     cli::cli_alert_success("Wrote {nrow(merged_ndc)} NDC mapping(s) to {custom_ndc_mapping_path}")
   }
 

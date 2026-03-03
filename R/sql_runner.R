@@ -200,6 +200,8 @@ run_sql_scripts <- function(con,
 }
 
 #' Split SQL script into single statements (semicolon-terminated, ignore in strings)
+#'
+#' @param sql Character SQL string or character vector of lines.
 split_sql_statements <- function(sql) {
   sql <- paste(sql, collapse = "\n")
   # Simple split on semicolon followed by newline or end (avoid splitting in strings)

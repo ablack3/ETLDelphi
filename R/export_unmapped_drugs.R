@@ -49,7 +49,7 @@ export_unmapped_drugs <- function(con, output_path = "unmapped_drugs.csv", confi
   ))
   df$target_concept_id <- ""
 
-  write.csv(df, output_path, row.names = FALSE)
+  utils::write.csv(df, output_path, row.names = FALSE)
   message("Wrote ", nrow(df), " unmapped drug (name/NDC) combinations to ", output_path)
 
   invisible(output_path)

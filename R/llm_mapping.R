@@ -424,7 +424,7 @@ build_mapping_system_prompt <- function(domain) {
     "## Required Output Format\n",
     "CRITICAL: Your final response MUST be a single JSON object with NO surrounding text, ",
     "NO markdown fences, and NO explanation outside the JSON. ",
-    "Your response will be parsed by jsonlite::fromJSON() — if it is not valid JSON, the mapping will be lost.\n\n",
+    "Your response will be parsed by jsonlite::fromJSON() - if it is not valid JSON, the mapping will be lost.\n\n",
     "Return EXACTLY this JSON structure:\n",
     "{\n",
     "  \"concept_id\": <integer or null if no mapping found>,\n",
@@ -575,7 +575,7 @@ anthropic_tool_loop <- function(messages,
     # Extract tool use blocks
     tool_uses <- Filter(function(b) identical(b$type, "tool_use"), content_blocks)
 
-    # If no tool calls, model is done — extract final text
+    # If no tool calls, model is done - extract final text
     if (length(tool_uses) == 0 || !identical(stop_reason, "tool_use")) {
       text_blocks <- Filter(function(b) identical(b$type, "text"), content_blocks)
       final_text <- paste(vapply(text_blocks, function(b) b$text %||% "", character(1)), collapse = "\n")

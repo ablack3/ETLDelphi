@@ -28,7 +28,7 @@ run_mapping_quality_app <- function(results_dir = "mapping_quality_results",
     )
   }
 
-  # ── Resolve results_dir ──────────────────────────────────────────
+  # Resolve results_dir
   if (is.null(results_dir) || !nzchar(trimws(results_dir))) {
     results_dir <- "mapping_quality_results"
   }
@@ -42,11 +42,11 @@ run_mapping_quality_app <- function(results_dir = "mapping_quality_results",
     )
   }
 
-  # ── Set option that the Shiny app reads ──────────────────────────
+  # Set option that the Shiny app reads
 
   options(etldelphi.mapping_quality_results_dir = results_dir)
 
-  # ── Locate the bundled Shiny app ─────────────────────────────────
+  # Locate the bundled Shiny app
   app_dir <- system.file("shiny", "mapping_quality", package = "ETLDelphi")
   if (!nzchar(app_dir) || !dir.exists(app_dir)) {
     stop(

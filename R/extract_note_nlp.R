@@ -45,7 +45,7 @@ extract_note_nlp <- function(con,
   stg <- config$schemas$stg %||% "stg"
   cdm <- config$schemas$cdm %||% "main"
 
-  # ── Check prerequisite staging tables exist ──────────────────────
+  # Check prerequisite staging tables exist
   required_tables <- c("note_parsed", "nlp_conditions", "nlp_prescriptions",
                        "nlp_procedures", "nlp_screenings")
   existing <- DBI::dbGetQuery(con, glue::glue(
@@ -63,7 +63,7 @@ extract_note_nlp <- function(con,
     run_note_parsing_sql(con, config)
   }
 
-  # ── Gather unique entities needing concept mapping ───────────────
+  # Gather unique entities needing concept mapping
   cli::cli_h1("Gathering unique entities from parsed notes")
 
   entities <- gather_unique_entities(con, stg)
@@ -74,7 +74,7 @@ extract_note_nlp <- function(con,
     return(invisible(data.frame()))
   }
 
-  # ── Step 1: Vocabulary lookup ────────────────────────────────────
+  # Step 1: Vocabulary lookup
   cli::cli_h2("Step 1: Vocabulary lookup")
   mapped <- vocabulary_lookup(con, entities, cdm)
 
@@ -83,7 +83,7 @@ extract_note_nlp <- function(con,
   cli::cli_alert_success("Vocabulary lookup mapped {n_vocab} / {nrow(entities)} entities")
   cli::cli_alert_info("{n_remaining} entities remain unmapped")
 
-  # ── Step 2: LLM mapping for unmatched entities ───────────────────
+  # Step 2: LLM mapping for unmatched entities
   if (!skip_llm && n_remaining > 0) {
     cli::cli_h2("Step 2: LLM concept mapping ({n_remaining} entities)")
     mapped <- llm_map_entities(mapped, log_path = log_path, provider = provider,
@@ -94,21 +94,21 @@ extract_note_nlp <- function(con,
     cli::cli_alert_info("Skipping LLM (skip_llm = TRUE). {n_remaining} entities remain unmapped.")
   }
 
-  # ── Write mapping table to staging ───────────────────────────────
+  # Write mapping table to staging
   cli::cli_h2("Writing concept mapping to staging")
   DBI::dbExecute(con, glue::glue("DROP TABLE IF EXISTS \"{stg}\".note_nlp_concept_map"))
   DBI::dbWriteTable(con, DBI::Id(schema = stg, table = "note_nlp_concept_map"),
                     mapped, overwrite = TRUE)
   cli::cli_alert_success("Wrote {nrow(mapped)} mappings to {stg}.note_nlp_concept_map")
 
-  # ── Step 3: Load CDM tables ──────────────────────────────────────
+  # Step 3: Load CDM tables
   if (!skip_load) {
     cli::cli_h2("Step 3: Loading CDM tables")
     load_note_nlp(con, stg, cdm)
     supplement_cdm_facts(con, stg, cdm)
   }
 
-  # ── Summary ──────────────────────────────────────────────────────
+  # Summary
   n_final <- sum(!is.na(mapped$concept_id) & mapped$concept_id != 0)
   cli::cli_h1("Note NLP extraction complete")
   cli::cli_alert_success("{n_final} / {nrow(mapped)} entities mapped to OMOP concepts")
@@ -117,7 +117,7 @@ extract_note_nlp <- function(con,
 }
 
 
-# ── Helper: Run note parsing SQL if staging tables are missing ─────────
+# Helper: Run note parsing SQL if staging tables are missing
 run_note_parsing_sql <- function(con, config) {
   stg <- config$schemas$stg %||% "stg"
   sql_dir <- system.file("sql", "45_nlp", package = "ETLDelphi")
@@ -148,7 +148,7 @@ run_note_parsing_sql <- function(con, config) {
 }
 
 
-# ── Helper: Gather unique entity texts from all extraction tables ──────
+# Helper: Gather unique entity texts from all extraction tables
 gather_unique_entities <- function(con, stg) {
   sql <- glue::glue("
     SELECT DISTINCT lexical_variant AS entity_text, 'condition' AS entity_type
@@ -176,7 +176,7 @@ gather_unique_entities <- function(con, stg) {
 }
 
 
-# ── Helper: Try vocabulary lookup for entity texts ─────────────────────
+# Helper: Try vocabulary lookup for entity texts
 vocabulary_lookup <- function(con, entities, cdm) {
   for (i in seq_len(nrow(entities))) {
     text <- entities$entity_text[i]
@@ -231,7 +231,7 @@ vocabulary_lookup <- function(con, entities, cdm) {
 }
 
 
-# ── Helper: LLM concept mapping for unmatched entities ─────────────────
+# Helper: LLM concept mapping for unmatched entities
 llm_map_entities <- function(mapped, log_path, provider, model, api_key, hecate) {
   unmapped_idx <- which(is.na(mapped$concept_id) | mapped$concept_id == 0)
   if (length(unmapped_idx) == 0) return(mapped)
@@ -270,7 +270,7 @@ llm_map_entities <- function(mapped, log_path, provider, model, api_key, hecate)
 
   # Load existing log to skip already-processed
   existing_log <- if (file.exists(log_path) && file.size(log_path) > 0) {
-    tryCatch(read.csv(log_path, stringsAsFactors = FALSE), error = function(e) data.frame())
+    tryCatch(utils::read.csv(log_path, stringsAsFactors = FALSE), error = function(e) data.frame())
   } else {
     data.frame()
   }
@@ -375,7 +375,7 @@ llm_map_entities <- function(mapped, log_path, provider, model, api_key, hecate)
 }
 
 
-# ── Helper: Load note_nlp from mapped entities ─────────────────────────
+# Helper: Load note_nlp from mapped entities
 load_note_nlp <- function(con, stg, cdm) {
   # Get max existing note_nlp_id
   max_id <- DBI::dbGetQuery(con, glue::glue(
@@ -486,7 +486,7 @@ load_note_nlp <- function(con, stg, cdm) {
 }
 
 
-# ── Helper: Supplement CDM fact tables with note-derived records ────────
+# Helper: Supplement CDM fact tables with note-derived records
 supplement_cdm_facts <- function(con, stg, cdm) {
   # -- Conditions from Assessment --
   max_co_id <- DBI::dbGetQuery(con, glue::glue(
