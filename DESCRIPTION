@@ -14,7 +14,7 @@ Description: End-to-end ETL that transforms Delphi-2M synthetic patient
     records (Shmatko et al., Nature 2025, doi:10.1038/s41586-025-09529-3).
     Uses a 3-layer pattern (src -> stg -> cdm) with deterministic integer IDs
     and configurable concept mapping.
-URL: https://github.com/gerstung-lab/Delphi
+URL: https://ablack3.github.io/ETLDelphi/, https://github.com/gerstung-lab/Delphi
 License: Apache License (>= 2)
 Encoding: UTF-8
 Imports:

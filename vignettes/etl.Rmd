@@ -7,7 +7,7 @@ output:
     toc: true
     toc_depth: 3
 vignette: >
-  %\VignetteIndexEntry{ETL workflow and decisions}
+  %\VignetteIndexEntry{Delphi to OMOP CDM ETL: Workflow and Design Decisions}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteKeyword{ETL}
   %\VignetteKeyword{OMOP}
@@ -25,264 +25,240 @@ knitr::opts_chunk$set(
 
 ## Introduction
 
-This vignette documents the **Delphi/Delfi to OMOP CDM v5.4** ETL implemented in **ETLDelphi**: the end-to-end workflow, every major design decision, and how to run and extend it.
+ETLDelphi converts Delphi-2M synthetic health trajectories into OMOP CDM v5.4 tables in DuckDB.
 
-The ETL transforms source tables (enrollment, encounter, provider, death, problem, medication_orders, medication_fulfillment, current_medications, immunization, lab_orders, lab_results, vital_sign, allergy, therapy_orders, therapy_actions) into OMOP Common Data Model v5.4 tables in **DuckDB**, using a **3-layer pattern** (raw → staging → CDM), **deterministic integer IDs**, and **explicit concept mapping** with observable failures.
+The package is deliberately thin:
 
----
+- the transformation logic lives in SQL under `inst/sql`
+- the R code loads files, substitutes configuration values, executes the SQL in order, and records ETL logs
 
-## Architecture Overview
+This vignette describes the current workflow, the main design choices, and the parts of the pipeline that are intentionally configurable.
 
-### Three-Layer Pattern
+## Architecture
+
+### Default Schemas
+
+The default configuration uses three schemas:
 
 | Layer | Schema | Purpose |
-|-------|--------|---------|
-| **Source** | `src` | Raw tables; all columns varchar as in the Delphi DDL. Pre-loaded by the user. |
-| **Staging** | `stg` | Typed and cleaned: parsed dates/numerics, trimmed strings, normalized codes. Reject tables capture parse failures. |
-| **CDM** | `cdm` | OMOP CDM v5.4 tables; integer IDs only; concept IDs from vocabulary or 0 when unmapped. |
+|------|--------|---------|
+| Raw source | `src` | CSVs loaded from the Delphi export |
+| Staging | `stg` | typed tables, maps, reject tables, and QC outputs |
+| OMOP CDM | `main` | vocabulary tables and final OMOP tables |
 
-All transformations are expressed as **SQL scripts** run in a fixed order. The **R package** only orchestrates: it runs those scripts in sequence via DBI + duckdb, substitutes schema names from config, and logs steps (and optionally run metadata) to `stg.etl_run_log` and `stg.etl_step_log`.
+You can override the schema names through `default_etl_config()`, but the package is easiest to use when you keep the defaults.
 
-### Design Principles
+### Core Principles
 
-1. **Integer IDs only in CDM** — All OMOP tables reference integer primary/foreign keys. Source IDs (e.g. `Member_ID`, `Encounter_ID`) are varchar; the ETL builds deterministic **key maps** (`stg.map_person`, `stg.map_visit`, etc.) that assign stable integer IDs.
-2. **Unmapped concepts = 0** — Per OMOP convention, missing standard concepts are stored as `0` (not NULL), with the original value preserved in `*_source_value` (and optionally `*_source_concept_id` when a source concept exists).
-3. **Failures are observable** — Reject tables and QC tables record date/numeric parse failures, missing joins, mapping coverage, and referential integrity so issues can be inspected and fixed.
+1. **Deterministic IDs**. The ETL creates stable integer IDs with ordered `ROW_NUMBER()` logic. The same input data yields the same IDs on repeat runs.
+2. **SQL-first transforms**. Business rules are encoded in SQL, not in ad hoc R data manipulation.
+3. **Observable failures**. Reject tables and QC tables make parse failures, missing joins, and unmapped concepts inspectable after each run.
+4. **Configurable type concepts**. The loaders use `config$type_concept_ids`, so type concept assignment can be corrected without editing the SQL files.
+5. **Domain correction after loading**. Records can be loaded into a provisional table and then moved into the correct OMOP domain by the domain-routing step.
 
----
+## Pipeline Structure
 
-## Workflow: Execution Order
+`run_etl()` executes every `.sql` file under `inst/sql` in lexicographic order. The pipeline is organized into numbered folders.
 
-Scripts live under `inst/sql/` in numbered folders. The runner executes **all `.sql` files in lexicographic order** (by folder, then file name). The following is the full sequence and intent of each phase.
+### 00_admin
 
-### Phase 0 — Admin and setup
+Administrative setup:
 
-| File | Purpose |
-|------|---------|
-| `00_admin/00_create_stg_schema.sql` | Create schema `stg` if not exists. |
-| `00_admin/01_create_etl_log_tables.sql` | Create `stg.etl_run_log` (run_id, started_at, ended_at, status, git_sha) and `stg.etl_step_log` (run_id, step_name, file_name, started_at, ended_at, status, rows_affected, notes). |
-| `00_admin/02_clear_stg_tables.sql` | Drop all `stg.*` tables (reject, maps, staged, QC) so the ETL can be re-run. Does **not** drop `cdm.*` or `src.*`. |
+- create the `stg` schema
+- create ETL log tables
+- clear prior `stg` tables so the next run starts from a clean staging layer
 
-### Phase 1 — Staging (typing and normalization)
+This step does not clear `src` or the final CDM tables.
 
-Source columns are varchar. Each staging script parses dates (with `COALESCE(try_strptime(..., fmt1), try_strptime(..., fmt2), ...)`), casts numerics with `try_cast`, and trims/normalizes strings. Rows that fail parsing (e.g. non-null date string but no parseable date) are written to a corresponding **reject** table.
+### 10_stage
 
-| File | Staging table | Reject table | Notes |
-|------|----------------|--------------|--------|
-| `10_stage/10_stage_enrollment.sql` | `stg.enrollment` | `stg.reject_enrollment_dates` | DOB parsed; gender/race/address trimmed and lowercased. |
-| `11_stage_provider.sql` | `stg.provider` | `stg.reject_provider` | DOB, sex, specialty cleaned. |
-| `12_stage_encounter.sql` | `stg.encounter` | `stg.reject_encounter` | Encounter_DateTime → encounter_date/datetime; appt_type, clinic_type, SOAP_Note. |
-| `13_stage_death.sql` | `stg.death` | `stg.reject_death` | DOD → death_date, death_datetime. |
-| `14_stage_problem.sql` | `stg.problem` | `stg.reject_problem` | Onset_Date, Resolution_Date; Problem_Code/Type normalized. |
-| `15_stage_med_orders.sql` | `stg.medication_orders` | `stg.reject_med_orders` | Order_Date, Last_Filled_Date; Dose, Qty_Ordered, Refills via try_cast; Drug_NDC normalized (strip dashes). |
-| `16_stage_med_fulfillment.sql` | `stg.medication_fulfillment` | `stg.reject_med_fulfillment` | Dispense_Date; Dispense_Qty, Days_Of_Supply, Fill_No. |
-| `17_stage_current_meds.sql` | `stg.current_medications` | `stg.reject_current_meds` | Last_Filled_Date; Refills, Days_Of_Supply. |
-| `18_stage_immunization.sql` | `stg.immunization` | `stg.reject_immunization` | Vaccination_Date; Dose; Vaccine_CVX trimmed. |
-| `19_stage_lab_orders.sql` | `stg.lab_orders` | `stg.reject_lab_orders` | Order_Date; Test_LOINC normalized. |
-| `20_stage_lab_results.sql` | `stg.lab_results` | `stg.reject_lab_results` | Date_Collected, Date_Resulted; Numeric_Result; LOINC/Units. |
-| `21_stage_vital_sign.sql` | `stg.vital_sign` | `stg.reject_vital_sign` | Encounter_Date; Height, Weight, SBP, DBP, Pulse, Respiration, Temperature. |
-| `22_stage_allergy.sql` | `stg.allergy` | `stg.reject_allergy` | Onset_Date; Drug_Code, Allergen, etc. normalized. |
-| `23_stage_therapy_orders.sql` | `stg.therapy_orders` | — | Code, Vocabulary; no dates in source. |
-| `24_stage_therapy_actions.sql` | `stg.therapy_actions` | — | Code, Vocabulary, Result, Target_Area. |
+Source CSVs are staged into typed DuckDB tables.
 
-### Phase 2 — Keys (deterministic integer ID maps)
+Common staging behaviors:
 
-Maps assign **stable integer IDs** to source keys using `ROW_NUMBER() OVER (ORDER BY <stable_key>)`. No randomness; same source data yields same IDs across runs.
+- parse dates with multiple `try_strptime()` formats
+- cast numerics with `TRY_CAST`
+- trim and normalize strings
+- write bad rows to `stg.reject_*` tables instead of failing silently
 
-| File | Map table | Source of keys |
-|------|-----------|----------------|
-| `20_keys/30_map_person.sql` | `stg.map_person(member_id, person_id)` | Distinct `member_id` from union of all tables that contain Member_ID (enrollment, encounter, death, problem, medication_orders, immunization, lab_results, vital_sign, allergy, therapy_orders, therapy_actions, current_medications). Ensures persons who appear only outside enrollment still get an ID. |
-| `31_map_provider.sql` | `stg.map_provider(provider_id_source, provider_id)` | Distinct Provider_ID from provider, encounter, medication_orders, immunization, lab_results, problem. |
-| `32_map_visit.sql` | `stg.map_visit(encounter_id_source, visit_occurrence_id)` | Distinct Encounter_ID from `stg.encounter`. |
-| `33_map_location.sql` | `stg.map_location(location_key, location_id)` | Distinct concatenation of address_1, address_2, city, state, zip from `stg.enrollment`. |
-| `34_map_care_site.sql` | `stg.map_care_site(care_site_key, care_site_id)` | Distinct Clinic_ID from `stg.encounter` (optional). |
+At the end of this phase, the data is still source-shaped, but no longer raw text.
 
-### Phase 3 — Vocabulary and concept mapping
+### 20_keys
 
-Mapping tables/views resolve source values to OMOP concept IDs. Unmapped → `0`; source values are always preserved in the CDM `*_source_value` fields.
+This phase builds deterministic mapping tables such as:
 
-| File | Map table | Strategy |
-|------|-----------|----------|
-| `30_vocab/40_map_gender.sql` | `stg.map_gender` | Lookup: female/f→8532, male/m→8507, unknown/other→8551; enrollment-specific values inserted with 0. |
-| `41_map_race.sql` | `stg.map_race` | Lookup: white, black, asian, etc. to standard race concept_ids; rest → 0. |
-| `42_map_visit_concept.sql` | `stg.map_visit_concept` | (appt_type, clinic_type) → visit_concept_id; default 44813942 (Outpatient). |
-| `43_map_drug.sql` | `stg.map_drug_order` | NDC → `cdm.concept` (vocabulary_id='NDC') → concept_relationship 'Maps to' → standard RxNorm; drug_name-only rows added with concept_id 0. |
-| `44_map_loinc_measurement.sql` | `stg.map_loinc_measurement` | Test_LOINC → `cdm.concept` (vocabulary_id='LOINC'); unmapped → 0. |
-| `45_map_units.sql` | `stg.map_units` | Unit strings (mg, cm, kg, etc.) → unit_concept_id; distinct units from staging added as 0 if not in lookup. |
-| `46_map_condition.sql` | `stg.map_condition` | Problem_Code → concept (ICD10/ICD9/SNOMED/Medcin) → Maps to standard condition; unmapped → 0. |
-| `47_map_vitals.sql` | `stg.map_vitals` | Hardcoded: vital name (Height, Weight, SystolicBP, …) → measurement_concept_id and default unit (LOINC/OMOP placeholders). |
-| `48_map_allergy.sql` | `stg.map_allergy` | v1: observation_concept_id = 0; source_value = Allergen or Drug_Code. |
-| `49_map_therapy.sql` | `stg.map_therapy` | Code + Vocabulary → concept (CPT4, HCPCS, SNOMED, ICD10PCS) → Maps to standard procedure; else 0. |
+- `stg.map_person`
+- `stg.map_provider`
+- `stg.map_visit`
+- `stg.map_location`
+- `stg.map_care_site`
 
-### Phase 4 — CDM core tables
+These bridge source identifiers like `member_id` and `encounter_id` to integer OMOP keys.
 
-Load order respects foreign keys: location and care_site first, then provider, person, visit, note, death.
+### 30_vocab
 
-| File | CDM table | Source and decisions |
-|------|-----------|----------------------|
-| `40_cdm_core/50_load_location.sql` | `cdm.location` | From `stg.map_location`; address fields from first matching enrollment row per location_key. Insert only if location_id not already present. |
-| `51_load_care_site.sql` | `cdm.care_site` | From `stg.map_care_site`; optional. |
-| `52_load_provider.sql` | `cdm.provider` | From map_provider + stg.provider; specialty_concept_id null in v1. |
-| `53_load_person.sql` | `cdm.person` | From map_person + stg.enrollment. **Only persons with parseable DOB in enrollment** are inserted (year_of_birth NOT NULL). Others logged in `stg.reject_person_missing_dob`. Demographics from enrollment; location_id from map_location. |
-| `54_load_visit_occurrence.sql` | `cdm.visit_occurrence` | From stg.encounter + map_visit, map_person, map_visit_concept, map_provider, map_care_site. visit_type_concept_id = 44818517 (EHR). Visit end date = start when no end time. Encounters with member_id not in map_person → `stg.reject_visit_missing_person`. |
-| `55_load_note.sql` | `cdm.note` | SOAP_Note from encounter; note_id = 900000000 + row_number (deterministic). note_type/class/encoding/language from config. Reject table for notes missing person/visit. |
-| `56_load_death.sql` | `cdm.death` | From stg.death + map_person. death_type_concept_id from config. Reject rows with no matching person → `stg.reject_death_load`. |
-| `57_load_cdm_source.sql` | `cdm.cdm_source` | Single row: source name, abbreviation, holder, description, ETL reference (from package vignettes), source/cdm release dates (CURRENT_DATE), cdm_version 5.4, cdm_version_concept_id from vocabulary, vocabulary_version. Insert only if cdm_source is empty. |
+The vocabulary phase maps source values to OMOP concepts.
 
-### Phase 5 — CDM clinical tables
+Representative mapping tables:
 
-| File | CDM table | Source and decisions |
-|------|-----------|----------------------|
-| `50_cdm_clinical/60_load_condition_occurrence.sql` | `cdm.condition_occurrence` | stg.problem; condition_occurrence_id deterministic; condition_start_date = onset_date, fallback to encounter_date when onset missing; condition_concept_id from map_condition (0 if unmapped). Reject: missing person. |
-| `61_load_drug_exposure_orders.sql` | `cdm.drug_exposure` | stg.medication_orders; drug_type 38000177 (EHR order). drug_exposure_id in 700M range. End date = order_date when no days_supply. |
-| `62_load_drug_exposure_fulfillment.sql` | `cdm.drug_exposure` | stg.medication_fulfillment joined to medication_orders for member_id and drug; drug_type 38000230 (dispensed). End date = dispense_date + days_supply - 1 when present. Rows with Order_ID not in orders → `stg.reject_fulfillment_no_order`. |
-| `63_load_drug_exposure_immunization.sql` | `cdm.drug_exposure` | stg.immunization; drug_type 38000280 (immunization). drug_concept_id 0 in v1 (CVX mapping optional). |
-| `64_load_measurement_vitals.sql` | `cdm.measurement` | stg.vital_sign unpivoted (one row per non-null Height, Weight, SBP, DBP, Pulse, Respiration, Temperature). measurement_concept_id from map_vitals; unit from map_units or map_vitals default. |
-| `65_load_measurement_labs.sql` | `cdm.measurement` | stg.lab_results; measurement_concept_id from map_loinc_measurement (0 if unmapped). measurement_date = date_resulted else date_collected. Reject: missing person or measurement_date. |
-| `66_load_observation_allergy.sql` | `cdm.observation` | stg.allergy; observation_concept_id 0 in v1; observation_type 32859. observation_source_value = Allergen or Drug_Code. Reject when onset_date missing or person missing. |
-| `67_load_procedure_therapy.sql` | `cdm.procedure_occurrence` | stg.therapy_orders + therapy_actions; procedure_date from encounter via Encounter_ID. procedure_concept_id from map_therapy (0 if unmapped). Reject: missing person or missing encounter_date. |
+- demographics (`stg.map_gender`, `stg.map_race`)
+- visit concepts (`stg.map_visit_concept`)
+- drugs and immunizations (`stg.map_drug_order`, `stg.map_immunization`)
+- conditions (`stg.map_condition`)
+- labs and units (`stg.map_loinc_measurement`, `stg.map_units`, `stg.map_measurement_value`)
+- vitals, allergy, and therapy mappings
 
-### Phase 6 — Derived CDM
+Two important details:
 
-| File | CDM table | Logic |
-|------|-----------|--------|
-| `60_cdm_derived/80_load_observation_period.sql` | `cdm.observation_period` | Per person: min/max of all event dates from visit_occurrence, condition_occurrence, drug_exposure, measurement, observation, procedure_occurrence, death. observation_period_id in 900M range. period_type_concept_id 32821. Insert only for persons not already having an observation_period. |
+- source values are preserved even when a standard concept cannot be found
+- custom mapping CSVs can override package defaults without changing SQL
 
-### Phase 7 — QC and observability
+### 40_cdm_core
 
-| File | QC table | Content |
-|------|-----------|---------|
-| `90_qc/90_row_counts.sql` | `stg.qc_row_counts` | Row counts for key stg.* and cdm.* tables (run_id from etl_run_log). |
-| `91_mapping_coverage.sql` | `stg.qc_mapping_coverage` | Per clinical table: total rows, unmapped count, unmapped % (*_concept_id = 0). |
-| `92_referential_integrity.sql` | `stg.qc_orphans` | Orphan checks: visit_occurrence.person_id not in person; condition/drug/measurement person_id not in person; visit_occurrence_id not in visit_occurrence when not null. |
-| `93_parse_failures.sql` | `stg.qc_parse_failures` | Count of rows in each `stg.reject_*` table. |
-| `94_required_fields.sql` | `stg.qc_required_fields` | Violations of NOT NULL (person.year_of_birth, visit dates, condition_start_date, etc.). Runner can be extended to fail if any violation_count > 0. |
+This phase loads the foundational OMOP tables:
 
----
+- `location`
+- `care_site`
+- `provider`
+- `person`
+- `visit_occurrence`
+- `note`
+- `death`
+- `cdm_source`
 
-## Key Design Decisions
+The load order follows foreign-key dependencies.
 
-### Deterministic integer IDs
+### 50_cdm_clinical
 
-- **person_id, provider_id, visit_occurrence_id, location_id, care_site_id** come from `stg.map_*` tables built with `ROW_NUMBER() OVER (ORDER BY <stable_source_key>)`. Same source data ⇒ same IDs on every run.
-- **Clinical table IDs** (condition_occurrence_id, drug_exposure_id, measurement_id, observation_id, procedure_occurrence_id) use fixed numeric ranges (e.g. 800M, 700M, 500M, 400M, 300M, 200M, 100M) plus row_number so they are deterministic and non-overlapping.
+This phase loads the event tables:
 
-### Unmapped concepts → 0
+- `condition_occurrence`
+- `drug_exposure`
+- `measurement`
+- `observation`
+- `procedure_occurrence`
 
-- OMOP requires concept_id columns to be NOT NULL where applicable; "no mapping" is represented as **0** (config: `concept_id_unknown`), not NULL.
-- Original values are always stored in `*_source_value` (and `*_source_concept_id` when a source concept exists but no standard mapping).
+It also includes domain routing, which moves rows into the correct OMOP domain when the mapped concept belongs somewhere else.
 
-### Person and DOB
+That routing step is important because Delphi source fields do not always align cleanly with OMOP domains.
 
-- **year_of_birth** in `cdm.person` is NOT NULL. The ETL only inserts persons who have a **parseable DOB in `stg.enrollment`**. Members who appear only in other tables or have null/unparseable DOB are **not** inserted into person and are logged in `stg.reject_person_missing_dob`. No sentinel year or inference from encounter.Patient_DOB in v1.
+### 60_cdm_derived
 
-### Medication orders vs. fulfillment
+Derived tables are built from the loaded events. In the current pipeline this includes:
 
-- **Both** medication_orders and medication_fulfillment are loaded into `cdm.drug_exposure` with different **drug_type_concept_id** (38000177 order, 38000230 dispensed).
-- Fulfillment rows are joined to medication_orders on Order_ID to get member_id and drug fields; if Order_ID is missing in orders, the row is logged in `stg.reject_fulfillment_no_order` and not loaded.
-- Config flag **prefer_fulfillment** is documented; if set true, the ETL could exclude order rows that have a matching fulfillment (logic can be added in 61/62).
+- `observation_period`
+- `condition_era`
+- `drug_era`
+- `dose_era`
 
-### Visit and encounter
+### 90_qc
 
-- **Encounter_ID** is the backbone for visit linking. visit_occurrence_id = map_visit(encounter_id). When Encounter_ID is missing on a clinical row, visit_occurrence_id is left NULL but person_id and date are still loaded.
-- **Visit end date**: When the source has no end time, visit_end_date = visit_start_date (same-day encounter).
+The final phase writes quality tables into `stg`, including:
 
-### Reject tables
+- row counts
+- mapping coverage
+- orphan checks
+- parse-failure counts
+- required-field checks
+- domain conformance checks
 
-- Every staging script that parses dates or numerics writes failing rows to a **reject** table (e.g. non-null DOB that did not parse → `stg.reject_enrollment_dates`). Load scripts add rejects for missing person (e.g. `reject_visit_missing_person`, `reject_condition_missing_person`). QC script 93 summarizes counts per reject table.
+These tables are designed for post-run review, not just debugging.
 
-### Allergy and therapy
+## Design Decisions
 
-- **Allergy**: v1 uses observation_concept_id = 0; observation_source_value holds Allergen or Drug_Code. Optional future: map Drug_Code/Drug_Vocab to drug concepts.
-- **Therapy**: procedure_date is taken from encounter via Encounter_ID. Rows with no encounter or no encounter_date are rejected.
+### Person Loading Requires A Parseable Date Of Birth
 
----
+`person.year_of_birth` is required in OMOP. ETLDelphi therefore only loads persons with a parseable DOB from the enrollment feed.
 
-## Configuration
+If a member appears in clinical events but has no usable DOB, the event may still exist in staging, but that member is excluded from `person` and recorded in `stg.reject_person_missing_dob`.
 
-Configuration is read from **`inst/extdata/config.yml`** (or a path you pass). Key sections:
+### Unmapped Standard Concepts Use `0`
 
-- **schemas**: `src`, `stg`, `cdm` — used for schema substitution in SQL (`@cdmDatabaseSchema`, `{cdm}`, `{stg}`, `{src}`).
-- **concept_id_unknown**: `0`.
-- **date_formats**: list of strptime formats (used conceptually; SQL scripts use explicit `try_strptime` sequences).
-- **type_concept_ids**: visit_type (44818517), default_visit (44813942), condition (32818), drug orders (38000177), dispensed (38000230), immunization (38000280), measurement vitals (32817), labs (32827), observation allergy (32859), note type/class (44813942, 44814639), language (4180186), encoding (44815386), procedure (38000268), period (32821), death (32817).
-- **prefer_fulfillment**: when true (future), exclude medication_orders that have a matching fulfillment.
+When a standard concept cannot be assigned, the ETL writes `0` rather than `NULL` in the standard concept field, and keeps the original source value in the `*_source_value` column.
 
-You can override config by passing a list to `run_etl(con, config = my_list)` or a path with `run_etl(con, config_path = "path/to/config.yml")`.
+That makes unmapped rows easy to count and export for cleanup.
 
----
+### Type Concepts Are Configuration, Not Hardcoded Truth
 
-## Running the ETL
+The SQL loaders contain placeholders such as `{visit_type_concept_id}` and `{drug_type_orders}`. `run_sql_scripts()` replaces those with values from `config$type_concept_ids`.
 
-### Full run
+This is intentional. Type concept choices can vary by vocabulary release and by how strictly you want to satisfy DQD.
 
-```{r run-full}
-library(DBI)
-library(duckdb)
+### Domain Routing Is Part Of The ETL Contract
+
+The clinical loaders intentionally prioritize source-specific loading first, then correct domain mismatches in `70_domain_routing.sql`.
+
+That means:
+
+- the first load is not always the final OMOP table
+- QC review should include `stg.domain_routing_log`
+
+### Custom Mapping Files Are First-Class Inputs
+
+The package supports three external CSV inputs:
+
+- drug-name fallback mappings
+- custom concept mappings
+- custom NDC overrides
+
+Those files are loaded during the vocabulary phase and are meant to be part of the normal maintenance loop.
+
+## Recommended Operational Workflow
+
+For a clean run:
+
+```{r workflow}
 library(ETLDelphi)
 
-con <- dbConnect(duckdb::duckdb(), "path/to/your.duckdb")
-run_etl(con)
-dbDisconnect(con, shutdown = TRUE)
+con <- init_vocabulary_db(
+  db_path = "path/to/delphi.duckdb",
+  vocabulary_dir = "path/to/vocabulary_download_v5",
+  cdm_schema = "main"
+)
+
+init_source_data(con, "path/to/delphi_csvs")
+
+cfg <- default_etl_config()
+run_etl(con, config = cfg)
 ```
 
-### Dry run (list scripts only)
+For iterative mapping work:
 
-```{r dry-run}
-run_etl(con, dry_run = TRUE)
+```{r iterative}
+# Re-run only the mapping and downstream phases
+run_etl(con, from_step = "30_vocab")
+
+# Then review QC outputs
+DBI::dbGetQuery(con, "SELECT * FROM stg.qc_mapping_coverage")
+DBI::dbGetQuery(con, "SELECT * FROM stg.domain_routing_log")
 ```
 
-### From / to step
+## What This ETL Does Not Try To Hide
 
-Run only a subset of the pipeline (e.g. from CDM core through clinical, or only QC):
+This package favors explicitness over pretending the source is cleaner than it is.
 
-```{r from-to}
-# From admin through staging
-run_etl(con, from_step = "00_admin", to_step = "02_clear")
+It does not:
 
-# From CDM core through end (assumes stg already populated)
-run_etl(con, from_step = "40_cdm_core")
+- infer missing DOBs to force every member into `person`
+- silently drop parse failures without a reject trail
+- assume every source value has a clean standard concept
+- hide domain mismatches instead of logging them
 
-# Only QC
-run_etl(con, from_step = "90_qc", to_step = "94_required_fields")
-```
-
-### Custom config or SQL directory
-
-```{r custom}
-run_etl(con, config_path = "/path/to/config.yml")
-run_etl(con, sql_dir = "/path/to/sql")
-```
-
----
-
-## QC and Observability
-
-After a run, inspect:
-
-- **`stg.qc_row_counts`** — row counts per table.
-- **`stg.qc_mapping_coverage`** — unmapped counts and percentages per clinical table.
-- **`stg.qc_orphans`** — referential integrity (orphan person_id, visit_occurrence_id).
-- **`stg.qc_parse_failures`** — counts per reject table.
-- **`stg.qc_required_fields`** — NOT NULL violations.
-
-Reject tables (e.g. `stg.reject_enrollment_dates`, `stg.reject_visit_missing_person`) hold the actual failing rows for review. The runner can be extended to **abort** if `stg.qc_required_fields` has any `violation_count > 0`.
-
----
-
-## Updating Mappings and Limitations
-
-- **Gender/race**: Edit `40_map_gender.sql` and `41_map_race.sql`; add (source_value, concept_id) or rely on the INSERT that adds enrollment values with 0.
-- **Visit concept**: Adjust rules in `42_map_visit_concept.sql` (appt_type, clinic_type → visit_concept_id).
-- **Drug**: NDC mapping uses `cdm.concept` and `cdm.concept_relationship`; extend for drug name if needed.
-- **Condition**: `46_map_condition.sql` uses Problem_Code and vocabulary (ICD10, ICD9, SNOMED, Medcin).
-- **Units**: Add unit strings in `45_map_units.sql`.
-- **Vitals**: `47_map_vitals.sql` uses placeholder concept IDs; replace with your vocabulary’s measurement and unit concepts.
-
-**Known limitations**: Person load requires DOB in enrollment; SOAP_Note may be truncated (varchar(255) in source); allergy observation concept is 0 in v1; observation_period is derived from event dates (no death truncation rule applied in v1). The **prefer_fulfillment** flag is not yet implemented in the load scripts.
-
----
+That tradeoff makes the pipeline noisier, but easier to validate and maintain.
 
 ## Summary
 
-The ETL is a **SQL-first, ordered pipeline** with a clear **src → stg → cdm** flow, **deterministic integer IDs**, **explicit concept mapping** (unmapped = 0), and **reject + QC tables** for observability. The R package **orchestrates** execution and logging; all business logic lives in the SQL scripts under `inst/sql/`, so changes to rules or mappings are made there and documented in this vignette.
+ETLDelphi is a staged, SQL-driven ETL with:
+
+- deterministic ID assignment
+- explicit concept mapping
+- configurable type concepts
+- domain correction after loading
+- built-in QC outputs for review
+
+The fastest way to understand a run is:
+
+1. check `stg.etl_step_log`
+2. inspect `stg.qc_mapping_coverage`
+3. review `stg.domain_routing_log`
+4. inspect the specific `stg.reject_*` tables that show non-zero counts

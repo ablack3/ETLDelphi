@@ -1,0 +1,16 @@
+url: https://ablack3.github.io/ETLDelphi/
+
+template:
+  bootstrap: 5
+
+development:
+  mode: unreleased
+
+articles:
+  - title: Vignettes
+    navbar: Vignettes
+    contents:
+      - how_to_run
+      - etl
+      - run_etl_steps
+      - oncology_diagnostic
