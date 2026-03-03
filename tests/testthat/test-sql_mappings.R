@@ -2,16 +2,19 @@ test_that("default_etl_config uses valid defaults for configurable concepts", {
   cfg <- default_etl_config()
   tc <- cfg$type_concept_ids
 
-  expect_identical(tc$visit_type_concept_id, 44818518L)
+  expect_identical(tc$visit_type_concept_id, 32827L)
   expect_identical(tc$default_visit_concept_id, 9202L)
-  expect_identical(tc$condition_type_concept_id, 38000245L)
-  expect_identical(tc$drug_type_dispensed, 38000175L)
-  expect_identical(tc$observation_type_allergy, 38000280L)
+  expect_identical(tc$condition_type_concept_id, 32840L)
+  expect_identical(tc$drug_type_orders, 32838L)
+  expect_identical(tc$drug_type_dispensed, 32825L)
+  expect_identical(tc$measurement_type_vitals, 32836L)
+  expect_identical(tc$measurement_type_labs, 32856L)
+  expect_identical(tc$observation_type_allergy, 32817L)
   expect_identical(tc$note_type_concept_id, 32831L)
   expect_identical(tc$note_class_concept_id, 3000735L)
   expect_identical(tc$encoding_concept_id, 32678L)
-  expect_identical(tc$procedure_type_concept_id, 38000275L)
-  expect_identical(tc$death_type_concept_id, 32510L)
+  expect_identical(tc$procedure_type_concept_id, 32833L)
+  expect_identical(tc$death_type_concept_id, 32817L)
 })
 
 test_that("visit concept mapping treats null clinic rules as wildcards", {
@@ -128,4 +131,111 @@ test_that("core ETL SQL uses configurable placeholders for type concepts", {
     sql <- paste(readLines(sql_path, warn = FALSE), collapse = "\n")
     expect_true(grepl(check[[3]], sql, fixed = TRUE), info = basename(sql_path))
   }
+})
+
+test_that("lab measurement loading parses numeric text and limits categorical fallback", {
+  skip_if_not_installed("duckdb")
+
+  con <- DBI::dbConnect(duckdb::duckdb(), ":memory:")
+  on.exit(DBI::dbDisconnect(con, shutdown = TRUE), add = TRUE)
+
+  DBI::dbExecute(con, "CREATE SCHEMA stg")
+  DBI::dbExecute(con, "CREATE SCHEMA cdm")
+  DBI::dbExecute(
+    con,
+    "CREATE TABLE stg.lab_results (
+      member_id VARCHAR,
+      test_loinc VARCHAR,
+      test_name VARCHAR,
+      date_resulted DATE,
+      date_collected DATE,
+      date_resulted_datetime TIMESTAMP,
+      date_collected_datetime TIMESTAMP,
+      numeric_result DOUBLE,
+      result_description VARCHAR,
+      units VARCHAR,
+      range_low DOUBLE,
+      range_high DOUBLE,
+      encounter_id VARCHAR,
+      provider_id VARCHAR,
+      order_id VARCHAR
+    )"
+  )
+  DBI::dbExecute(
+    con,
+    "INSERT INTO stg.lab_results VALUES
+      ('1', '1234-5', 'test', DATE '2020-01-01', NULL, NULL, NULL, NULL, '4.8', NULL, NULL, NULL, NULL, NULL, 'a'),
+      ('1', '1234-5', 'test', DATE '2020-01-02', NULL, NULL, NULL, NULL, 'Straw', NULL, NULL, NULL, NULL, NULL, 'b'),
+      ('1', '1234-5', 'test', DATE '2020-01-03', NULL, NULL, NULL, NULL, 'Plts=163,000 /uL', NULL, NULL, NULL, NULL, NULL, 'c')"
+  )
+  DBI::dbExecute(con, "CREATE TABLE stg.map_person (member_id VARCHAR, person_id INTEGER)")
+  DBI::dbExecute(con, "INSERT INTO stg.map_person VALUES ('1', 101)")
+  DBI::dbExecute(
+    con,
+    "CREATE TABLE stg.map_loinc_measurement (
+      loinc_code VARCHAR,
+      measurement_concept_id INTEGER,
+      measurement_source_concept_id INTEGER
+    )"
+  )
+  DBI::dbExecute(con, "INSERT INTO stg.map_loinc_measurement VALUES ('1234-5', 3001, 12345)")
+  DBI::dbExecute(
+    con,
+    "CREATE TABLE stg.custom_concept_mapping (source_value VARCHAR, domain VARCHAR, concept_id INTEGER)"
+  )
+  DBI::dbExecute(con, "CREATE TABLE stg.map_units (unit_source_value VARCHAR, unit_concept_id INTEGER)")
+  DBI::dbExecute(con, "CREATE TABLE stg.map_visit (encounter_id_source VARCHAR, visit_occurrence_id INTEGER)")
+  DBI::dbExecute(con, "CREATE TABLE stg.map_provider (provider_id_source VARCHAR, provider_id INTEGER)")
+  DBI::dbExecute(
+    con,
+    "CREATE TABLE stg.map_measurement_value (result_source_value VARCHAR, value_as_concept_id INTEGER)"
+  )
+  DBI::dbExecute(con, "INSERT INTO stg.map_measurement_value VALUES ('straw', 763957)")
+  DBI::dbExecute(
+    con,
+    "CREATE TABLE cdm.measurement (
+      measurement_id INTEGER,
+      person_id INTEGER,
+      measurement_concept_id INTEGER,
+      measurement_source_concept_id INTEGER,
+      measurement_date DATE,
+      measurement_datetime TIMESTAMP,
+      measurement_type_concept_id INTEGER,
+      value_as_number DOUBLE,
+      value_as_concept_id INTEGER,
+      unit_concept_id INTEGER,
+      unit_source_value VARCHAR,
+      range_low DOUBLE,
+      range_high DOUBLE,
+      visit_occurrence_id INTEGER,
+      provider_id INTEGER,
+      measurement_source_value VARCHAR,
+      value_source_value VARCHAR
+    )"
+  )
+
+  sql_path <- system.file("sql", "50_cdm_clinical", "65_load_measurement_labs.sql", package = "ETLDelphi", mustWork = TRUE)
+  sql <- paste(readLines(sql_path, warn = FALSE), collapse = "\n")
+  sql <- gsub("\\{measurement_type_labs\\}", "32856", sql)
+  sql <- gsub("--[^\n]*", "\n", sql)
+  for (stmt in ETLDelphi:::split_sql_statements(sql)) {
+    stmt <- trimws(stmt)
+    if (!nzchar(stmt)) next
+    DBI::dbExecute(con, stmt)
+  }
+
+  out <- DBI::dbGetQuery(
+    con,
+    "SELECT measurement_date, value_as_number, value_as_concept_id, value_source_value
+     FROM cdm.measurement
+     ORDER BY measurement_date"
+  )
+
+  expect_equal(out$value_as_number[1], 4.8)
+  expect_true(is.na(out$value_as_concept_id[1]))
+  expect_equal(out$value_as_concept_id[2], 763957)
+  expect_equal(out$value_source_value[2], "Straw")
+  expect_true(is.na(out$value_as_number[3]))
+  expect_true(is.na(out$value_as_concept_id[3]))
+  expect_equal(out$value_source_value[3], "Plts=163,000 /uL")
 })

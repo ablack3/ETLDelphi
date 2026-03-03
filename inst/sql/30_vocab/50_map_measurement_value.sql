@@ -25,6 +25,7 @@ SELECT result_source_value, value_as_concept_id FROM (VALUES
     ('pass', 4181412),
     ('fail', 4135493),
     ('clear', 4069590),
+    ('straw', 763957),
     ('negative-trace', 9192),
     ('trace-negative', 9192)
 ) AS t(result_source_value, value_as_concept_id);
