@@ -14,7 +14,7 @@ buildSnpReference(snpPanel, nullSnpCount, seed)
 \item{seed}{Random seed for null SNP generation.}
 }
 \value{
-A data.frame with one row per SNP.
+A data.frame with one row per unique SNP.
 }
 \description{
 Build the SNP reference data frame from the panel definition

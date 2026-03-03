@@ -35,19 +35,20 @@ allele frequencies. Currently only "EUR" is supported. Default "EUR".}
 exist. Default FALSE.}
 }
 \value{
-The input \code{cdm} object, invisibly. The three tables are written
+The input \code{cdm} object, invisibly. The four tables are written
 directly into the DuckDB database attached to \code{cdm}.
 }
 \description{
 Takes a CDMConnector CDM object backed by DuckDB and simulates realistic
-genomic variant data for all persons, writing two new tables directly into
+genomic variant data for all persons, writing four new tables directly into
 the database:
 \itemize{
 \item \code{genomic_variants}   : long-format person-level genotype table
 (only variant-carrying rows stored; 0-genotype
 rows are never written)
 \item \code{ancestry_pcs}       : 10 principal components per person
-\item \code{snp_reference}      : SNP metadata and GWAS effect sizes
+\item \code{snp_reference}      : unique SNP metadata and summary annotations
+\item \code{snp_trait_map}      : one row per SNP-trait association used for simulation
 }
 
 Genotypes are simulated using posterior sampling conditioned on observed
@@ -115,8 +116,8 @@ cdm <- cdmFromCon(con, cdmSchema = "main", writeSchema = "main")
 cdm <- simulateGenomicData(cdm, seed = 42)
 
 # Inspect results
-DBI::dbGetQuery(con, "SELECT COUNT(*) FROM genomic_variants")
-DBI::dbGetQuery(con, "SELECT * FROM snp_reference LIMIT 5")
+DBI::dbGetQuery(con, "SELECT COUNT(*) FROM stg.genomic_variants")
+DBI::dbGetQuery(con, "SELECT * FROM stg.snp_reference LIMIT 5")
 
 cdmDisconnect(cdm)
 }

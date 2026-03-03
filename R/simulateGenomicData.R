@@ -2,14 +2,15 @@
 #'
 #' @description
 #' Takes a CDMConnector CDM object backed by DuckDB and simulates realistic
-#' genomic variant data for all persons, writing two new tables directly into
+#' genomic variant data for all persons, writing four new tables directly into
 #' the database:
 #'
 #'   - `genomic_variants`   : long-format person-level genotype table
 #'                            (only variant-carrying rows stored; 0-genotype
 #'                            rows are never written)
 #'   - `ancestry_pcs`       : 10 principal components per person
-#'   - `snp_reference`      : SNP metadata and GWAS effect sizes
+#'   - `snp_reference`      : unique SNP metadata and summary annotations
+#'   - `snp_trait_map`      : one row per SNP-trait association used for simulation
 #'
 #' Genotypes are simulated using posterior sampling conditioned on observed
 #' phenotypes from CONDITION_OCCURRENCE and MEASUREMENT, anchored to real
@@ -33,7 +34,7 @@
 #' @param overwrite Logical. If TRUE, drop and recreate tables if they already
 #'   exist. Default FALSE.
 #'
-#' @return The input `cdm` object, invisibly. The three tables are written
+#' @return The input `cdm` object, invisibly. The four tables are written
 #'   directly into the DuckDB database attached to `cdm`.
 #'
 #' @details
@@ -85,8 +86,8 @@
 #' cdm <- simulateGenomicData(cdm, seed = 42)
 #'
 #' # Inspect results
-#' DBI::dbGetQuery(con, "SELECT COUNT(*) FROM genomic_variants")
-#' DBI::dbGetQuery(con, "SELECT * FROM snp_reference LIMIT 5")
+#' DBI::dbGetQuery(con, "SELECT COUNT(*) FROM stg.genomic_variants")
+#' DBI::dbGetQuery(con, "SELECT * FROM stg.snp_reference LIMIT 5")
 #'
 #' cdmDisconnect(cdm)
 #' }
@@ -130,7 +131,7 @@ simulateGenomicData <- function(
 
   # 1. Check / handle existing tables
 
-  tables_needed <- c("genomic_variants", "ancestry_pcs", "snp_reference")
+  tables_needed <- c("genomic_variants", "ancestry_pcs", "snp_reference", "snp_trait_map")
   table_ids <- stats::setNames(lapply(tables_needed, genomic_table_id), tables_needed)
 
   DBI::dbExecute(
@@ -184,17 +185,19 @@ simulateGenomicData <- function(
 
   .msg("Building SNP reference panel ...")
 
+  snp_trait_map <- buildSnpTraitMap(snpPanel)
   snp_ref <- buildSnpReference(snpPanel, nullSnpCount, seed)
 
   .msg("  SNPs in panel: ", nrow(snp_ref))
 
   DBI::dbWriteTable(con, table_ids$snp_reference, snp_ref, overwrite = TRUE)
+  DBI::dbWriteTable(con, table_ids$snp_trait_map, snp_trait_map, overwrite = TRUE)
 
   # 4. Extract phenotype proxies from CDM
 
   .msg("Extracting phenotype proxies from conditions and measurements ...")
 
-  phenotype_data <- extractPhenotypeProxies(cdm, snp_ref, person_ids, verbose)
+  phenotype_data <- extractPhenotypeProxies(cdm, snp_trait_map, person_ids, verbose)
 
   # phenotype_data: data.frame with columns:
   #   person_id, trait_key, proxy_value (numeric: z-score or 0/1 for binary)
@@ -212,6 +215,11 @@ simulateGenomicData <- function(
            quoted_table_name(con, table_ids$ancestry_pcs), "(person_id)"))
 
   .msg("  Ancestry PCs written.")
+
+  freq_model <- loadSnpFrequencyModel(snp_ref$snp_id)
+  if (verbose && nrow(freq_model) > 0) {
+    .msg("  Loaded reference frequency models for ", nrow(freq_model), " SNPs.")
+  }
 
   # 6. Simulate genotypes
   #
@@ -252,7 +260,9 @@ simulateGenomicData <- function(
       ld_blocks   = ld_blocks,
       pheno_data  = chunk_pheno,
       pc_data     = chunk_pcs,
-      seed        = seed + chunk_i
+      seed        = seed + chunk_i,
+      snp_trait_map = snp_trait_map,
+      freq_model  = freq_model
     )
 
     # Only store rows where genotype > 0
@@ -287,6 +297,11 @@ simulateGenomicData <- function(
     paste0("CREATE INDEX IF NOT EXISTS idx_snpref_snp ON ",
            quoted_table_name(con, table_ids$snp_reference), "(snp_id)")
   )
+  DBI::dbExecute(
+    con,
+    paste0("CREATE INDEX IF NOT EXISTS idx_stm_snp ON ",
+           quoted_table_name(con, table_ids$snp_trait_map), "(snp_id)")
+  )
 
   # 8. Summary diagnostics
 
@@ -307,7 +322,7 @@ simulateGenomicData <- function(
   }
 
   .msg("Done. Tables written to ", stage_schema,
-       ": genomic_variants, ancestry_pcs, snp_reference")
+       ": genomic_variants, ancestry_pcs, snp_reference, snp_trait_map")
 
   invisible(cdm)
 }
@@ -538,10 +553,121 @@ defaultSnpPanel <- function() {
 #' @param snpPanel List returned by defaultSnpPanel() or user-supplied equivalent.
 #' @param nullSnpCount Number of null (non-associated) SNPs to add.
 #' @param seed Random seed for null SNP generation.
-#' @return A data.frame with one row per SNP.
+#' @return A data.frame with one row per unique SNP.
 #' @keywords internal
 buildSnpReference <- function(snpPanel, nullSnpCount, seed) {
+  expanded <- expandSnpPanel(snpPanel)
+  association_cols <- c(
+    "trait_key", "trait_label", "gwas_source", "proxy_type",
+    "proxy_concept_ids", "proxy_direction", "beta_ZX", "se_ZX",
+    "pval_ZX", "association_count"
+  )
 
+  if (nrow(expanded) > 0) {
+    invariant_cols <- c(
+      "snp_id", "chromosome", "position", "effect_allele", "other_allele",
+      "eaf", "gene_symbol", "hgnc_id", "is_null_snp", "gwas_retrieved"
+    )
+    snp_df <- expanded[!duplicated(expanded$snp_id), invariant_cols, drop = FALSE]
+    summaries <- summariseSnpAssociations(expanded)
+    summary_idx <- match(snp_df$snp_id, summaries$snp_id)
+    snp_df <- cbind(
+      snp_df,
+      summaries[summary_idx, association_cols, drop = FALSE]
+    )
+  } else {
+    snp_df <- data.frame(
+      snp_id = character(0),
+      chromosome = integer(0),
+      position = integer(0),
+      effect_allele = character(0),
+      other_allele = character(0),
+      eaf = numeric(0),
+      gene_symbol = character(0),
+      hgnc_id = character(0),
+      is_null_snp = logical(0),
+      gwas_retrieved = character(0),
+      trait_key = character(0),
+      trait_label = character(0),
+      gwas_source = character(0),
+      proxy_type = character(0),
+      proxy_concept_ids = character(0),
+      proxy_direction = integer(0),
+      beta_ZX = numeric(0),
+      se_ZX = numeric(0),
+      pval_ZX = numeric(0),
+      association_count = integer(0),
+      stringsAsFactors = FALSE
+    )
+  }
+
+  # Add null SNPs: random allele frequencies, beta_ZX = 0
+  # These should show NO signal in PheWAS, useful for diagnostic demonstration
+  if (nullSnpCount < 1L) {
+    return(snp_df)
+  }
+
+  set.seed(seed + 999L)
+  null_snps <- data.frame(
+    snp_id            = paste0("rs_null_", seq_len(nullSnpCount)),
+    chromosome        = sample(1L:22L, nullSnpCount, replace = TRUE),
+    position          = sample(1e6L:2e8L, nullSnpCount, replace = TRUE),
+    effect_allele     = sample(c("A","T","G","C"), nullSnpCount, replace=TRUE),
+    other_allele      = sample(c("A","T","G","C"), nullSnpCount, replace=TRUE),
+    eaf               = stats::runif(nullSnpCount, 0.05, 0.95),
+    gene_symbol       = NA_character_,
+    hgnc_id           = NA_character_,
+    trait_key         = "null",
+    trait_label       = "Null (no association)",
+    gwas_source       = NA_character_,
+    proxy_type        = "none",
+    proxy_concept_ids = NA_character_,
+    proxy_direction   = 0L,
+    association_count = 0L,
+    is_null_snp       = TRUE,
+    beta_ZX           = 0,
+    se_ZX             = 0,
+    pval_ZX           = 1,
+    gwas_retrieved    = as.character(Sys.Date()),
+    stringsAsFactors  = FALSE
+  )
+  null_snps <- null_snps[, names(snp_df), drop = FALSE]
+
+  rbind(snp_df, null_snps)
+}
+
+
+#' Build the SNP-trait association data frame from the panel definition
+#'
+#' @param snpPanel List returned by defaultSnpPanel() or user-supplied equivalent.
+#' @return A data.frame with one row per SNP-trait association.
+#' @keywords internal
+buildSnpTraitMap <- function(snpPanel) {
+  expanded <- expandSnpPanel(snpPanel)
+  if (nrow(expanded) == 0) {
+    return(data.frame(
+      snp_id = character(0),
+      trait_key = character(0),
+      trait_label = character(0),
+      gwas_source = character(0),
+      proxy_type = character(0),
+      proxy_concept_ids = character(0),
+      proxy_direction = integer(0),
+      beta_ZX = numeric(0),
+      se_ZX = numeric(0),
+      pval_ZX = numeric(0),
+      stringsAsFactors = FALSE
+    ))
+  }
+
+  expanded[, c(
+    "snp_id", "trait_key", "trait_label", "gwas_source", "proxy_type",
+    "proxy_concept_ids", "proxy_direction", "beta_ZX", "se_ZX", "pval_ZX"
+  ), drop = FALSE]
+}
+
+
+expandSnpPanel <- function(snpPanel) {
   rows <- list()
 
   for (trait in snpPanel) {
@@ -571,41 +697,74 @@ buildSnpReference <- function(snpPanel, nullSnpCount, seed) {
     }
   }
 
-  # Remove duplicate snp_ids that appear in multiple traits (keep first)
-  snp_df <- do.call(rbind, rows)
-  snp_df <- snp_df[!duplicated(snp_df$snp_id), ]
-
-  # Add null SNPs: random allele frequencies, beta_ZX = 0
-  # These should show NO signal in PheWAS, useful for diagnostic demonstration
-  if (nullSnpCount < 1L) {
-    return(snp_df)
+  if (length(rows) == 0) {
+    return(data.frame(
+      snp_id = character(0),
+      chromosome = integer(0),
+      position = integer(0),
+      effect_allele = character(0),
+      other_allele = character(0),
+      eaf = numeric(0),
+      beta_ZX = numeric(0),
+      se_ZX = numeric(0),
+      pval_ZX = numeric(0),
+      gene_symbol = character(0),
+      hgnc_id = character(0),
+      trait_key = character(0),
+      trait_label = character(0),
+      gwas_source = character(0),
+      proxy_type = character(0),
+      proxy_concept_ids = character(0),
+      proxy_direction = integer(0),
+      is_null_snp = logical(0),
+      gwas_retrieved = character(0),
+      stringsAsFactors = FALSE
+    ))
   }
 
-  set.seed(seed + 999L)
-  null_snps <- data.frame(
-    snp_id            = paste0("rs_null_", seq_len(nullSnpCount)),
-    chromosome        = sample(1L:22L, nullSnpCount, replace = TRUE),
-    position          = sample(1e6L:2e8L, nullSnpCount, replace = TRUE),
-    effect_allele     = sample(c("A","T","G","C"), nullSnpCount, replace=TRUE),
-    other_allele      = sample(c("A","T","G","C"), nullSnpCount, replace=TRUE),
-    eaf               = stats::runif(nullSnpCount, 0.05, 0.95),
-    beta_ZX           = 0,
-    se_ZX             = 0,
-    pval_ZX           = 1,
-    gene_symbol       = NA_character_,
-    hgnc_id           = NA_character_,
-    trait_key         = "null",
-    trait_label       = "Null (no association)",
-    gwas_source       = NA_character_,
-    proxy_type        = "none",
-    proxy_concept_ids = NA_character_,
-    proxy_direction   = 0L,
-    is_null_snp       = TRUE,
-    gwas_retrieved    = as.character(Sys.Date()),
-    stringsAsFactors  = FALSE
-  )
+  do.call(rbind, rows)
+}
 
-  rbind(snp_df, null_snps)
+
+summariseSnpAssociations <- function(expanded_rows) {
+  split_rows <- split(expanded_rows, expanded_rows$snp_id)
+  summaries <- lapply(split_rows, function(df) {
+    data.frame(
+      snp_id = df$snp_id[1],
+      trait_key = if (nrow(df) == 1L) df$trait_key[1] else "multi_trait",
+      trait_label = collapse_unique_values(df$trait_label),
+      gwas_source = collapse_unique_values(df$gwas_source),
+      proxy_type = unique_or_na(df$proxy_type),
+      proxy_concept_ids = if (nrow(df) == 1L) df$proxy_concept_ids[1] else NA_character_,
+      proxy_direction = unique_or_na(df$proxy_direction),
+      beta_ZX = if (nrow(df) == 1L) df$beta_ZX[1] else NA_real_,
+      se_ZX = if (nrow(df) == 1L) df$se_ZX[1] else NA_real_,
+      pval_ZX = if (nrow(df) == 1L) df$pval_ZX[1] else NA_real_,
+      association_count = as.integer(nrow(df)),
+      stringsAsFactors = FALSE
+    )
+  })
+
+  do.call(rbind, summaries)
+}
+
+
+collapse_unique_values <- function(x) {
+  vals <- unique(x[!is.na(x) & nzchar(x)])
+  if (length(vals) == 0) {
+    return(NA_character_)
+  }
+  paste(vals, collapse = " | ")
+}
+
+
+unique_or_na <- function(x) {
+  vals <- unique(x[!is.na(x)])
+  if (length(vals) == 1L) {
+    vals[[1]]
+  } else {
+    NA
+  }
 }
 
 
@@ -620,11 +779,15 @@ buildSnpReference <- function(snpPanel, nullSnpCount, seed) {
 #' Persons with no data for a trait return NA (no conditioning used).
 #'
 #' @keywords internal
-extractPhenotypeProxies <- function(cdm, snp_ref, person_ids, verbose) {
+extractPhenotypeProxies <- function(cdm, snp_trait_map, person_ids, verbose) {
 
   # Get unique traits requiring phenotype extraction
-  active_traits <- snp_ref[!snp_ref$is_null_snp, ]
-  active_traits <- active_traits[!duplicated(active_traits$trait_key), ]
+  active_traits <- snp_trait_map[
+    snp_trait_map$proxy_type %in% c("condition", "measurement"),
+    ,
+    drop = FALSE
+  ]
+  active_traits <- active_traits[!duplicated(active_traits$trait_key), , drop = FALSE]
 
   all_pheno <- list()
 
@@ -757,6 +920,56 @@ simulateAncestryPCs <- function(persons, n_pcs = 10L, seed = 42L) {
 }
 
 
+#' Load the shipped SNP frequency model coefficients
+#'
+#' The bundled coefficients are calibrated from 1000 Genomes Phase 3
+#' subpopulation effect-allele frequencies for the default SNP panel.
+#'
+#' @param snp_ids Optional character vector of SNP IDs to filter to.
+#' @return A data.frame of per-SNP logistic frequency model coefficients.
+#' @keywords internal
+loadSnpFrequencyModel <- function(snp_ids = NULL) {
+  path <- system.file("extdata", "snp_frequency_model.csv", package = "ETLDelphi")
+  if (!nzchar(path)) {
+    dev_path <- file.path("inst", "extdata", "snp_frequency_model.csv")
+    if (file.exists(dev_path)) {
+      path <- dev_path
+    }
+  }
+  if (!nzchar(path) || !file.exists(path)) {
+    return(emptySnpFrequencyModel())
+  }
+
+  freq_model <- utils::read.csv(path, stringsAsFactors = FALSE)
+  if (!is.null(snp_ids)) {
+    freq_model <- freq_model[freq_model$snp_id %in% snp_ids, , drop = FALSE]
+  }
+
+  freq_model
+}
+
+
+emptySnpFrequencyModel <- function() {
+  data.frame(
+    snp_id = character(0),
+    intercept = numeric(0),
+    pc1_coef = numeric(0),
+    pc2_coef = numeric(0),
+    pc3_coef = numeric(0),
+    pc4_coef = numeric(0),
+    pc5_coef = numeric(0),
+    pc6_coef = numeric(0),
+    pc7_coef = numeric(0),
+    pc8_coef = numeric(0),
+    pc9_coef = numeric(0),
+    pc10_coef = numeric(0),
+    min_eaf = numeric(0),
+    max_eaf = numeric(0),
+    stringsAsFactors = FALSE
+  )
+}
+
+
 #' Define LD blocks for the SNP panel
 #'
 #' Groups SNPs by chromosomal proximity into LD blocks. SNPs on different
@@ -837,12 +1050,41 @@ buildLDBlocks <- function(snp_ref) {
 #'   person_id, snp_id, genotype, genotype_method
 #' @keywords internal
 simulateChunkGenotypes <- function(person_ids, snp_ref, ld_blocks,
-                                   pheno_data, pc_data, seed) {
+                                   pheno_data, pc_data, seed,
+                                   snp_trait_map = NULL,
+                                   freq_model = NULL) {
 
   set.seed(seed)
   n_persons <- length(person_ids)
   pc_cols <- grep("^pc[0-9]+$", names(pc_data), value = TRUE)
   pc_matrix <- NULL
+
+  if (is.null(snp_trait_map)) {
+    trait_cols <- c(
+      "snp_id", "trait_key", "trait_label", "gwas_source", "proxy_type",
+      "proxy_concept_ids", "proxy_direction", "beta_ZX", "se_ZX", "pval_ZX"
+    )
+    if (all(trait_cols %in% names(snp_ref))) {
+      snp_trait_map <- snp_ref[, trait_cols, drop = FALSE]
+    } else {
+      snp_trait_map <- data.frame(
+        snp_id = character(0),
+        trait_key = character(0),
+        trait_label = character(0),
+        gwas_source = character(0),
+        proxy_type = character(0),
+        proxy_concept_ids = character(0),
+        proxy_direction = integer(0),
+        beta_ZX = numeric(0),
+        se_ZX = numeric(0),
+        pval_ZX = numeric(0),
+        stringsAsFactors = FALSE
+      )
+    }
+  }
+  if (is.null(freq_model)) {
+    freq_model <- emptySnpFrequencyModel()
+  }
 
   if (length(pc_cols) > 0 && nrow(pc_data) > 0) {
     pc_idx <- match(person_ids, pc_data$person_id)
@@ -851,6 +1093,24 @@ simulateChunkGenotypes <- function(person_ids, snp_ref, ld_blocks,
       storage.mode(pc_matrix) <- "double"
       pc_matrix[is.na(pc_matrix)] <- 0
     }
+  }
+
+  pheno_lookup <- if (nrow(pheno_data) > 0) {
+    lapply(split(pheno_data, pheno_data$trait_key), function(df) {
+      stats::setNames(df$proxy_value, as.character(df$person_id))
+    })
+  } else {
+    list()
+  }
+  snp_assoc_lookup <- if (nrow(snp_trait_map) > 0) {
+    split(snp_trait_map, snp_trait_map$snp_id)
+  } else {
+    list()
+  }
+  freq_model_lookup <- if (nrow(freq_model) > 0) {
+    split(freq_model, freq_model$snp_id)
+  } else {
+    list()
   }
 
   # Result accumulator: list of data.frames, one per LD block
@@ -886,8 +1146,6 @@ simulateChunkGenotypes <- function(person_ids, snp_ref, ld_blocks,
 
       snp      <- block_snps[snp_j, ]
       eaf      <- snp$eaf
-      beta_ZX  <- snp$beta_ZX
-      trait_key <- snp$trait_key
 
       # Hardy-Weinberg prior probabilities for G = 0, 1, 2
       hw <- c(
@@ -896,30 +1154,17 @@ simulateChunkGenotypes <- function(person_ids, snp_ref, ld_blocks,
         eaf^2
       )
 
-      if (!is.null(pc_matrix)) {
-        pc_weights <- 2.5 * (0.6 ^ (seq_len(ncol(pc_matrix)) - 1L))
-        pc_weights[seq_along(pc_weights) %% 2L == 0L] <- -pc_weights[seq_along(pc_weights) %% 2L == 0L]
-        snp_sign <- if (((snp$chromosome + snp$position) %% 2L) == 0L) 1 else -1
-        snp_scale <- 1 + ((snp$position %% 1000L) / 1000)
-        logit_p <- stats::qlogis(pmin(pmax(eaf, 1e-6), 1 - 1e-6)) +
-          as.vector(pc_matrix %*% (pc_weights * snp_sign * snp_scale))
-        person_eaf <- pmin(pmax(plogis(logit_p), 0.01), 0.99)
-        hw_person <- cbind(
-          (1 - person_eaf)^2,
-          2 * person_eaf * (1 - person_eaf),
-          person_eaf^2
-        )
-      } else {
-        hw_person <- matrix(rep(hw, each = n_persons), nrow = n_persons)
-      }
+      hw_person <- buildHwPriorMatrix(
+        hw = hw,
+        n_persons = n_persons,
+        pc_matrix = pc_matrix,
+        pc_cols = pc_cols,
+        freq_model_row = freq_model_lookup[[as.character(snp$snp_id)]]
+      )
 
       # CDF breakpoints for mapping correlated normals to genotype categories
-      # These are the cumulative HW probabilities
-      # Retrieve phenotype proxy values for this chunk and trait
-      trait_pheno <- pheno_data[pheno_data$trait_key == trait_key, ]
-      # Named vector: person_id -> proxy_value
-      pheno_map <- setNames(trait_pheno$proxy_value, trait_pheno$person_id)
-      beta_effect <- beta_ZX * if (!is.null(snp$proxy_direction)) snp$proxy_direction else 1
+      # These are the cumulative HW probabilities.
+      snp_associations <- snp_assoc_lookup[[as.character(snp$snp_id)]]
 
       # Initialise genotype vector
       geno <- integer(n_persons)
@@ -931,42 +1176,30 @@ simulateChunkGenotypes <- function(person_ids, snp_ref, ld_blocks,
         # Get the correlated latent uniform for this person x SNP
         u_latent <- pnorm(Z_corr[p_i, snp_j])  # maps to [0, 1]
 
-        # Check if we have a phenotype proxy value for this person
-        proxy_val <- pheno_map[as.character(pid)]
         hw_i <- hw_person[p_i, ]
         hw_cum <- cumsum(hw_i)
 
-        if (is.na(proxy_val) || snp$is_null_snp || beta_ZX == 0) {
+        likelihood <- combinedTraitLikelihood(
+          snp_associations = snp_associations,
+          person_id = pid,
+          pheno_lookup = pheno_lookup
+        )
+
+        if (snp$is_null_snp || is.null(likelihood)) {
           # No phenotype information: use latent uniform directly to
           # assign genotype according to HW probabilities
           geno[p_i] <- sum(u_latent > hw_cum[1L:2L])
           # This gives 0 if u < hw[1], 1 if hw[1] <= u < hw[1]+hw[2], 2 otherwise
 
         } else {
-          # Phenotype-informed posterior sampling
-          # Compute P(y | G=g) for g in {0, 1, 2}
-
-          if (snp$proxy_type == "condition") {
-            # Binary proxy: proxy_val is 1 (has condition) or 0 (does not)
-            # P(Y=1 | G=g) = plogis(alpha + g * beta_ZX)
-            # alpha chosen so marginal P(Y=1) matches observed prevalence
-            # For simulation, use alpha=0 (population average on logit scale)
-            p_y_given_g <- plogis(0 + c(0, 1, 2) * beta_effect)
-            if (proxy_val == 0) p_y_given_g <- 1 - p_y_given_g
-
-          } else {
-            # Continuous proxy: proxy_val is a z-score
-            # P(y | G=g) ~ Normal(g * beta_ZX, 1) evaluated at proxy_val
-            p_y_given_g <- stats::dnorm(proxy_val,
-                                 mean = c(0, 1, 2) * beta_effect,
-                                 sd   = 1)
-            # Avoid underflow
-            p_y_given_g <- pmax(p_y_given_g, 1e-10)
-          }
-
           # Posterior is proportional to likelihood * HW prior
-          posterior <- hw_i * p_y_given_g
-          posterior <- posterior / sum(posterior)
+          posterior <- hw_i * likelihood
+          posterior_sum <- sum(posterior)
+          if (!is.finite(posterior_sum) || posterior_sum <= 0) {
+            geno[p_i] <- sum(u_latent > hw_cum[1L:2L])
+            next
+          }
+          posterior <- posterior / posterior_sum
 
           # Map the correlated latent uniform to the posterior categories
           # This preserves the LD correlation structure while using the
@@ -990,6 +1223,107 @@ simulateChunkGenotypes <- function(person_ids, snp_ref, ld_blocks,
   }
 
   do.call(rbind, result_list)
+}
+
+
+buildHwPriorMatrix <- function(hw, n_persons, pc_matrix, pc_cols, freq_model_row) {
+  if (is.null(pc_matrix) || is.null(freq_model_row) || nrow(freq_model_row) == 0) {
+    return(matrix(rep(hw, each = n_persons), nrow = n_persons))
+  }
+
+  freq_row <- freq_model_row[1, , drop = FALSE]
+  model_coef_cols <- grep("^pc[0-9]+_coef$", names(freq_row), value = TRUE)
+  if (length(model_coef_cols) > 0) {
+    model_pc_cols <- sub("_coef$", "", model_coef_cols)
+    available_pc_cols <- model_pc_cols[model_pc_cols %in% pc_cols]
+  } else {
+    available_pc_cols <- character(0)
+  }
+
+  logit_p <- rep(freq_row$intercept[1], n_persons)
+  if (length(available_pc_cols) > 0) {
+    coef_vec <- as.numeric(
+      freq_row[1, paste0(available_pc_cols, "_coef"), drop = TRUE]
+    )
+    logit_p <- logit_p + as.vector(pc_matrix[, available_pc_cols, drop = FALSE] %*% coef_vec)
+  }
+
+  min_eaf <- if ("min_eaf" %in% names(freq_row) && !is.na(freq_row$min_eaf[1])) {
+    freq_row$min_eaf[1]
+  } else {
+    0.01
+  }
+  max_eaf <- if ("max_eaf" %in% names(freq_row) && !is.na(freq_row$max_eaf[1])) {
+    freq_row$max_eaf[1]
+  } else {
+    0.99
+  }
+
+  person_eaf <- pmin(pmax(plogis(logit_p), min_eaf), max_eaf)
+  cbind(
+    (1 - person_eaf)^2,
+    2 * person_eaf * (1 - person_eaf),
+    person_eaf^2
+  )
+}
+
+
+combinedTraitLikelihood <- function(snp_associations, person_id, pheno_lookup) {
+  if (is.null(snp_associations) || nrow(snp_associations) == 0) {
+    return(NULL)
+  }
+
+  likelihood <- rep(1, 3)
+  used_any <- FALSE
+
+  for (assoc_i in seq_len(nrow(snp_associations))) {
+    assoc <- snp_associations[assoc_i, , drop = FALSE]
+    proxy_map <- pheno_lookup[[as.character(assoc$trait_key[1])]]
+    if (is.null(proxy_map)) {
+      next
+    }
+
+    proxy_val <- proxy_map[as.character(person_id)]
+    if (length(proxy_val) == 0 || is.na(proxy_val)) {
+      next
+    }
+
+    direction <- assoc$proxy_direction[1]
+    if (is.na(direction)) {
+      direction <- 1
+    }
+    beta_effect <- assoc$beta_ZX[1] * direction
+    if (is.na(beta_effect) || beta_effect == 0) {
+      next
+    }
+
+    likelihood <- likelihood * traitLikelihood(proxy_val, assoc$proxy_type[1], beta_effect)
+    used_any <- TRUE
+  }
+
+  if (!used_any) {
+    return(NULL)
+  }
+
+  likelihood
+}
+
+
+traitLikelihood <- function(proxy_val, proxy_type, beta_effect) {
+  if (identical(proxy_type, "condition")) {
+    p_y_given_g <- plogis(c(0, 1, 2) * beta_effect)
+    if (proxy_val == 0) {
+      p_y_given_g <- 1 - p_y_given_g
+    }
+    return(pmax(p_y_given_g, 1e-10))
+  }
+
+  p_y_given_g <- stats::dnorm(
+    proxy_val,
+    mean = c(0, 1, 2) * beta_effect,
+    sd = 1
+  )
+  pmax(p_y_given_g, 1e-10)
 }
 
 
@@ -1125,7 +1459,8 @@ getAncestryPCs <- function(cdm, person_ids = NULL, n_pcs = 10L) {
 #' PROCEDURE_OCCURRENCE records.
 #'
 #' Must be called AFTER \code{simulateGenomicData()} has populated the
-#' \code{stg.genomic_variants} and \code{stg.snp_reference} staging tables.
+#' \code{stg.genomic_variants}, \code{stg.snp_reference}, and
+#' \code{stg.snp_trait_map} staging tables.
 #'
 #' @param con A DBI connection to the DuckDB database.
 #' @param config ETL configuration list (same as used for \code{run_etl}).
@@ -1143,7 +1478,7 @@ run_genomic_etl <- function(con, config = NULL, verbose = TRUE) {
 
   # Verify staging tables exist
   stg <- if (!is.null(config$schemas$stg)) config$schemas$stg else "stg"
-  for (tbl in c("snp_reference", "genomic_variants")) {
+  for (tbl in c("snp_reference", "snp_trait_map", "genomic_variants")) {
     if (!DBI::dbExistsTable(con, DBI::Id(schema = stg, table = tbl))) {
       stop("Staging table '", stg, ".", tbl, "' not found. ",
            "Run simulateGenomicData() before run_genomic_etl().")

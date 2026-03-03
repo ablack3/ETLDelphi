@@ -10,7 +10,9 @@ simulateChunkGenotypes(
   ld_blocks,
   pheno_data,
   pc_data,
-  seed
+  seed,
+  snp_trait_map = NULL,
+  freq_model = NULL
 )
 }
 \value{

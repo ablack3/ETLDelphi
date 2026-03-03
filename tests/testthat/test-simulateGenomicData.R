@@ -48,6 +48,26 @@ make_fake_genomic_cdm <- function(person, condition_occurrence = NULL, measureme
   cdm
 }
 
+make_test_frequency_model <- function(snp_id, intercept, pc1_coef = 0, pc2_coef = 0, min_eaf = 0.01, max_eaf = 0.99) {
+  data.frame(
+    snp_id = snp_id,
+    intercept = intercept,
+    pc1_coef = pc1_coef,
+    pc2_coef = pc2_coef,
+    pc3_coef = 0,
+    pc4_coef = 0,
+    pc5_coef = 0,
+    pc6_coef = 0,
+    pc7_coef = 0,
+    pc8_coef = 0,
+    pc9_coef = 0,
+    pc10_coef = 0,
+    min_eaf = min_eaf,
+    max_eaf = max_eaf,
+    stringsAsFactors = FALSE
+  )
+}
+
 test_that("simulateGenomicData writes staging tables and getGenotypes reads them", {
   skip_if_not_installed("duckdb")
 
@@ -67,8 +87,8 @@ test_that("simulateGenomicData writes staging tables and getGenotypes reads them
 
   snp_panel <- list(
     list(
-      trait_key = "t2d",
-      trait_label = "Type 2 diabetes",
+      trait_key = "trait_a",
+      trait_label = "Trait A",
       gwas_source = "test",
       proxy_type = "condition",
       proxy_concept_ids = c(201826L),
@@ -86,6 +106,27 @@ test_that("simulateGenomicData writes staging tables and getGenotypes reads them
           pval_ZX = 1e-6
         )
       )
+    ),
+    list(
+      trait_key = "trait_b",
+      trait_label = "Trait B",
+      gwas_source = "test",
+      proxy_type = "condition",
+      proxy_concept_ids = c(201826L),
+      proxy_direction = 1L,
+      snps = list(
+        list(
+          snp_id = "rs_test",
+          chr = 1L,
+          pos = 1001L,
+          ea = "A",
+          oa = "G",
+          eaf = 0.30,
+          beta_ZX = 0.40,
+          se_ZX = 0.01,
+          pval_ZX = 1e-8
+        )
+      )
     )
   )
 
@@ -100,6 +141,18 @@ test_that("simulateGenomicData writes staging tables and getGenotypes reads them
   expect_true(DBI::dbExistsTable(con, DBI::Id(schema = "stg", table = "genomic_variants")))
   expect_true(DBI::dbExistsTable(con, DBI::Id(schema = "stg", table = "snp_reference")))
   expect_true(DBI::dbExistsTable(con, DBI::Id(schema = "stg", table = "ancestry_pcs")))
+  expect_true(DBI::dbExistsTable(con, DBI::Id(schema = "stg", table = "snp_trait_map")))
+
+  snp_ref_rows <- DBI::dbGetQuery(
+    con,
+    "SELECT COUNT(*) AS n FROM \"stg\".\"snp_reference\" WHERE snp_id = 'rs_test'"
+  )$n
+  snp_trait_rows <- DBI::dbGetQuery(
+    con,
+    "SELECT COUNT(*) AS n FROM \"stg\".\"snp_trait_map\" WHERE snp_id = 'rs_test'"
+  )$n
+  expect_equal(snp_ref_rows, 1)
+  expect_equal(snp_trait_rows, 2)
 
   geno <- getGenotypes(cdm, "rs_test")
   expect_equal(sort(geno$person_id), 1:3)
@@ -123,7 +176,7 @@ test_that("condition phenotype proxies include explicit controls", {
   con <- CDMConnector::cdmCon(cdm)
   on.exit(DBI::dbDisconnect(con, shutdown = TRUE), add = TRUE)
 
-  snp_ref <- ETLDelphi:::buildSnpReference(
+  snp_trait_map <- ETLDelphi:::buildSnpTraitMap(
     snpPanel = list(
       list(
         trait_key = "t2d",
@@ -146,14 +199,12 @@ test_that("condition phenotype proxies include explicit controls", {
           )
         )
       )
-    ),
-    nullSnpCount = 0L,
-    seed = 42L
+    )
   )
 
   pheno <- ETLDelphi:::extractPhenotypeProxies(
     cdm = cdm,
-    snp_ref = snp_ref,
+    snp_trait_map = snp_trait_map,
     person_ids = person$person_id,
     verbose = FALSE
   )
@@ -163,7 +214,78 @@ test_that("condition phenotype proxies include explicit controls", {
   expect_equal(pheno$proxy_value, c(1, 0, 0))
 })
 
-test_that("simulateChunkGenotypes uses ancestry PCs to shift genotype frequencies", {
+test_that("simulateChunkGenotypes combines multiple trait likelihoods for one SNP", {
+  person_ids <- 1:4000
+  snp_ref <- data.frame(
+    snp_id = "rs_pleio",
+    chromosome = 1L,
+    position = 1001L,
+    effect_allele = "A",
+    other_allele = "G",
+    eaf = 0.30,
+    gene_symbol = NA_character_,
+    hgnc_id = NA_character_,
+    is_null_snp = FALSE,
+    gwas_retrieved = "2026-03-03",
+    stringsAsFactors = FALSE
+  )
+  ld_blocks <- list(list(snps = snp_ref, cor_mat = matrix(1, 1, 1)))
+  pheno_data <- rbind(
+    data.frame(
+      person_id = person_ids,
+      trait_key = "trait_a",
+      proxy_value = c(rep(2, 2000), rep(-2, 2000))
+    ),
+    data.frame(
+      person_id = person_ids,
+      trait_key = "trait_b",
+      proxy_value = c(rep(2, 2000), rep(-2, 2000))
+    )
+  )
+  single_map <- data.frame(
+    snp_id = "rs_pleio",
+    trait_key = "trait_a",
+    trait_label = "Trait A",
+    gwas_source = "test",
+    proxy_type = "measurement",
+    proxy_concept_ids = NA_character_,
+    proxy_direction = 1L,
+    beta_ZX = 0.8,
+    se_ZX = 0.01,
+    pval_ZX = 1e-6,
+    stringsAsFactors = FALSE
+  )
+  multi_map <- rbind(
+    single_map,
+    transform(single_map, trait_key = "trait_b", trait_label = "Trait B")
+  )
+
+  out_single <- ETLDelphi:::simulateChunkGenotypes(
+    person_ids = person_ids,
+    snp_ref = snp_ref,
+    ld_blocks = ld_blocks,
+    pheno_data = pheno_data,
+    pc_data = data.frame(person_id = integer(0)),
+    seed = 42L,
+    snp_trait_map = single_map
+  )
+  out_multi <- ETLDelphi:::simulateChunkGenotypes(
+    person_ids = person_ids,
+    snp_ref = snp_ref,
+    ld_blocks = ld_blocks,
+    pheno_data = pheno_data,
+    pc_data = data.frame(person_id = integer(0)),
+    seed = 42L,
+    snp_trait_map = multi_map
+  )
+
+  single_gap <- mean(out_single$genotype[1:2000]) - mean(out_single$genotype[2001:4000])
+  multi_gap <- mean(out_multi$genotype[1:2000]) - mean(out_multi$genotype[2001:4000])
+
+  expect_gt(multi_gap, single_gap + 0.12)
+})
+
+test_that("simulateChunkGenotypes uses reference frequency models to shift genotype frequencies", {
   person_ids <- 1:4000
   snp_ref <- data.frame(
     snp_id = "rs_pc",
@@ -199,6 +321,11 @@ test_that("simulateChunkGenotypes uses ancestry PCs to shift genotype frequencie
     pc2 = 0,
     pc3 = 0
   )
+  freq_model <- make_test_frequency_model(
+    snp_id = "rs_pc",
+    intercept = stats::qlogis(0.30),
+    pc1_coef = 0.20
+  )
 
   out <- ETLDelphi:::simulateChunkGenotypes(
     person_ids = person_ids,
@@ -206,11 +333,20 @@ test_that("simulateChunkGenotypes uses ancestry PCs to shift genotype frequencie
     ld_blocks = ld_blocks,
     pheno_data = pheno_data,
     pc_data = pc_data,
-    seed = 42L
+    seed = 42L,
+    freq_model = freq_model
   )
 
   low_pc_mean <- mean(out$genotype[1:2000])
   high_pc_mean <- mean(out$genotype[2001:4000])
 
   expect_gt(high_pc_mean, low_pc_mean + 0.25)
+})
+
+test_that("loadSnpFrequencyModel returns bundled reference-derived coefficients", {
+  model <- ETLDelphi:::loadSnpFrequencyModel(c("rs2228145", "rs4537545"))
+
+  expect_equal(sort(model$snp_id), c("rs2228145", "rs4537545"))
+  expect_true(all(model$min_eaf <= model$max_eaf))
+  expect_true(all(is.finite(model$intercept)))
 })

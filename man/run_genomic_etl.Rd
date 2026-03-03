@@ -26,5 +26,6 @@ PROCEDURE_OCCURRENCE records.
 }
 \details{
 Must be called AFTER \code{simulateGenomicData()} has populated the
-\code{stg.genomic_variants} and \code{stg.snp_reference} staging tables.
+\code{stg.genomic_variants}, \code{stg.snp_reference}, and
+\code{stg.snp_trait_map} staging tables.
 }

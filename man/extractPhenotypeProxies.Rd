@@ -4,7 +4,7 @@
 \alias{extractPhenotypeProxies}
 \title{Extract phenotype proxy values for all persons from CDM}
 \usage{
-extractPhenotypeProxies(cdm, snp_ref, person_ids, verbose)
+extractPhenotypeProxies(cdm, snp_trait_map, person_ids, verbose)
 }
 \description{
 For each trait in the SNP panel, query CONDITION_OCCURRENCE (for binary

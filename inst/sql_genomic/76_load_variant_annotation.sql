@@ -8,18 +8,24 @@
 --   5. effect_allele_frequency → value_as_number (EAF)
 -- ============================================================================
 
--- Use a CTE to get variant_occurrence rows with their SNP metadata
+-- Use CTEs to get variant_occurrence rows with both per-SNP and per-trait metadata
 WITH vo AS (
     SELECT
         vo.variant_occurrence_id,
         vo.rs_id,
-        sr.beta_ZX,
-        sr.pval_ZX,
-        sr.gwas_source,
-        sr.trait_label,
         sr.eaf
     FROM cdm.variant_occurrence vo
     JOIN stg.snp_reference sr ON sr.snp_id = vo.rs_id
+),
+trait_rows AS (
+    SELECT
+        vo.variant_occurrence_id,
+        stm.beta_ZX,
+        stm.pval_ZX,
+        stm.gwas_source,
+        stm.trait_label
+    FROM vo
+    JOIN stg.snp_trait_map stm ON stm.snp_id = vo.rs_id
 )
 
 INSERT INTO cdm.variant_annotation (
@@ -39,7 +45,7 @@ SELECT
 FROM (
     SELECT variant_occurrence_id, 'gwas_beta' AS annotation_field,
            NULL AS value_as_string, beta_ZX AS value_as_number
-    FROM vo
+    FROM trait_rows
     WHERE beta_ZX IS NOT NULL AND beta_ZX != 0
 
     UNION ALL
@@ -47,7 +53,7 @@ FROM (
     -- 2. GWAS p-value
     SELECT variant_occurrence_id, 'gwas_pvalue',
            NULL, pval_ZX
-    FROM vo
+    FROM trait_rows
     WHERE pval_ZX IS NOT NULL
 
     UNION ALL
@@ -55,7 +61,7 @@ FROM (
     -- 3. GWAS source (OpenGWAS ID)
     SELECT variant_occurrence_id, 'gwas_source',
            gwas_source, NULL
-    FROM vo
+    FROM trait_rows
     WHERE gwas_source IS NOT NULL
 
     UNION ALL
@@ -63,7 +69,7 @@ FROM (
     -- 4. Trait association label
     SELECT variant_occurrence_id, 'trait_association',
            trait_label, NULL
-    FROM vo
+    FROM trait_rows
     WHERE trait_label IS NOT NULL
 
     UNION ALL
