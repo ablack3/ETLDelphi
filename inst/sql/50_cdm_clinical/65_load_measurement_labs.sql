@@ -9,6 +9,7 @@ INSERT INTO cdm.measurement (
 WITH lab AS (
     SELECT
         lr.*,
+        NULLIF(TRIM(REPLACE(REPLACE(COALESCE(lr.units, ''), '[', ''), ']', '')), '') AS units_clean,
         300000000 + ROW_NUMBER() OVER (ORDER BY lr.member_id, lr.test_loinc, lr.date_resulted, lr.order_id) AS measurement_id
     FROM stg.lab_results lr
     WHERE (lr.date_resulted IS NOT NULL OR lr.date_collected IS NOT NULL)
@@ -43,8 +44,8 @@ SELECT
            END,
            0
          ) ELSE NULL END AS value_as_concept_id,
-    CASE WHEN l.units IS NOT NULL AND TRIM(l.units) <> '' THEN COALESCE(u.unit_concept_id, 0) ELSE NULL END AS unit_concept_id,
-    SUBSTR(l.units, 1, 50),
+    CASE WHEN l.units_clean IS NOT NULL THEN COALESCE(u.unit_concept_id, 0) ELSE NULL END AS unit_concept_id,
+    SUBSTR(l.units_clean, 1, 50),
     l.range_low,
     l.range_high,
     mv.visit_occurrence_id,
@@ -55,7 +56,7 @@ FROM lab l
 JOIN stg.map_person mp ON mp.member_id = l.member_id
 LEFT JOIN stg.map_loinc_measurement lm ON lm.loinc_code = l.test_loinc
 LEFT JOIN stg.custom_concept_mapping cust ON cust.source_value = TRIM(SUBSTR(COALESCE(l.test_loinc, l.test_name), 1, 50)) AND cust.domain = 'measurement'
-LEFT JOIN stg.map_units u ON u.unit_source_value = LOWER(TRIM(REPLACE(REPLACE(COALESCE(l.units, ''), '[', ''), ']', '')))
+LEFT JOIN stg.map_units u ON u.unit_source_value = LOWER(l.units_clean)
 LEFT JOIN stg.map_visit mv ON mv.encounter_id_source = l.encounter_id
 LEFT JOIN stg.map_provider mpr ON mpr.provider_id_source = l.provider_id
 LEFT JOIN stg.map_measurement_value mval ON mval.result_source_value = LOWER(TRIM(REPLACE(REPLACE(COALESCE(l.result_description, ''), '[', ''), ']', '')))

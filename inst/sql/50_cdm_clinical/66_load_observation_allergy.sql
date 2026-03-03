@@ -14,7 +14,7 @@ SELECT
     mp.person_id,
     COALESCE(NULLIF(COALESCE(ma_code.observation_concept_id, ma.observation_concept_id), 0), cust.concept_id, 0),
     a.onset_date,
-    32817,
+    {observation_type_allergy},
     SUBSTR(a.reaction, 1, 60),
     SUBSTR(a.severity_description, 1, 50),
     SUBSTR(COALESCE(a.allergen, a.drug_code), 1, 50),

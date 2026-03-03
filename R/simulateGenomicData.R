@@ -96,6 +96,39 @@
 #' @importFrom DBI dbWriteTable dbExecute dbExistsTable dbGetQuery
 #' @importFrom stats plogis qnorm rnorm pnorm rbinom setNames
 #' @export
+
+genomic_stage_schema <- function() {
+  cfg <- tryCatch(default_etl_config(), error = function(e) NULL)
+  schema <- if (!is.null(cfg) &&
+                !is.null(cfg$schemas) &&
+                !is.null(cfg$schemas$stg) &&
+                nzchar(cfg$schemas$stg)) {
+    cfg$schemas$stg
+  } else {
+    "stg"
+  }
+  schema
+}
+
+genomic_table_id <- function(table) {
+  DBI::Id(schema = genomic_stage_schema(), table = table)
+}
+
+quoted_table_name <- function(con, table_id) {
+  as.character(DBI::dbQuoteIdentifier(con, table_id))
+}
+
+find_genomic_table <- function(con, table) {
+  staged <- genomic_table_id(table)
+  if (DBI::dbExistsTable(con, staged)) {
+    return(staged)
+  }
+  if (DBI::dbExistsTable(con, table)) {
+    return(table)
+  }
+  NULL
+}
+
 simulateGenomicData <- function(
     cdm,
     snpPanel         = defaultSnpPanel(),
@@ -113,6 +146,7 @@ simulateGenomicData <- function(
   }
 
   con <- CDMConnector::cdmCon(cdm)
+  stage_schema <- genomic_stage_schema()
 
   if (!inherits(con, "duckdb_connection")) {
     stop("This function requires a DuckDB-backed CDM. ",
@@ -130,9 +164,18 @@ simulateGenomicData <- function(
   # ── 1. Check / handle existing tables ───────────────────────────────────────
 
   tables_needed <- c("genomic_variants", "ancestry_pcs", "snp_reference")
+  table_ids <- stats::setNames(lapply(tables_needed, genomic_table_id), tables_needed)
 
-  existing <- tables_needed[vapply(tables_needed, DBI::dbExistsTable,
-                                   conn = con, FUN.VALUE = logical(1))]
+  DBI::dbExecute(
+    con,
+    paste0("CREATE SCHEMA IF NOT EXISTS ", as.character(DBI::dbQuoteIdentifier(con, stage_schema)))
+  )
+
+  existing <- names(table_ids)[vapply(
+    table_ids,
+    function(tbl) DBI::dbExistsTable(con, tbl),
+    FUN.VALUE = logical(1)
+  )]
 
   if (length(existing) > 0) {
     if (!overwrite) {
@@ -144,7 +187,10 @@ simulateGenomicData <- function(
     }
     .msg("Dropping existing tables: ", paste(existing, collapse = ", "))
     for (tbl in existing) {
-      DBI::dbExecute(con, paste0("DROP TABLE IF EXISTS ", tbl))
+      DBI::dbExecute(
+        con,
+        paste0("DROP TABLE IF EXISTS ", quoted_table_name(con, table_ids[[tbl]]))
+      )
     }
   }
 
@@ -175,7 +221,7 @@ simulateGenomicData <- function(
 
   .msg("  SNPs in panel: ", nrow(snp_ref))
 
-  DBI::dbWriteTable(con, "snp_reference", snp_ref, overwrite = TRUE)
+  DBI::dbWriteTable(con, table_ids$snp_reference, snp_ref, overwrite = TRUE)
 
   # ── 4. Extract phenotype proxies from CDM ────────────────────────────────────
 
@@ -192,10 +238,11 @@ simulateGenomicData <- function(
 
   pcs <- simulateAncestryPCs(persons, n_pcs = 10L, seed = seed)
 
-  DBI::dbWriteTable(con, "ancestry_pcs", pcs, overwrite = TRUE)
+  DBI::dbWriteTable(con, table_ids$ancestry_pcs, pcs, overwrite = TRUE)
 
   DBI::dbExecute(con,
-    "CREATE INDEX IF NOT EXISTS idx_anc_person ON ancestry_pcs(person_id)")
+    paste0("CREATE INDEX IF NOT EXISTS idx_anc_person ON ",
+           quoted_table_name(con, table_ids$ancestry_pcs), "(person_id)"))
 
   .msg("  Ancestry PCs written.")
 
@@ -245,7 +292,7 @@ simulateGenomicData <- function(
     chunk_variants <- chunk_variants[chunk_variants$genotype > 0L, ]
 
     if (nrow(chunk_variants) > 0) {
-      DBI::dbWriteTable(con, "genomic_variants", chunk_variants,
+      DBI::dbWriteTable(con, table_ids$genomic_variants, chunk_variants,
                         append = TRUE, overwrite = FALSE)
       variants_written <- variants_written + nrow(chunk_variants)
     }
@@ -258,29 +305,42 @@ simulateGenomicData <- function(
 
   .msg("Creating indexes ...")
 
-  DBI::dbExecute(con,
-    "CREATE INDEX idx_gv_person ON genomic_variants(person_id)")
-  DBI::dbExecute(con,
-    "CREATE INDEX idx_gv_snp ON genomic_variants(snp_id)")
-  DBI::dbExecute(con,
-    "CREATE INDEX idx_snpref_snp ON snp_reference(snp_id)")
+  DBI::dbExecute(
+    con,
+    paste0("CREATE INDEX IF NOT EXISTS idx_gv_person ON ",
+           quoted_table_name(con, table_ids$genomic_variants), "(person_id)")
+  )
+  DBI::dbExecute(
+    con,
+    paste0("CREATE INDEX IF NOT EXISTS idx_gv_snp ON ",
+           quoted_table_name(con, table_ids$genomic_variants), "(snp_id)")
+  )
+  DBI::dbExecute(
+    con,
+    paste0("CREATE INDEX IF NOT EXISTS idx_snpref_snp ON ",
+           quoted_table_name(con, table_ids$snp_reference), "(snp_id)")
+  )
 
   # ── 8. Summary diagnostics ───────────────────────────────────────────────────
 
   if (verbose) {
-    hw_check <- DBI::dbGetQuery(con, "
-      SELECT snp_id,
-             SUM(CASE WHEN genotype = 1 THEN 1 ELSE 0 END) AS n_het,
-             SUM(CASE WHEN genotype = 2 THEN 1 ELSE 0 END) AS n_hom_alt
-      FROM genomic_variants
-      GROUP BY snp_id
-      LIMIT 5
-    ")
+    hw_check <- DBI::dbGetQuery(
+      con,
+      paste0(
+        "SELECT snp_id, ",
+        "SUM(CASE WHEN genotype = 1 THEN 1 ELSE 0 END) AS n_het, ",
+        "SUM(CASE WHEN genotype = 2 THEN 1 ELSE 0 END) AS n_hom_alt ",
+        "FROM ", quoted_table_name(con, table_ids$genomic_variants), " ",
+        "GROUP BY snp_id ",
+        "LIMIT 5"
+      )
+    )
     .msg("Hardy-Weinberg spot check (first 5 SNPs):")
     print(hw_check)
   }
 
-  .msg("Done. Tables written: genomic_variants, ancestry_pcs, snp_reference")
+  .msg("Done. Tables written to ", stage_schema,
+       ": genomic_variants, ancestry_pcs, snp_reference")
 
   invisible(cdm)
 }
@@ -518,6 +578,10 @@ buildSnpReference <- function(snpPanel, nullSnpCount, seed) {
 
   # Add null SNPs — random allele frequencies, beta_ZX = 0
   # These should show NO signal in PheWAS, useful for diagnostic demonstration
+  if (nullSnpCount < 1L) {
+    return(snp_df)
+  }
+
   set.seed(seed + 999L)
   null_snps <- data.frame(
     snp_id            = paste0("rs_null_", seq_len(nullSnpCount)),
@@ -576,22 +640,31 @@ extractPhenotypeProxies <- function(cdm, snp_ref, person_ids, verbose) {
 
     if (trait$proxy_type == "condition") {
 
-      # Persons who ever had this condition
+      # Persons who ever had this condition; everyone else is an explicit control.
       result <- tryCatch({
-        cdm$condition_occurrence |>
+        cases <- cdm$condition_occurrence |>
           dplyr::filter(condition_concept_id %in% concepts) |>
           dplyr::select(person_id) |>
           dplyr::distinct() |>
-          dplyr::collect() |>
-          dplyr::mutate(
-            trait_key   = trait_key,
-            proxy_value = 1.0
-          )
+          dplyr::collect()
+
+        out <- data.frame(
+          person_id = person_ids,
+          trait_key = trait_key,
+          proxy_value = 0.0,
+          stringsAsFactors = FALSE
+        )
+        out$proxy_value[out$person_id %in% cases$person_id] <- 1.0
+        out
       }, error = function(e) {
         message("[simulateGenomicData]   Warning: could not extract condition ",
                 trait_key, ": ", conditionMessage(e))
-        data.frame(person_id=integer(0), trait_key=character(0),
-                   proxy_value=numeric(0))
+        data.frame(
+          person_id = person_ids,
+          trait_key = trait_key,
+          proxy_value = NA_real_,
+          stringsAsFactors = FALSE
+        )
       })
 
     } else if (trait$proxy_type == "measurement") {
@@ -640,6 +713,13 @@ extractPhenotypeProxies <- function(cdm, snp_ref, person_ids, verbose) {
   }
 
   # Combine: long format — one row per person × trait with a proxy value
+  if (length(all_pheno) == 0) {
+    return(data.frame(
+      person_id = integer(0),
+      trait_key = character(0),
+      proxy_value = numeric(0)
+    ))
+  }
   pheno_df <- do.call(rbind, all_pheno)
   rownames(pheno_df) <- NULL
 
@@ -762,6 +842,17 @@ simulateChunkGenotypes <- function(person_ids, snp_ref, ld_blocks,
 
   set.seed(seed)
   n_persons <- length(person_ids)
+  pc_cols <- grep("^pc[0-9]+$", names(pc_data), value = TRUE)
+  pc_matrix <- NULL
+
+  if (length(pc_cols) > 0 && nrow(pc_data) > 0) {
+    pc_idx <- match(person_ids, pc_data$person_id)
+    if (any(!is.na(pc_idx))) {
+      pc_matrix <- as.matrix(pc_data[pc_idx, pc_cols, drop = FALSE])
+      storage.mode(pc_matrix) <- "double"
+      pc_matrix[is.na(pc_matrix)] <- 0
+    }
+  }
 
   # Result accumulator: list of data.frames, one per LD block
   result_list <- vector("list", length(ld_blocks))
@@ -806,14 +897,30 @@ simulateChunkGenotypes <- function(person_ids, snp_ref, ld_blocks,
         eaf^2
       )
 
+      if (!is.null(pc_matrix)) {
+        pc_weights <- 2.5 * (0.6 ^ (seq_len(ncol(pc_matrix)) - 1L))
+        pc_weights[seq_along(pc_weights) %% 2L == 0L] <- -pc_weights[seq_along(pc_weights) %% 2L == 0L]
+        snp_sign <- if (((snp$chromosome + snp$position) %% 2L) == 0L) 1 else -1
+        snp_scale <- 1 + ((snp$position %% 1000L) / 1000)
+        logit_p <- qlogis(pmin(pmax(eaf, 1e-6), 1 - 1e-6)) +
+          as.vector(pc_matrix %*% (pc_weights * snp_sign * snp_scale))
+        person_eaf <- pmin(pmax(plogis(logit_p), 0.01), 0.99)
+        hw_person <- cbind(
+          (1 - person_eaf)^2,
+          2 * person_eaf * (1 - person_eaf),
+          person_eaf^2
+        )
+      } else {
+        hw_person <- matrix(rep(hw, each = n_persons), nrow = n_persons)
+      }
+
       # CDF breakpoints for mapping correlated normals to genotype categories
       # These are the cumulative HW probabilities
-      hw_cum <- cumsum(hw)  # [P(G<=0), P(G<=1), P(G<=2)=1]
-
       # Retrieve phenotype proxy values for this chunk and trait
       trait_pheno <- pheno_data[pheno_data$trait_key == trait_key, ]
       # Named vector: person_id -> proxy_value
       pheno_map <- setNames(trait_pheno$proxy_value, trait_pheno$person_id)
+      beta_effect <- beta_ZX * if (!is.null(snp$proxy_direction)) snp$proxy_direction else 1
 
       # Initialise genotype vector
       geno <- integer(n_persons)
@@ -827,6 +934,8 @@ simulateChunkGenotypes <- function(person_ids, snp_ref, ld_blocks,
 
         # Check if we have a phenotype proxy value for this person
         proxy_val <- pheno_map[as.character(pid)]
+        hw_i <- hw_person[p_i, ]
+        hw_cum <- cumsum(hw_i)
 
         if (is.na(proxy_val) || snp$is_null_snp || beta_ZX == 0) {
           # No phenotype information: use latent uniform directly to
@@ -843,21 +952,21 @@ simulateChunkGenotypes <- function(person_ids, snp_ref, ld_blocks,
             # P(Y=1 | G=g) = plogis(alpha + g * beta_ZX)
             # alpha chosen so marginal P(Y=1) matches observed prevalence
             # For simulation, use alpha=0 (population average on logit scale)
-            p_y_given_g <- plogis(0 + c(0, 1, 2) * beta_ZX)
+            p_y_given_g <- plogis(0 + c(0, 1, 2) * beta_effect)
             if (proxy_val == 0) p_y_given_g <- 1 - p_y_given_g
 
           } else {
             # Continuous proxy: proxy_val is a z-score
             # P(y | G=g) ~ Normal(g * beta_ZX, 1) evaluated at proxy_val
             p_y_given_g <- dnorm(proxy_val,
-                                 mean = c(0, 1, 2) * beta_ZX,
+                                 mean = c(0, 1, 2) * beta_effect,
                                  sd   = 1)
             # Avoid underflow
             p_y_given_g <- pmax(p_y_given_g, 1e-10)
           }
 
           # Posterior ∝ likelihood × HW prior
-          posterior <- hw * p_y_given_g
+          posterior <- hw_i * p_y_given_g
           posterior <- posterior / sum(posterior)
 
           # Map the correlated latent uniform to the posterior categories
@@ -908,17 +1017,23 @@ simulateChunkGenotypes <- function(person_ids, snp_ref, ld_blocks,
 getGenotypes <- function(cdm, snp_ids, person_ids = NULL) {
 
   con <- CDMConnector::cdmCon(cdm)
+  genomic_tbl <- find_genomic_table(con, "genomic_variants")
 
-  if (!DBI::dbExistsTable(con, "genomic_variants")) {
+  if (is.null(genomic_tbl)) {
     stop("genomic_variants table not found. ",
          "Run simulateGenomicData() first.")
+  }
+  genomic_tbl_sql <- if (inherits(genomic_tbl, "Id")) {
+    quoted_table_name(con, genomic_tbl)
+  } else {
+    as.character(DBI::dbQuoteIdentifier(con, genomic_tbl))
   }
 
   # Build query
   snp_filter <- paste0("('", paste(snp_ids, collapse = "','"), "')")
 
   query <- paste0(
-    "SELECT person_id, snp_id, genotype FROM genomic_variants ",
+    "SELECT person_id, snp_id, genotype FROM ", genomic_tbl_sql, " ",
     "WHERE snp_id IN ", snp_filter
   )
 
@@ -933,7 +1048,10 @@ getGenotypes <- function(cdm, snp_ids, person_ids = NULL) {
   if (nrow(long_df) == 0) {
     # No variant rows: all genotypes are 0
     all_pids <- if (!is.null(person_ids)) person_ids else {
-      DBI::dbGetQuery(con, "SELECT DISTINCT person_id FROM genomic_variants")[[1]]
+      cdm$person |>
+        dplyr::select(person_id) |>
+        dplyr::collect() |>
+        dplyr::pull(person_id)
     }
     wide <- data.frame(person_id = all_pids)
     for (sid in snp_ids) wide[[sid]] <- 0L
@@ -944,7 +1062,10 @@ getGenotypes <- function(cdm, snp_ids, person_ids = NULL) {
   all_pids <- if (!is.null(person_ids)) {
     person_ids
   } else {
-    unique(long_df$person_id)
+    cdm$person |>
+      dplyr::select(person_id) |>
+      dplyr::collect() |>
+      dplyr::pull(person_id)
   }
 
   # Build wide matrix, filling missing with 0
@@ -973,13 +1094,19 @@ getGenotypes <- function(cdm, snp_ids, person_ids = NULL) {
 getAncestryPCs <- function(cdm, person_ids = NULL, n_pcs = 10L) {
 
   con <- CDMConnector::cdmCon(cdm)
+  pcs_tbl <- find_genomic_table(con, "ancestry_pcs")
 
-  if (!DBI::dbExistsTable(con, "ancestry_pcs")) {
+  if (is.null(pcs_tbl)) {
     stop("ancestry_pcs table not found. Run simulateGenomicData() first.")
+  }
+  pcs_tbl_sql <- if (inherits(pcs_tbl, "Id")) {
+    quoted_table_name(con, pcs_tbl)
+  } else {
+    as.character(DBI::dbQuoteIdentifier(con, pcs_tbl))
   }
 
   pc_cols <- paste0("pc", seq_len(n_pcs), collapse = ", ")
-  query   <- paste0("SELECT person_id, ", pc_cols, " FROM ancestry_pcs")
+  query   <- paste0("SELECT person_id, ", pc_cols, " FROM ", pcs_tbl_sql)
 
   if (!is.null(person_ids)) {
     pid_filter <- paste0("(", paste(person_ids, collapse = ","), ")")
@@ -1034,12 +1161,13 @@ run_genomic_etl <- function(con, config = NULL, verbose = TRUE) {
   )
 
   if (verbose) {
+    cdm <- if (!is.null(config$schemas$cdm)) config$schemas$cdm else "cdm"
     # Report counts
     counts <- list(
-      genomic_test      = DBI::dbGetQuery(con, "SELECT COUNT(*) AS n FROM cdm.genomic_test")$n,
-      target_gene       = DBI::dbGetQuery(con, "SELECT COUNT(*) AS n FROM cdm.target_gene")$n,
-      variant_occurrence = DBI::dbGetQuery(con, "SELECT COUNT(*) AS n FROM cdm.variant_occurrence")$n,
-      variant_annotation = DBI::dbGetQuery(con, "SELECT COUNT(*) AS n FROM cdm.variant_annotation")$n
+      genomic_test      = DBI::dbGetQuery(con, paste0("SELECT COUNT(*) AS n FROM ", cdm, ".genomic_test"))$n,
+      target_gene       = DBI::dbGetQuery(con, paste0("SELECT COUNT(*) AS n FROM ", cdm, ".target_gene"))$n,
+      variant_occurrence = DBI::dbGetQuery(con, paste0("SELECT COUNT(*) AS n FROM ", cdm, ".variant_occurrence"))$n,
+      variant_annotation = DBI::dbGetQuery(con, paste0("SELECT COUNT(*) AS n FROM ", cdm, ".variant_annotation"))$n
     )
     cli::cli_alert_success("G-CDM tables populated:")
     for (nm in names(counts)) {

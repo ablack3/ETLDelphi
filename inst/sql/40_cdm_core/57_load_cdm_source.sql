@@ -32,6 +32,8 @@ SELECT
     '5.4' AS cdm_version,
     COALESCE(
         (SELECT concept_id FROM cdm.concept WHERE vocabulary_id = 'CDM' AND concept_class_id = 'CDM' AND concept_code = '5.4' LIMIT 1),
-        (SELECT concept_id FROM cdm.concept WHERE vocabulary_id = 'CDM' LIMIT 1)
+        (SELECT concept_id FROM cdm.concept WHERE vocabulary_id = 'CDM' AND concept_code = '5.4.0' LIMIT 1),
+        (SELECT concept_id FROM cdm.concept WHERE vocabulary_id = 'CDM' LIMIT 1),
+        756265
     ) AS cdm_version_concept_id,
     COALESCE((SELECT vocabulary_version FROM cdm.vocabulary WHERE vocabulary_id = 'None' LIMIT 1), 'Unknown') AS vocabulary_version;

@@ -1,4 +1,4 @@
--- Load drug_exposure from stg.medication_fulfillment. Join to medication_orders for Member_ID and drug. drug_type_concept_id 32825 (EHR dispensing record).
+-- Load drug_exposure from stg.medication_fulfillment. Join to medication_orders for Member_ID and drug.
 -- Reject fulfillment rows with Order_ID not in medication_orders.
 INSERT INTO cdm.drug_exposure (
     drug_exposure_id, person_id, drug_concept_id, drug_exposure_start_date, drug_exposure_end_date,
@@ -27,7 +27,7 @@ SELECT
     COALESCE(NULLIF(m.drug_concept_id, 0), m.cust_concept_id, 0),
     m.dispense_date,
     CASE WHEN m.days_of_supply IS NOT NULL AND m.days_of_supply > 0 THEN m.dispense_date + (m.days_of_supply - 1) ELSE m.dispense_date END,
-    32825,
+    {drug_type_dispensed},
     m.dispense_qty,
     m.days_of_supply,
     NULL,

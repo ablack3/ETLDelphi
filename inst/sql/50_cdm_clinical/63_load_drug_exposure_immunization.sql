@@ -1,4 +1,4 @@
--- Load drug_exposure from stg.immunization. drug_type_concept_id 32818 (EHR administration record).
+-- Load drug_exposure from stg.immunization.
 -- drug_concept_id and drug_source_concept_id from map_immunization (CVX -> concept via Maps to).
 INSERT INTO cdm.drug_exposure (
     drug_exposure_id, person_id, drug_concept_id, drug_exposure_start_date, drug_exposure_end_date,
@@ -18,7 +18,7 @@ SELECT
     COALESCE(NULLIF(mi.drug_concept_id, 0), cust.concept_id, 0),
     i.vaccination_date,
     i.vaccination_date,
-    32818,
+    {drug_type_immunization},
     SUBSTR(i.lot_number, 1, 50),
     mpr.provider_id,
     mv.visit_occurrence_id,

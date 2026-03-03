@@ -106,11 +106,11 @@ test_that("run_etl runs to completion on a minimal DuckDB (DDL + empty src table
     DBI::dbExecute(con, paste0('CREATE TABLE src.', tbl, ' AS ', empty_select(src_tables[[tbl]])))
   }
 
-  # Use default config (same as codeToRun.R with config list)
-  out <- run_etl(con = con, config = NULL)
+  cfg <- default_etl_config()
+  cfg$schemas$cdm <- "cdm"
+  out <- run_etl(con = con, config = cfg)
   expect_true(is.list(out))
   expect_true(length(out$steps) >= 1L)
 
   DBI::dbDisconnect(con, shutdown = TRUE)
 })
-
