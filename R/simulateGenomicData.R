@@ -522,7 +522,7 @@ defaultSnpPanel <- function() {
              pval_ZX=8.4e-37, gene_symbol="GATA3", hgnc_id="HGNC:4172"),
         list(snp_id="rs3802842",  chr=11L, pos=111364628L,
              ea="C", oa="A", eaf=0.28, beta_ZX=0.17, se_ZX=0.014,
-             pval_ZX=2.3e-33, gene_symbol="COLCA1", hgnc_id="HGNC:25523")
+             pval_ZX=2.3e-33, gene_symbol="COLCA2", hgnc_id="HGNC:26978")
       )
     ),
 
