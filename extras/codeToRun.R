@@ -61,6 +61,19 @@ library(DBI)
 library(duckdb)
 library(ETLDelphi)
 
+# `run_genomic_etl` exists in the package namespace even in some older local
+# installs where it was not yet exported, so resolve it directly for
+# compatibility when running this script without reinstalling the package.
+run_genomic_etl_fn <- get0(
+  "run_genomic_etl",
+  envir = asNamespace("ETLDelphi"),
+  mode = "function",
+  inherits = FALSE
+)
+if (is.null(run_genomic_etl_fn)) {
+  stop("Could not find ETLDelphi::run_genomic_etl(). Reinstall ETLDelphi and try again.")
+}
+
 # Resolve paths relative to current working directory if not absolute
 if (!dir.exists(vocabulary_dir)) {
   stop("Vocabulary directory not found: ", vocabulary_dir)
@@ -97,8 +110,6 @@ ETLDelphi::run_etl(con = con, config = config)
 
 # --- 4. Simulate genomic data and populate G-CDM extension tables -----------
 
-# --- 4. Simulate genomic data and populate G-CDM extension tables -----------
-
 cdm <- CDMConnector::cdmFromCon(con, "main", "main")
 cdm <- ETLDelphi::simulateGenomicData(cdm, overwrite = TRUE)
 
@@ -107,7 +118,7 @@ ETLDelphi::run_genomic_etl(con = con, config = config)
 
 DBI::dbDisconnect(con, shutdown = T)
 
-con <- DBI::dbConnect(duckdb::duckdb(), "~/Desktop/delphi.duckdb")
+con <- DBI::dbConnect(duckdb::duckdb(), duckdb_path)
 
 cdm <- CDMConnector::cdmFromCon(con, "main")
 
@@ -203,7 +214,7 @@ cd <- DatabaseConnector::createConnectionDetails(
 )
 
 con <- DatabaseConnector::connect(cd)
-DatabaseConnector::querySql(con, "create schema if not exists scratch")
+DatabaseConnector::executeSql(con, "create schema if not exists scratch")
 DatabaseConnector::disconnect(con)
 
 r <- Achilles::achilles(
@@ -220,7 +231,7 @@ r <- Achilles::achilles(
 # --- 3. Run DQD ----------------------------------------------------------
 
 con <- DatabaseConnector::connect(cd)
-DatabaseConnector::querySql(con, "create schema if not exists dqd")
+DatabaseConnector::executeSql(con, "create schema if not exists dqd")
 DatabaseConnector::disconnect(con)
 
 DataQualityDashboard::executeDqChecks(
@@ -234,24 +245,15 @@ DataQualityDashboard::executeDqChecks(
   verboseMode = TRUE,
   cdmVersion = "5.4"
 )
+
 list.files(here::here("DQD_results"))
-DataQualityDashboard::viewDqDashboard(here::here("DQD_results", "delphi-2m-20260225005442.json"))
+DataQualityDashboard::viewDqDashboard(here::here("DQD_results", "delphi-2m-20260303051248.json"))
 
 
 library(CDMConnector)
 library(dplyr)
 
 con <- DBI::dbConnect(duckdb::duckdb(), duckdb_path)
-
-cdm <- cdmFromCon(
-  con,
-  cdmSchema = "main",
-  writeSchema = "scratch",
-  achillesSchema = "main"
-)
-
-snapshot(cdm) %>%
-  tidyr::gather()
 
 DBI::dbListTables(con)
 
@@ -261,15 +263,38 @@ from information_schema.tables
 where table_type in ('BASE TABLE','VIEW')
 order by 1,2;")
 
+DBI::dbExecute(con, "DROP SCHEMA scratch CASCADE;")
+DBI::dbExecute(con, "DROP SCHEMA dqd CASCADE;")
 DBI::dbExecute(con, "DROP SCHEMA stg CASCADE;")
 DBI::dbExecute(con, "DROP SCHEMA src CASCADE;")
 DBI::dbListTables(con)
+DBI::dbExecute(con, "create schema scratch;")
+
+library(CDMConnector)
+library(dplyr)
+cdm <- cdmFromCon(
+  con,
+  cdmSchema = "main",
+  writeSchema = "scratch",
+  achillesSchema = "main"
+)
+
+cdm$snp_reference <- tbl(con, "snp_reference") %>%
+  rename_all(tolower) %>%
+  compute(name = "snp_reference")
 
 
+
+
+
+
+
+snapshot(cdm) %>%
+  tidyr::gather()
 
 # cdm$source_to_concept_map
 
-unlink("~/Desktop/delphi-100k")
+unlink("~/Desktop/delphi-100k", recursive = T)
 dir.exists("~/Desktop/delphi-100k")
 exportToParquet(cdm, "~/Desktop/delphi-100k")
 
@@ -277,4 +302,3 @@ exportToParquet(cdm, "~/Desktop/delphi-100k")
 CDMConnector::cdmDisconnect(cdm)
 
 message("ETL complete. DuckDB output: ", duckdb_path)
-
